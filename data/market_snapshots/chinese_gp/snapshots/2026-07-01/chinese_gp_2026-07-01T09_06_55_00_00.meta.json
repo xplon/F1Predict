@@ -1,0 +1,15 @@
+{
+  "source": "market_snapshot",
+  "event_id": "chinese_gp",
+  "archived_at": "2026-07-01T09:06:55+00:00",
+  "snapshot_count": 33,
+  "data_path": "data\\market_snapshots\\chinese_gp\\snapshots\\2026-07-01\\chinese_gp_2026-07-01T09_06_55_00_00.jsonl",
+  "params": {
+    "input": "reports\\market_normalization\\chinese_gp_constructor_double_podium_search.json",
+    "source": "polymarket_price_history",
+    "market_type": "constructor_double_podium",
+    "knowledge_cutoff": "2026-03-15T00:00:00+00:00",
+    "lookback_hours": 168,
+    "include_closed": true
+  }
+}

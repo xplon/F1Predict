@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>F1Predict MVP</title>
+    <link rel="stylesheet" href="/styles.css?v=20260703-replay-load-order" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>F1Predict MVP</h1>
+        <p>Codex evidence, Monte Carlo simulation, and market gap analysis</p>
+      </div>
+      <div class="controls">
+        <select id="eventSelect" aria-label="Race event"></select>
+        <button id="refreshButton" type="button">Refresh</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel track-panel">
+        <div class="panel-title">
+          <h2 id="eventTitle">Race</h2>
+          <span id="eventMeta"></span>
+        </div>
+        <canvas id="trackCanvas" width="760" height="420"></canvas>
+        <div id="trackAudit" class="track-audit"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Race Probabilities</h2>
+          <span id="iterationMeta"></span>
+        </div>
+        <div id="probabilityTable" class="table"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Season Forecast</h2>
+          <span id="seasonStatus">Loading</span>
+        </div>
+        <div id="seasonTable" class="table"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Official Standings</h2>
+          <span id="officialStatus">Roster audit</span>
+        </div>
+        <div id="officialSummary" class="metric-grid"></div>
+        <div id="officialList" class="official-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Selected Simulation Replay</h2>
+          <span id="replayLapMeta">Position, tyre, pit, and weather trace</span>
+        </div>
+        <div class="replay-controls">
+          <button id="replayPlayButton" type="button">Play</button>
+          <input id="replayLapSlider" type="range" min="1" max="1" value="1" step="1" aria-label="Replay lap" />
+        </div>
+        <div id="replayFrame" class="replay-frame"></div>
+        <div class="replay-visuals">
+          <canvas id="replayTrackCanvas" width="420" height="300"></canvas>
+          <canvas id="lapCanvas" width="940" height="300"></canvas>
+        </div>
+        <div id="strategyTrace" class="strategy-trace"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Chronological Replay</h2>
+          <span id="chronologicalStatus">Full-season diagnostic bundle</span>
+        </div>
+        <div id="chronologicalSummary" class="metric-grid"></div>
+        <div id="chronologicalList" class="chronological-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Replay Diagnostics</h2>
+          <span id="analysisStatus">Diagnostic replay</span>
+        </div>
+        <div id="analysisSummary" class="metric-grid"></div>
+        <div id="rootCauseList" class="root-cause-list"></div>
+        <div id="replayTimeline" class="timeline-list"></div>
+        <div id="issueList" class="issue-list"></div>
+        <div id="sourceAuditList" class="source-audit-list"></div>
+        <div id="marketAuditList" class="source-audit-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>MVP Gate</h2>
+          <span id="mvpGateStatus">Delivery requirements</span>
+        </div>
+        <div id="mvpGateSummary" class="metric-grid"></div>
+        <div id="mvpGateList" class="mvp-gate-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Formal Readiness</h2>
+          <span id="readinessStatus">Input queue</span>
+        </div>
+        <div id="readinessSummary" class="metric-grid"></div>
+        <div id="readinessList" class="readiness-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Readiness Intake</h2>
+          <span id="intakeStatus">Assignable queues</span>
+        </div>
+        <div id="intakeSummary" class="metric-grid"></div>
+        <div id="intakeList" class="intake-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Market Readiness</h2>
+          <span id="marketReadinessStatus">Candidate scan</span>
+        </div>
+        <div id="marketReadinessSummary" class="metric-grid"></div>
+        <div id="marketReadinessList" class="market-readiness-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Source Readiness</h2>
+          <span id="sourceReadinessStatus">Archive proof</span>
+        </div>
+        <div id="sourceReadinessSummary" class="metric-grid"></div>
+        <div id="sourceReadinessList" class="source-readiness-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Improvement Plan</h2>
+          <span id="improvementStatus">Next actions</span>
+        </div>
+        <div id="improvementSummary" class="metric-grid"></div>
+        <div id="improvementList" class="improvement-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Calibration</h2>
+          <span id="calibrationStatus">Diagnostic only</span>
+        </div>
+        <div id="calibrationSummary" class="metric-grid"></div>
+        <div id="calibrationBins" class="table calibration-table"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Model Error Review</h2>
+          <span id="modelErrorStatus">Replay miss analysis</span>
+        </div>
+        <div id="modelErrorSummary" class="metric-grid"></div>
+        <div id="modelErrorList" class="model-error-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Simulator Calibration</h2>
+          <span id="simulatorCalibrationStatus">Diagnostic candidate ranking</span>
+        </div>
+        <div id="simulatorCalibrationSummary" class="metric-grid"></div>
+        <div id="simulatorCalibrationList" class="simulator-calibration-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Replay Freeze</h2>
+          <span id="freezeStatus">Reproducibility manifest</span>
+        </div>
+        <div id="freezeSummary" class="metric-grid"></div>
+        <div id="freezeList" class="freeze-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Market Gap</h2>
+          <span>Model vs market</span>
+        </div>
+        <div id="edgeTable" class="table"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Prediction Packet</h2>
+          <span id="packetStatus">Audit artifact</span>
+        </div>
+        <div id="packetSummary" class="packet-summary"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Codex Judgement</h2>
+          <span>Normalized evidence only</span>
+        </div>
+        <div id="aiJudgement" class="note"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Codex Research Plan</h2>
+          <span id="researchPlanStatus">Source tasks and impact rubric</span>
+        </div>
+        <div id="researchPlanSummary" class="metric-grid"></div>
+        <div id="researchPlanList" class="research-plan-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Source Candidate Audit</h2>
+          <span id="sourceCandidateStatus">Codex search/open source gate</span>
+        </div>
+        <div id="sourceCandidateSummary" class="metric-grid"></div>
+        <div id="sourceCandidateList" class="preflight-list source-candidate-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Research Packet Preflight</h2>
+          <span id="researchPreflightStatus">Source links, conflicts, weights, routes</span>
+        </div>
+        <div id="researchPreflightSummary" class="metric-grid"></div>
+        <div id="researchPreflightList" class="preflight-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Codex Impact</h2>
+          <span>Evidence sensitivity</span>
+        </div>
+        <div id="evidenceImpactList" class="impact-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Normalized Factor Trace</h2>
+          <span id="technicalTraceStatus">Normalized factor routing</span>
+        </div>
+        <div id="technicalTraceList" class="technical-trace-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Codex Quality</h2>
+          <span>Source and review audit</span>
+        </div>
+        <div id="evidenceQualityList" class="quality-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Codex Evidence</h2>
+          <span>Source-backed structured claims</span>
+        </div>
+        <div id="evidenceList" class="evidence-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>Structured Data Features</h2>
+          <span>Processed OpenF1 adjustments</span>
+        </div>
+        <div id="featureList" class="evidence-list"></div>
+      </section>
+    </main>
+
+    <script src="/app.js?v=20260703-replay-load-order"></script>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "source": "research_sources",
+  "dataset": "japanese_gp_f1_official_5684499c0aa6",
+  "captured_at": "2026-06-30T09:45:53+00:00",
+  "params": {
+    "event_id": "japanese_gp",
+    "url": "https://www.formula1.com/en/latest/article/ghost-car-see-how-antonelli-beat-russell-in-the-fight-for-japanese-gp-pole.74oeva6ogrmuAg4Nd79wp4",
+    "source_class": "f1_official",
+    "published_at": "2026-03-28T10:20:14.270Z",
+    "observed_at": "2026-03-28T10:20:14.270Z",
+    "knowledge_cutoff": "2026-03-29T00:00:00+00:00"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\research_sources\\japanese_gp_f1_official_5684499c0aa6\\2026-06-30\\japanese_gp_f1_official_5684499c0aa6_2026-06-30T09_45_53_00_00.json"
+}

@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_Bahrain Grand Prix_63",
+  "captured_at": "2026-06-30T11:49:59+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Bahrain Grand Prix",
+    "meeting_key": 1282,
+    "circuit_key": 63,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/63/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_Bahrain_Grand_Prix_63\\2026-06-30\\2026_Bahrain_Grand_Prix_63_2026-06-30T11_49_59_00_00.json"
+}

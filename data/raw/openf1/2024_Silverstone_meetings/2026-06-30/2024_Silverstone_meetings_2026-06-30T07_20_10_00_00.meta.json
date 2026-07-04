@@ -1,0 +1,11 @@
+{
+  "source": "openf1",
+  "dataset": "2024_Silverstone_meetings",
+  "captured_at": "2026-06-30T07:20:10+00:00",
+  "params": {
+    "year": 2024,
+    "event_query": "Silverstone"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\openf1\\2024_Silverstone_meetings\\2026-06-30\\2024_Silverstone_meetings_2026-06-30T07_20_10_00_00.json"
+}

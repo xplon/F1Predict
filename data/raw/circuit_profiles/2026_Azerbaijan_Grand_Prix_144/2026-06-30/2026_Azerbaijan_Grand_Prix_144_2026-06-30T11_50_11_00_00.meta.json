@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_Azerbaijan Grand Prix_144",
+  "captured_at": "2026-06-30T11:50:11+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Azerbaijan Grand Prix",
+    "meeting_key": 1295,
+    "circuit_key": 144,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/144/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_Azerbaijan_Grand_Prix_144\\2026-06-30\\2026_Azerbaijan_Grand_Prix_144_2026-06-30T11_50_11_00_00.json"
+}

@@ -1,0 +1,15 @@
+{
+  "source": "f1_official_circuit_map",
+  "event_id": "bahrain_gp",
+  "event_name": "Bahrain Grand Prix",
+  "round_number": 4,
+  "circuit_key": 63,
+  "circuit_short_name": "Sakhir",
+  "url": "https://media.formula1.com/image/upload/c_lfill%2Cw_3392/q_auto/v1740000001/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Bahrain_Circuit.webp",
+  "asset_path": "web/assets/tracks/bahrain_gp.webp",
+  "web_path": "/assets/tracks/bahrain_gp.webp",
+  "raw_path": "data/raw/circuit_images/2026_f1_official_track_icons/2026-06-30/bahrain_gp.webp",
+  "bytes": 50134,
+  "captured_at": "2026-07-01T10:45:03+00:00",
+  "sha256": "931b15325ecbbbf1ed7de01a50d93a1c916c5b735eeee858802dcdaeb5b0e152"
+}

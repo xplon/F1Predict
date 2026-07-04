@@ -1,0 +1,49 @@
+{
+  "event_id": "barcelona_gp",
+  "event_name": "Barcelona Grand Prix",
+  "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+  "sources": [
+    {
+      "source": "Formula1.com official race-week report",
+      "url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+      "title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+      "published_at": "2026-06-13T15:27:57.860Z",
+      "observed_at": "2026-06-13T15:27:57.860Z",
+      "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+      "cutoff_status": "within_cutoff",
+      "source_class": "f1_official",
+      "reliability": 0.95,
+      "captured_at": "2026-06-30T09:45:59+00:00",
+      "snapshot_path": "data\\raw\\research_sources\\barcelona_gp_f1_official_4465b00509cc\\2026-06-30\\barcelona_gp_f1_official_4465b00509cc_2026-06-30T09_45_59_00_00.json",
+      "content_length": 483785,
+      "used_in_claim_ids": [
+        "barcelona_gp-f1official-qualifying-hamilton-frontrow-001"
+      ],
+      "notes": "Retrospectively captured Formula1.com race-week source; published before replay cutoff, but archived after the cutoff for diagnostic backfill."
+    }
+  ],
+  "source_record_schema": {
+    "source": "name",
+    "url": "https://...",
+    "title": "optional page title",
+    "published_at": "ISO timestamp or null",
+    "observed_at": "ISO timestamp",
+    "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+    "cutoff_status": "within_cutoff|after_cutoff_published|after_cutoff_observed|unknown_published_at",
+    "source_class": "fia|f1_official|team_or_driver|media|weather|market|structured_data",
+    "reliability": "default score assigned from source_class",
+    "captured_at": "snapshot capture ISO timestamp",
+    "snapshot_path": "data/raw/research_sources/...",
+    "historical_archive": {
+      "archive_url": "https://webcache-or-archive.example/snapshot",
+      "archived_at": "ISO timestamp at or before cutoff",
+      "original_url": "https://...",
+      "verified_at": "ISO timestamp when Codex verified the archive",
+      "verification_method": "wayback|memento|publisher_archive|manual_review",
+      "notes": "optional archive proof notes"
+    },
+    "content_length": 0,
+    "used_in_claim_ids": [],
+    "notes": "short audit note"
+  }
+}

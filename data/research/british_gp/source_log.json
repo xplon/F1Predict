@@ -1,0 +1,49 @@
+{
+  "event_id": "british_gp",
+  "event_name": "British Grand Prix",
+  "knowledge_cutoff": "2026-06-30T12:00:00+00:00",
+  "sources": [
+    {
+      "source": "Open-Meteo forecast API",
+      "url": "https://api.open-meteo.com/v1/forecast?latitude=52.0733&longitude=-1.0147&daily=precipitation_probability_max,precipitation_sum,weather_code&hourly=precipitation_probability,precipitation&timezone=UTC&start_date=2026-07-05&end_date=2026-07-05",
+      "title": null,
+      "published_at": "2026-06-30T08:38:16+00:00",
+      "observed_at": "2026-06-30T08:38:16+00:00",
+      "knowledge_cutoff": "2026-06-30T12:00:00+00:00",
+      "cutoff_status": "within_cutoff",
+      "source_class": "weather",
+      "reliability": 0.7,
+      "captured_at": "2026-06-30T08:38:16+00:00",
+      "snapshot_path": "data\\raw\\research_sources\\british_gp_weather_f53251daa1e7\\2026-06-30\\british_gp_weather_f53251daa1e7_2026-06-30T08_38_16_00_00.json",
+      "content_length": 1174,
+      "used_in_claim_ids": [
+        "british_gp-weather-openmeteo-001"
+      ],
+      "notes": "Forecast snapshot for Silverstone coordinates used to calibrate wet-weather risk before British GP."
+    }
+  ],
+  "source_record_schema": {
+    "source": "name",
+    "url": "https://...",
+    "title": "optional page title",
+    "published_at": "ISO timestamp or null",
+    "observed_at": "ISO timestamp",
+    "knowledge_cutoff": "2026-06-30T12:00:00+00:00",
+    "cutoff_status": "within_cutoff|after_cutoff_published|after_cutoff_observed|unknown_published_at",
+    "source_class": "fia|f1_official|team_or_driver|media|weather|market|structured_data",
+    "reliability": "default score assigned from source_class",
+    "captured_at": "snapshot capture ISO timestamp",
+    "snapshot_path": "data/raw/research_sources/...",
+    "historical_archive": {
+      "archive_url": "https://webcache-or-archive.example/snapshot",
+      "archived_at": "ISO timestamp at or before cutoff",
+      "original_url": "https://...",
+      "verified_at": "ISO timestamp when Codex verified the archive",
+      "verification_method": "wayback|memento|publisher_archive|manual_review",
+      "notes": "optional archive proof notes"
+    },
+    "content_length": 0,
+    "used_in_claim_ids": [],
+    "notes": "short audit note"
+  }
+}

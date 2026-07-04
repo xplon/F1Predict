@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "f1predict"
+version = "0.1.0"
+description = "MVP F1 prediction and market edge analysis system"
+requires-python = ">=3.10"
+dependencies = [
+    "fastf1>=3.8.3",
+]
+
+[project.scripts]
+f1predict = "f1predict.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

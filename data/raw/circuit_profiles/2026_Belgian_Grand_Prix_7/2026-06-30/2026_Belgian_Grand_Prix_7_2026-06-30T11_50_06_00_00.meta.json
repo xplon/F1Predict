@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_Belgian Grand Prix_7",
+  "captured_at": "2026-06-30T11:50:06+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Belgian Grand Prix",
+    "meeting_key": 1290,
+    "circuit_key": 7,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/7/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_Belgian_Grand_Prix_7\\2026-06-30\\2026_Belgian_Grand_Prix_7_2026-06-30T11_50_06_00_00.json"
+}

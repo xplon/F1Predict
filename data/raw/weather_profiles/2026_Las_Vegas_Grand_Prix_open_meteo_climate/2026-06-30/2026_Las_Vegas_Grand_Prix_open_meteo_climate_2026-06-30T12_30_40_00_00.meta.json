@@ -1,0 +1,19 @@
+{
+  "source": "weather_profiles",
+  "dataset": "2026_Las Vegas Grand Prix_open_meteo_climate",
+  "captured_at": "2026-06-30T12:30:40+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Las Vegas Grand Prix",
+    "event_date": "2026-11-22T06:00:00+00:00",
+    "baseline_start_year": 2016,
+    "baseline_end_year": 2025,
+    "window_days": 3,
+    "location_query": "Las Vegas",
+    "archive_url": "https://archive-api.open-meteo.com/v1/archive?latitude=36.17497&longitude=-115.13722&start_date=2016-11-19&end_date=2025-11-25&daily=precipitation_sum%2Crain_sum%2Cweather_code&timezone=UTC",
+    "geocoding_url": "https://geocoding-api.open-meteo.com/v1/search?name=Las+Vegas&count=10&language=en&format=json",
+    "source": "open_meteo_archive_api"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\weather_profiles\\2026_Las_Vegas_Grand_Prix_open_meteo_climate\\2026-06-30\\2026_Las_Vegas_Grand_Prix_open_meteo_climate_2026-06-30T12_30_40_00_00.json"
+}

@@ -1,0 +1,16 @@
+{
+  "source": "f1_official_circuit_map",
+  "event_id": "united_states_gp",
+  "event_name": "United States Grand Prix",
+  "round_number": 19,
+  "circuit_key": 9,
+  "circuit_short_name": "Austin",
+  "url": "https://media.formula1.com/image/upload/c_lfill%2Cw_3392/q_auto/v1740000001/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/USA_Circuit.webp",
+  "asset_path": "web/assets/tracks/united_states_gp.webp",
+  "web_path": "/assets/tracks/united_states_gp.webp",
+  "raw_path": "data/raw/circuit_images/2026_f1_official_track_icons/2026-06-30/united_states_gp.webp",
+  "bytes": 48824,
+  "captured_at": "2026-07-01T10:45:03+00:00",
+  "page_url": "https://www.formula1.com/en/information/united-states-circuit-of-the-americas-austin.5RpZ6us0a3FoaoRxTMpbxI",
+  "sha256": "9fbdcdb73192c75c064734fe9099908be2051539988a79ea2d57ddf1ef7388c0"
+}

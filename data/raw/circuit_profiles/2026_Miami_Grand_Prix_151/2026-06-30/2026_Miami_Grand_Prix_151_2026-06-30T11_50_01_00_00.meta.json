@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_Miami Grand Prix_151",
+  "captured_at": "2026-06-30T11:50:01+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Miami Grand Prix",
+    "meeting_key": 1284,
+    "circuit_key": 151,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/151/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_Miami_Grand_Prix_151\\2026-06-30\\2026_Miami_Grand_Prix_151_2026-06-30T11_50_01_00_00.json"
+}

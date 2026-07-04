@@ -1,0 +1,676 @@
+{
+  "season": 2026,
+  "teams": [
+    {
+      "team_id": "mercedes",
+      "name": "Mercedes",
+      "base_strength": 1.24,
+      "reliability": 0.965,
+      "strategy": 0.74,
+      "track_affinity": {
+        "high_speed": 0.18,
+        "street": 0.02,
+        "technical": 0.08,
+        "power": 0.15
+      }
+    },
+    {
+      "team_id": "ferrari",
+      "name": "Ferrari",
+      "base_strength": 1.05,
+      "reliability": 0.948,
+      "strategy": 0.61,
+      "track_affinity": {
+        "high_speed": 0.07,
+        "street": 0.12,
+        "technical": 0.04,
+        "power": 0.05
+      }
+    },
+    {
+      "team_id": "mclaren",
+      "name": "McLaren",
+      "base_strength": 0.98,
+      "reliability": 0.956,
+      "strategy": 0.68,
+      "track_affinity": {
+        "high_speed": 0.10,
+        "street": 0.04,
+        "technical": 0.13,
+        "power": 0.01
+      }
+    },
+    {
+      "team_id": "red_bull",
+      "name": "Red Bull Racing",
+      "base_strength": 0.93,
+      "reliability": 0.938,
+      "strategy": 0.77,
+      "track_affinity": {
+        "high_speed": 0.11,
+        "street": 0.10,
+        "technical": 0.07,
+        "power": 0.00
+      }
+    },
+    {
+      "team_id": "aston_martin",
+      "name": "Aston Martin",
+      "base_strength": 0.56,
+      "reliability": 0.940,
+      "strategy": 0.55,
+      "track_affinity": {
+        "high_speed": -0.02,
+        "street": 0.05,
+        "technical": 0.04,
+        "power": -0.01
+      }
+    },
+    {
+      "team_id": "williams",
+      "name": "Williams",
+      "base_strength": 0.50,
+      "reliability": 0.932,
+      "strategy": 0.50,
+      "track_affinity": {
+        "high_speed": 0.04,
+        "street": -0.03,
+        "technical": -0.02,
+        "power": 0.06
+      }
+    },
+    {
+      "team_id": "alpine",
+      "name": "Alpine",
+      "base_strength": 0.43,
+      "reliability": 0.925,
+      "strategy": 0.48,
+      "track_affinity": {
+        "high_speed": -0.04,
+        "street": 0.00,
+        "technical": 0.02,
+        "power": -0.03
+      }
+    },
+    {
+      "team_id": "haas",
+      "name": "Haas",
+      "base_strength": 0.40,
+      "reliability": 0.920,
+      "strategy": 0.46,
+      "track_affinity": {
+        "high_speed": -0.01,
+        "street": -0.02,
+        "technical": -0.01,
+        "power": 0.00
+      }
+    },
+    {
+      "team_id": "audi",
+      "name": "Audi",
+      "base_strength": 0.37,
+      "reliability": 0.915,
+      "strategy": 0.44,
+      "track_affinity": {
+        "high_speed": -0.03,
+        "street": -0.01,
+        "technical": -0.02,
+        "power": -0.01
+      }
+    },
+    {
+      "team_id": "racing_bulls",
+      "name": "Racing Bulls",
+      "base_strength": 0.41,
+      "reliability": 0.923,
+      "strategy": 0.49,
+      "track_affinity": {
+        "high_speed": -0.02,
+        "street": 0.01,
+        "technical": 0.00,
+        "power": -0.02
+      }
+    },
+    {
+      "team_id": "cadillac",
+      "name": "Cadillac",
+      "base_strength": 0.34,
+      "reliability": 0.910,
+      "strategy": 0.42,
+      "track_affinity": {
+        "high_speed": -0.02,
+        "street": -0.02,
+        "technical": -0.03,
+        "power": 0.00
+      }
+    }
+  ],
+  "drivers": [
+    {
+      "driver_id": "antonelli",
+      "name": "Kimi Antonelli",
+      "team_id": "mercedes",
+      "base_skill": 0.45,
+      "qualifying": 0.30,
+      "racecraft": 0.24,
+      "tyre_management": 0.15,
+      "wet_skill": 0.12,
+      "reliability_modifier": -0.006,
+      "current_points": 171,
+      "external_ids": {}
+    },
+    {
+      "driver_id": "russell",
+      "name": "George Russell",
+      "team_id": "mercedes",
+      "base_skill": 0.39,
+      "qualifying": 0.27,
+      "racecraft": 0.19,
+      "tyre_management": 0.18,
+      "wet_skill": 0.16,
+      "reliability_modifier": 0.004,
+      "current_points": 131,
+      "external_ids": {
+        "openf1_driver_number": "63"
+      }
+    },
+    {
+      "driver_id": "hamilton",
+      "name": "Lewis Hamilton",
+      "team_id": "ferrari",
+      "base_skill": 0.42,
+      "qualifying": 0.20,
+      "racecraft": 0.30,
+      "tyre_management": 0.24,
+      "wet_skill": 0.24,
+      "reliability_modifier": 0.002,
+      "current_points": 125,
+      "external_ids": {
+        "openf1_driver_number": "44"
+      }
+    },
+    {
+      "driver_id": "leclerc",
+      "name": "Charles Leclerc",
+      "team_id": "ferrari",
+      "base_skill": 0.36,
+      "qualifying": 0.32,
+      "racecraft": 0.14,
+      "tyre_management": 0.10,
+      "wet_skill": 0.11,
+      "reliability_modifier": -0.004,
+      "current_points": 79,
+      "external_ids": {
+        "openf1_driver_number": "16"
+      }
+    },
+    {
+      "driver_id": "piastri",
+      "name": "Oscar Piastri",
+      "team_id": "mclaren",
+      "base_skill": 0.31,
+      "qualifying": 0.21,
+      "racecraft": 0.18,
+      "tyre_management": 0.16,
+      "wet_skill": 0.08,
+      "reliability_modifier": 0.004,
+      "current_points": 80,
+      "external_ids": {
+        "openf1_driver_number": "81"
+      }
+    },
+    {
+      "driver_id": "norris",
+      "name": "Lando Norris",
+      "team_id": "mclaren",
+      "base_skill": 0.34,
+      "qualifying": 0.23,
+      "racecraft": 0.22,
+      "tyre_management": 0.18,
+      "wet_skill": 0.15,
+      "reliability_modifier": 0.002,
+      "current_points": 79,
+      "external_ids": {
+        "openf1_driver_number": "4"
+      }
+    },
+    {
+      "driver_id": "verstappen",
+      "name": "Max Verstappen",
+      "team_id": "red_bull",
+      "base_skill": 0.55,
+      "qualifying": 0.36,
+      "racecraft": 0.34,
+      "tyre_management": 0.22,
+      "wet_skill": 0.25,
+      "reliability_modifier": 0.000,
+      "current_points": 73,
+      "external_ids": {
+        "openf1_driver_number": "1"
+      }
+    },
+    {
+      "driver_id": "hadjar",
+      "name": "Isack Hadjar",
+      "team_id": "red_bull",
+      "base_skill": 0.09,
+      "qualifying": 0.08,
+      "racecraft": 0.08,
+      "tyre_management": 0.06,
+      "wet_skill": 0.05,
+      "reliability_modifier": -0.004,
+      "current_points": 42,
+      "external_ids": {}
+    },
+    {
+      "driver_id": "alonso",
+      "name": "Fernando Alonso",
+      "team_id": "aston_martin",
+      "base_skill": 0.22,
+      "qualifying": 0.17,
+      "racecraft": 0.23,
+      "tyre_management": 0.20,
+      "wet_skill": 0.20,
+      "reliability_modifier": 0.002,
+      "current_points": 1,
+      "external_ids": {
+        "openf1_driver_number": "14"
+      }
+    },
+    {
+      "driver_id": "stroll",
+      "name": "Lance Stroll",
+      "team_id": "aston_martin",
+      "base_skill": 0.02,
+      "qualifying": 0.01,
+      "racecraft": 0.03,
+      "tyre_management": 0.04,
+      "wet_skill": 0.06,
+      "reliability_modifier": -0.006,
+      "current_points": 0,
+      "external_ids": {
+        "openf1_driver_number": "18"
+      }
+    },
+    {
+      "driver_id": "albon",
+      "name": "Alex Albon",
+      "team_id": "williams",
+      "base_skill": 0.15,
+      "qualifying": 0.12,
+      "racecraft": 0.13,
+      "tyre_management": 0.12,
+      "wet_skill": 0.11,
+      "reliability_modifier": 0.000,
+      "current_points": 5,
+      "external_ids": {
+        "openf1_driver_number": "23"
+      }
+    },
+    {
+      "driver_id": "sainz",
+      "name": "Carlos Sainz",
+      "team_id": "williams",
+      "base_skill": 0.18,
+      "qualifying": 0.13,
+      "racecraft": 0.15,
+      "tyre_management": 0.16,
+      "wet_skill": 0.13,
+      "reliability_modifier": 0.002,
+      "current_points": 6,
+      "external_ids": {
+        "openf1_driver_number": "55"
+      }
+    },
+    {
+      "driver_id": "gasly",
+      "name": "Pierre Gasly",
+      "team_id": "alpine",
+      "base_skill": 0.12,
+      "qualifying": 0.10,
+      "racecraft": 0.11,
+      "tyre_management": 0.10,
+      "wet_skill": 0.12,
+      "reliability_modifier": -0.002,
+      "current_points": 41,
+      "external_ids": {
+        "openf1_driver_number": "10"
+      }
+    },
+    {
+      "driver_id": "colapinto",
+      "name": "Franco Colapinto",
+      "team_id": "alpine",
+      "base_skill": 0.02,
+      "qualifying": 0.02,
+      "racecraft": 0.02,
+      "tyre_management": 0.02,
+      "wet_skill": 0.01,
+      "reliability_modifier": -0.004,
+      "current_points": 16,
+      "external_ids": {}
+    },
+    {
+      "driver_id": "ocon",
+      "name": "Esteban Ocon",
+      "team_id": "haas",
+      "base_skill": 0.09,
+      "qualifying": 0.07,
+      "racecraft": 0.10,
+      "tyre_management": 0.08,
+      "wet_skill": 0.09,
+      "reliability_modifier": -0.003,
+      "current_points": 3,
+      "external_ids": {
+        "openf1_driver_number": "31"
+      }
+    },
+    {
+      "driver_id": "bearman",
+      "name": "Oliver Bearman",
+      "team_id": "haas",
+      "base_skill": 0.04,
+      "qualifying": 0.05,
+      "racecraft": 0.03,
+      "tyre_management": 0.03,
+      "wet_skill": 0.02,
+      "reliability_modifier": -0.004,
+      "current_points": 18,
+      "external_ids": {
+        "openf1_driver_number": "87"
+      }
+    },
+    {
+      "driver_id": "hulkenberg",
+      "name": "Nico Hulkenberg",
+      "team_id": "audi",
+      "base_skill": 0.08,
+      "qualifying": 0.09,
+      "racecraft": 0.07,
+      "tyre_management": 0.07,
+      "wet_skill": 0.08,
+      "reliability_modifier": -0.003,
+      "current_points": 0,
+      "external_ids": {
+        "openf1_driver_number": "27"
+      }
+    },
+    {
+      "driver_id": "bortoleto",
+      "name": "Gabriel Bortoleto",
+      "team_id": "audi",
+      "base_skill": 0.00,
+      "qualifying": 0.03,
+      "racecraft": 0.01,
+      "tyre_management": 0.02,
+      "wet_skill": 0.01,
+      "reliability_modifier": -0.005,
+      "current_points": 2,
+      "external_ids": {}
+    },
+    {
+      "driver_id": "lawson",
+      "name": "Liam Lawson",
+      "team_id": "racing_bulls",
+      "base_skill": 0.05,
+      "qualifying": 0.04,
+      "racecraft": 0.04,
+      "tyre_management": 0.04,
+      "wet_skill": 0.03,
+      "reliability_modifier": -0.004,
+      "current_points": 30,
+      "external_ids": {}
+    },
+    {
+      "driver_id": "lindblad",
+      "name": "Arvid Lindblad",
+      "team_id": "racing_bulls",
+      "base_skill": 0.02,
+      "qualifying": 0.03,
+      "racecraft": 0.02,
+      "tyre_management": 0.02,
+      "wet_skill": 0.02,
+      "reliability_modifier": -0.005,
+      "current_points": 14,
+      "external_ids": {}
+    },
+    {
+      "driver_id": "bottas",
+      "name": "Valtteri Bottas",
+      "team_id": "cadillac",
+      "base_skill": 0.08,
+      "qualifying": 0.08,
+      "racecraft": 0.08,
+      "tyre_management": 0.08,
+      "wet_skill": 0.08,
+      "reliability_modifier": -0.003,
+      "current_points": 0,
+      "external_ids": {}
+    },
+    {
+      "driver_id": "perez",
+      "name": "Sergio Perez",
+      "team_id": "cadillac",
+      "base_skill": 0.10,
+      "qualifying": 0.07,
+      "racecraft": 0.10,
+      "tyre_management": 0.09,
+      "wet_skill": 0.08,
+      "reliability_modifier": -0.004,
+      "current_points": 0,
+      "external_ids": {}
+    }
+  ],
+  "events": [
+    {
+      "event_id": "australian_gp",
+      "name": "Australian Grand Prix",
+      "round_number": 1,
+      "date": "2026-03-08",
+      "track_type": "street",
+      "laps": 58,
+      "completed": true,
+      "weather_prior": {
+        "wet_probability": 0.18,
+        "safety_car_probability": 0.62
+      },
+      "track_map": [
+        [0.06, 0.62],
+        [0.18, 0.48],
+        [0.32, 0.37],
+        [0.50, 0.34],
+        [0.67, 0.42],
+        [0.82, 0.58],
+        [0.76, 0.76],
+        [0.58, 0.84],
+        [0.36, 0.80],
+        [0.18, 0.72],
+        [0.06, 0.62]
+      ],
+      "actual_result": ["antonelli", "hamilton", "russell", "verstappen", "norris"]
+    },
+    {
+      "event_id": "chinese_gp",
+      "name": "Chinese Grand Prix",
+      "round_number": 2,
+      "date": "2026-03-22",
+      "track_type": "power",
+      "laps": 56,
+      "completed": true,
+      "weather_prior": {
+        "wet_probability": 0.10,
+        "safety_car_probability": 0.38
+      },
+      "track_map": [
+        [0.16, 0.54],
+        [0.22, 0.36],
+        [0.42, 0.28],
+        [0.62, 0.32],
+        [0.76, 0.46],
+        [0.74, 0.62],
+        [0.58, 0.74],
+        [0.34, 0.72],
+        [0.18, 0.64],
+        [0.16, 0.54]
+      ],
+      "actual_result": ["russell", "antonelli", "leclerc", "hamilton", "piastri"]
+    },
+    {
+      "event_id": "japanese_gp",
+      "name": "Japanese Grand Prix",
+      "round_number": 3,
+      "date": "2026-04-05",
+      "track_type": "technical",
+      "laps": 53,
+      "completed": true,
+      "weather_prior": {
+        "wet_probability": 0.26,
+        "safety_car_probability": 0.30
+      },
+      "track_map": [
+        [0.08, 0.56],
+        [0.20, 0.44],
+        [0.32, 0.55],
+        [0.44, 0.43],
+        [0.58, 0.51],
+        [0.70, 0.34],
+        [0.86, 0.44],
+        [0.78, 0.68],
+        [0.52, 0.78],
+        [0.28, 0.72],
+        [0.08, 0.56]
+      ],
+      "actual_result": ["verstappen", "antonelli", "norris", "russell", "hamilton"]
+    },
+    {
+      "event_id": "british_gp",
+      "name": "British Grand Prix",
+      "round_number": 9,
+      "date": "2026-07-05",
+      "track_type": "high_speed",
+      "laps": 52,
+      "completed": false,
+      "weather_prior": {
+        "wet_probability": 0.34,
+        "safety_car_probability": 0.42
+      },
+      "track_map": [
+        [0.07, 0.58],
+        [0.17, 0.43],
+        [0.32, 0.34],
+        [0.50, 0.30],
+        [0.68, 0.37],
+        [0.84, 0.52],
+        [0.77, 0.70],
+        [0.61, 0.80],
+        [0.42, 0.74],
+        [0.29, 0.62],
+        [0.17, 0.72],
+        [0.07, 0.58]
+      ],
+      "actual_result": [],
+      "feature_refs": {
+        "openf1_analogue": {
+          "year": 2024,
+          "event_query": "Silverstone"
+        }
+      }
+    },
+    {
+      "event_id": "belgian_gp",
+      "name": "Belgian Grand Prix",
+      "round_number": 10,
+      "date": "2026-07-19",
+      "track_type": "high_speed",
+      "laps": 44,
+      "completed": false,
+      "weather_prior": {
+        "wet_probability": 0.39,
+        "safety_car_probability": 0.36
+      },
+      "track_map": [
+        [0.12, 0.72],
+        [0.20, 0.50],
+        [0.32, 0.32],
+        [0.54, 0.24],
+        [0.72, 0.34],
+        [0.84, 0.54],
+        [0.74, 0.76],
+        [0.50, 0.84],
+        [0.28, 0.80],
+        [0.12, 0.72]
+      ],
+      "actual_result": []
+    }
+  ],
+  "markets": [
+    {
+      "market_id": "seed_australian_gp_winner",
+      "event_id": "australian_gp",
+      "market_type": "winner",
+      "captured_at": "2026-03-07T12:00:00Z",
+      "prices": {
+        "antonelli": 0.31,
+        "russell": 0.24,
+        "hamilton": 0.16,
+        "leclerc": 0.10,
+        "piastri": 0.07,
+        "norris": 0.07,
+        "verstappen": 0.05
+      },
+      "liquidity": 18500,
+      "spread_estimate": 0.035
+    },
+    {
+      "market_id": "seed_chinese_gp_winner",
+      "event_id": "chinese_gp",
+      "market_type": "winner",
+      "captured_at": "2026-03-21T12:00:00Z",
+      "prices": {
+        "antonelli": 0.34,
+        "russell": 0.25,
+        "hamilton": 0.14,
+        "leclerc": 0.10,
+        "piastri": 0.07,
+        "norris": 0.06,
+        "verstappen": 0.04
+      },
+      "liquidity": 21200,
+      "spread_estimate": 0.032
+    },
+    {
+      "market_id": "seed_japanese_gp_winner",
+      "event_id": "japanese_gp",
+      "market_type": "winner",
+      "captured_at": "2026-04-04T12:00:00Z",
+      "prices": {
+        "antonelli": 0.32,
+        "russell": 0.22,
+        "hamilton": 0.13,
+        "leclerc": 0.10,
+        "piastri": 0.08,
+        "norris": 0.07,
+        "verstappen": 0.08
+      },
+      "liquidity": 19800,
+      "spread_estimate": 0.036
+    },
+    {
+      "market_id": "seed_british_gp_winner",
+      "event_id": "british_gp",
+      "market_type": "winner",
+      "captured_at": "2026-06-30T12:00:00Z",
+      "prices": {
+        "antonelli": 0.36,
+        "russell": 0.27,
+        "hamilton": 0.15,
+        "leclerc": 0.07,
+        "piastri": 0.05,
+        "norris": 0.05,
+        "verstappen": 0.17
+      },
+      "liquidity": 29000,
+      "spread_estimate": 0.040
+    }
+  ]
+}

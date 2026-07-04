@@ -1,0 +1,15 @@
+{
+  "source": "f1_official_circuit_map",
+  "event_id": "mexico_city_gp",
+  "event_name": "Mexico City Grand Prix",
+  "round_number": 20,
+  "circuit_key": 65,
+  "circuit_short_name": "Mexico City",
+  "url": "https://media.formula1.com/image/upload/c_lfill%2Cw_3392/q_auto/v1740000001/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Mexico_Circuit.png",
+  "asset_path": "web/assets/tracks/mexico_city_gp.png",
+  "web_path": "/assets/tracks/mexico_city_gp.png",
+  "raw_path": "data/raw/circuit_images/2026_f1_official_track_icons/2026-06-30/mexico_city_gp.png",
+  "bytes": 54437,
+  "captured_at": "2026-07-01T10:45:03+00:00",
+  "sha256": "2bd32d84675fb40723fddd5add1ea270ade9587226d7a70cbe48b27e1464b3e7"
+}

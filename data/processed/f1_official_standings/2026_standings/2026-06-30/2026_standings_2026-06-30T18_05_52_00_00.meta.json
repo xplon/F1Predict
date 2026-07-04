@@ -1,0 +1,14 @@
+{
+  "source": "f1_official_standings",
+  "dataset": "2026_standings",
+  "captured_at": "2026-06-30T18:05:52+00:00",
+  "params": {
+    "year": 2026,
+    "knowledge_cutoff": null,
+    "driver_source_path": "data\\raw\\f1_official\\2026_drivers\\2026-06-30\\2026_drivers_2026-06-30T07_44_26_00_00.json",
+    "team_source_path": "data\\raw\\f1_official\\2026_teams\\2026-06-30\\2026_teams_2026-06-30T07_44_26_00_00.json",
+    "source_captured_at": "2026-06-30T07:44:26+00:00"
+  },
+  "item_count": 1,
+  "data_path": "data\\processed\\f1_official_standings\\2026_standings\\2026-06-30\\2026_standings_2026-06-30T18_05_52_00_00.json"
+}

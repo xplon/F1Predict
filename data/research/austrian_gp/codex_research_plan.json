@@ -1,0 +1,502 @@
+{
+  "generated_at": "2026-07-03T08:32:35+00:00",
+  "event_id": "austrian_gp",
+  "event_name": "Austrian Grand Prix",
+  "knowledge_cutoff": "2026-06-28T00:00:00+00:00",
+  "status": "review_required_evidence_present",
+  "event_context": {
+    "round_number": 10,
+    "date": "2026-06-28",
+    "track_type": "high_speed",
+    "laps": 71,
+    "completed": true,
+    "wet_probability_prior": 0.5286,
+    "input_source": "openf1_calendar_generated",
+    "track_asset_source": "f1_official_circuit_map",
+    "race_week_forecast_present": false
+  },
+  "existing_evidence": [
+    {
+      "claim_id": "austrian_gp-f1official-qualifying-russell-pole-001",
+      "source": "Formula1.com official race-week report",
+      "source_url": "https://www.formula1.com/en/latest/article/russell-beats-leclerc-and-hamilton-to-austrian-gp-pole-after-dramatic-late-verstappen-crash.6oiA7Tyo3B89DFJNLWtG8P",
+      "target_type": "driver",
+      "target_id": "russell",
+      "metric": "qualifying_pace",
+      "direction": "positive",
+      "signed_impact": 0.022,
+      "review_required": true
+    }
+  ],
+  "source_tasks": [
+    {
+      "task_id": "austrian_gp:f1-official-fia",
+      "source_class": "f1_official",
+      "title": "Official and FIA Context",
+      "priority": "P0",
+      "reliability_floor": 0.9,
+      "query_templates": [
+        "Austrian Grand Prix 2026-06-28 Formula 1 official preview classification",
+        "Austrian Grand Prix 2026-06-28 FIA documents race director notes",
+        "Austrian Grand Prix 2026-06-28 penalties grid changes FIA"
+      ],
+      "acceptance_checks": [
+        "Source is Formula1.com, FIA.com, or a linked official document.",
+        "Publication and observation timestamps are at or before the cutoff.",
+        "Classification, penalties, or rules claims include the governing document or official page."
+      ],
+      "rejection_rules": [
+        "Reject fan summaries when the official document is available.",
+        "Reject any post-cutoff classification or penalty update for replay cutoffs."
+      ],
+      "model_metrics": [
+        "reliability",
+        "strategy",
+        "qualifying_pace"
+      ],
+      "expected_claim_types": [
+        "rules",
+        "penalty",
+        "classification",
+        "schedule"
+      ]
+    },
+    {
+      "task_id": "austrian_gp:team-updates-track-fit",
+      "source_class": "team_or_driver",
+      "title": "Team Upgrades and Track Fit",
+      "priority": "P0",
+      "reliability_floor": 0.8,
+      "query_templates": [
+        "Austrian Grand Prix 2026-06-28 team upgrades Mercedes Ferrari McLaren Red Bull Racing",
+        "Austrian Grand Prix 2026-06-28 track characteristics high_speed F1",
+        "Austrian Grand Prix 2026-06-28 Mercedes Ferrari McLaren Red Bull preview"
+      ],
+      "acceptance_checks": [
+        "Prefer team releases, named team principal quotes, or established outlets quoting named staff.",
+        "Tie every claimed effect to a metric such as race_pace, power_unit, energy_recovery, straight_line_speed, drag_efficiency, low_speed_traction, weight, upgrade_effect, tyre_deg, strategy, or reliability.",
+        "Use small magnitude unless the source says the part or issue is event-specific and already run-tested."
+      ],
+      "rejection_rules": [
+        "Reject unsourced upgrade rumors as model inputs; store only as review_required rumor claims if needed.",
+        "Reject generic optimism unless it maps to a specific car, circuit, weather, or reliability mechanism."
+      ],
+      "model_metrics": [
+        "race_pace",
+        "qualifying_pace",
+        "power_unit",
+        "energy_recovery",
+        "straight_line_speed",
+        "drag_efficiency",
+        "low_speed_traction",
+        "weight",
+        "upgrade_effect",
+        "tyre_deg",
+        "reliability"
+      ],
+      "expected_claim_types": [
+        "upgrade",
+        "track_fit",
+        "setup",
+        "power_unit",
+        "aero",
+        "weight",
+        "reliability"
+      ]
+    },
+    {
+      "task_id": "austrian_gp:weather",
+      "source_class": "weather",
+      "title": "Weather and Track Conditions",
+      "priority": "P0",
+      "reliability_floor": 0.7,
+      "query_templates": [
+        "Austrian Grand Prix 2026-06-28 weather forecast race rain wind track temperature",
+        "Austrian Grand Prix 2026-06-28 circuit weather radar F1",
+        "Austrian Grand Prix 2026-06-28 qualifying race forecast"
+      ],
+      "acceptance_checks": [
+        "Weather claim states forecast window, race session timing, rain probability, and wind or temperature when available.",
+        "Forecast source is captured at or before the knowledge cutoff.",
+        "Wet or wind claims are translated into wet_skill, strategy, reliability, or qualifying_pace effects."
+      ],
+      "rejection_rules": [
+        "Reject vague 'rain possible' claims without timing or probability.",
+        "Reject forecasts updated after the cutoff unless historical archive proof is attached."
+      ],
+      "model_metrics": [
+        "wet_skill",
+        "strategy",
+        "reliability",
+        "qualifying_pace"
+      ],
+      "expected_claim_types": [
+        "weather",
+        "track_condition"
+      ]
+    },
+    {
+      "task_id": "austrian_gp:structured-session-data",
+      "source_class": "structured_data",
+      "title": "Structured Session and Form Data",
+      "priority": "P1",
+      "reliability_floor": 0.85,
+      "query_templates": [
+        "OpenF1 Austrian Grand Prix 2026-06-28 laps stints weather race control",
+        "FastF1 Austrian Grand Prix 2026-06-28 session results lap times",
+        "Austrian Grand Prix 2026-06-28 long run pace tyre degradation F1"
+      ],
+      "acceptance_checks": [
+        "Structured data claims include session, metric, and cutoff availability.",
+        "Practice claims distinguish low-fuel headline pace from long-run race pace.",
+        "Race result claims are only used when the prediction cutoff is after the race."
+      ],
+      "rejection_rules": [
+        "Reject practice fastest-lap headlines as race pace unless stint context is available.",
+        "Reject same-event race result data for pre-race prediction cutoffs."
+      ],
+      "model_metrics": [
+        "race_pace",
+        "qualifying_pace",
+        "straight_line_speed",
+        "energy_recovery",
+        "low_speed_traction",
+        "tyre_deg",
+        "reliability"
+      ],
+      "expected_claim_types": [
+        "session_pace",
+        "long_run",
+        "speed_trap",
+        "sector_pace",
+        "tyre_deg",
+        "race_control"
+      ]
+    },
+    {
+      "task_id": "austrian_gp:market-rules",
+      "source_class": "market",
+      "title": "Market Rules and Snapshot Eligibility",
+      "priority": "P1",
+      "reliability_floor": 0.65,
+      "query_templates": [
+        "Austrian Grand Prix Polymarket winner market rules 2026-06-28",
+        "Austrian Grand Prix Polymarket F1 podium pole fastest lap market",
+        "Austrian Grand Prix prediction market final classification rules"
+      ],
+      "acceptance_checks": [
+        "Market rule claims identify resolution source, cancellation handling, and post-race change handling.",
+        "Price data is not embedded as evidence; it must enter through MarketSnapshot ingestion.",
+        "Candidate market season, event, and outcome mapping are unambiguous."
+      ],
+      "rejection_rules": [
+        "Reject mismatched season markets even if the race name matches.",
+        "Reject price screenshots or prose odds as formal market snapshots."
+      ],
+      "model_metrics": [
+        "strategy"
+      ],
+      "expected_claim_types": [
+        "market_rules",
+        "settlement",
+        "candidate_market"
+      ]
+    },
+    {
+      "task_id": "austrian_gp:independent-media-corroboration",
+      "source_class": "media",
+      "title": "Independent Corroboration",
+      "priority": "P2",
+      "reliability_floor": 0.7,
+      "query_templates": [
+        "Austrian Grand Prix 2026-06-28 F1 paddock notes named reporting",
+        "Austrian Grand Prix 2026-06-28 race preview upgrades reliability named sources",
+        "Austrian Grand Prix 2026-06-28 driver interviews team quotes"
+      ],
+      "acceptance_checks": [
+        "Media claim has named outlet, author or agency, and a publication timestamp.",
+        "High-impact claims are corroborated by official, team, structured-data, or second independent media source.",
+        "Conflicting sources are captured as separate claims with review_required=true."
+      ],
+      "rejection_rules": [
+        "Reject social reposts, anonymous rumors, and aggregation pages as standalone high-confidence evidence.",
+        "Reject claims where the original source cannot be identified."
+      ],
+      "model_metrics": [
+        "race_pace",
+        "qualifying_pace",
+        "power_unit",
+        "energy_recovery",
+        "straight_line_speed",
+        "drag_efficiency",
+        "low_speed_traction",
+        "weight",
+        "upgrade_effect",
+        "tyre_deg",
+        "reliability",
+        "strategy",
+        "wet_skill"
+      ],
+      "expected_claim_types": [
+        "corroboration",
+        "quote",
+        "contradiction",
+        "risk"
+      ]
+    }
+  ],
+  "source_reliability_rubric": {
+    "f1_official": 0.95,
+    "fia": 0.95,
+    "market": 0.65,
+    "media": 0.75,
+    "rumor": 0.35,
+    "social": 0.2,
+    "structured_data": 0.85,
+    "team_or_driver": 0.85,
+    "weather": 0.7
+  },
+  "impact_bands": [
+    {
+      "band": "negligible",
+      "signed_magnitude_range": [
+        -0.01,
+        0.01
+      ],
+      "confidence_cap": 0.75,
+      "use_when": "Context is directionally relevant but unlikely to change simulation ordering.",
+      "review_rule": "May be archived without review only when source reliability is at least 0.75."
+    },
+    {
+      "band": "small",
+      "signed_magnitude_range": [
+        -0.03,
+        0.03
+      ],
+      "confidence_cap": 0.72,
+      "use_when": "Single-source setup, weather, or form signal with plausible but limited race effect.",
+      "review_rule": "Review required when source reliability is below 0.70 or timestamps are uncertain."
+    },
+    {
+      "band": "moderate",
+      "signed_magnitude_range": [
+        -0.06,
+        0.06
+      ],
+      "confidence_cap": 0.68,
+      "use_when": "Source-backed event-specific issue, upgrade, penalty, or weather signal likely to move a target group.",
+      "review_rule": "Needs source linkage plus either official/team/structured source or independent corroboration."
+    },
+    {
+      "band": "material",
+      "signed_magnitude_range": [
+        -0.1,
+        0.1
+      ],
+      "confidence_cap": 0.62,
+      "use_when": "Confirmed grid penalty, major reliability issue, substantial rain change, or run-tested upgrade effect.",
+      "review_rule": "Always review; require at least one high-reliability source and explicit reasoning."
+    }
+  ],
+  "metric_guidance": {
+    "race_pace": {
+      "targets": [
+        "team",
+        "driver"
+      ],
+      "valid_claim_types": [
+        "upgrade",
+        "track_fit",
+        "long_run",
+        "setup",
+        "form"
+      ],
+      "notes": "Use for clean-air or long-run speed. Do not use headline practice fastest laps alone."
+    },
+    "qualifying_pace": {
+      "targets": [
+        "team",
+        "driver"
+      ],
+      "valid_claim_types": [
+        "single_lap",
+        "traffic",
+        "warmup",
+        "grid_penalty"
+      ],
+      "notes": "Use for low-fuel or grid-position signals; keep separate from race pace."
+    },
+    "tyre_deg": {
+      "targets": [
+        "team",
+        "driver",
+        "event"
+      ],
+      "valid_claim_types": [
+        "long_run",
+        "track_temperature",
+        "compound",
+        "thermal_deg"
+      ],
+      "notes": "Positive direction means better tyre management or lower degradation."
+    },
+    "reliability": {
+      "targets": [
+        "team",
+        "driver"
+      ],
+      "valid_claim_types": [
+        "mechanical_issue",
+        "power_unit",
+        "gearbox",
+        "crash_risk"
+      ],
+      "notes": "Positive direction means lower DNF or penalty risk."
+    },
+    "wet_skill": {
+      "targets": [
+        "driver",
+        "event"
+      ],
+      "valid_claim_types": [
+        "weather",
+        "rain_timing",
+        "wind",
+        "track_condition"
+      ],
+      "notes": "Event-level weather changes wet probability; driver-level claims affect relative wet performance."
+    },
+    "strategy": {
+      "targets": [
+        "team",
+        "event",
+        "market"
+      ],
+      "valid_claim_types": [
+        "pit_window",
+        "safety_car",
+        "compound",
+        "market_rules"
+      ],
+      "notes": "Use for pit-loss, safety-car optionality, compound constraints, or settlement interpretation."
+    },
+    "power_unit": {
+      "targets": [
+        "team",
+        "driver"
+      ],
+      "valid_claim_types": [
+        "power_unit",
+        "engine_mode",
+        "turbo",
+        "deployment",
+        "track_fit"
+      ],
+      "notes": "Use for combustion/turbo/power-unit strength. The simulator weights this more on power and high-speed tracks."
+    },
+    "energy_recovery": {
+      "targets": [
+        "team",
+        "driver"
+      ],
+      "valid_claim_types": [
+        "ers",
+        "battery",
+        "clipping",
+        "deployment",
+        "harvesting"
+      ],
+      "notes": "Use for battery, harvesting, and clipping claims. Positive means stronger deployment or less clipping."
+    },
+    "straight_line_speed": {
+      "targets": [
+        "team",
+        "driver"
+      ],
+      "valid_claim_types": [
+        "speed_trap",
+        "drag",
+        "deployment",
+        "track_fit"
+      ],
+      "notes": "Use for straight-line pace that is not purely power-unit reliability. Weighted higher on power/high-speed circuits."
+    },
+    "drag_efficiency": {
+      "targets": [
+        "team",
+        "driver"
+      ],
+      "valid_claim_types": [
+        "aero_efficiency",
+        "rear_wing",
+        "drag",
+        "upgrade"
+      ],
+      "notes": "Positive means better speed for a given downforce; negative captures draggy packages or clipping-sensitive setups."
+    },
+    "low_speed_traction": {
+      "targets": [
+        "team",
+        "driver"
+      ],
+      "valid_claim_types": [
+        "traction",
+        "mechanical_grip",
+        "launch",
+        "slow_corner"
+      ],
+      "notes": "Use for starts, traction zones, and slow-corner exits. Weighted higher on street and low-speed tracks."
+    },
+    "weight": {
+      "targets": [
+        "team",
+        "driver"
+      ],
+      "valid_claim_types": [
+        "overweight",
+        "minimum_weight",
+        "weight_saving"
+      ],
+      "notes": "Positive means lighter or closer to minimum weight; negative means overweight or ballast-related loss."
+    },
+    "upgrade_effect": {
+      "targets": [
+        "team",
+        "driver"
+      ],
+      "valid_claim_types": [
+        "upgrade",
+        "floor",
+        "sidepod",
+        "beam_wing",
+        "package_validation"
+      ],
+      "notes": "Use only when a specific upgrade is linked to observed or stated performance. Keep review_required for rumors."
+    }
+  },
+  "quality_gates": [
+    "Codex must not emit final probabilities or direct trading recommendations.",
+    "Every claim must link to a snapshotted source URL and claim id in source_log.json.",
+    "published_at and observed_at must be at or before knowledge_cutoff unless the claim is rejected.",
+    "A late local snapshot needs cutoff-valid historical_archive proof before it can support formal replay.",
+    "Claims with source reliability below 0.70, unknown publication time, source conflict, or material impact must set review_required=true.",
+    "Technical claims must state the mechanism and circuit context before using power_unit, energy_recovery, drag_efficiency, low_speed_traction, weight, or upgrade_effect.",
+    "Magnitude must stay within the impact band justified by source quality and corroboration.",
+    "Market prices must enter through MarketSnapshot ingestion, not through Codex evidence claims."
+  ],
+  "tool_workflow": [
+    "Run `python -m f1predict.cli prepare-research --event austrian_gp --knowledge-cutoff 2026-06-28T00:00:00+00:00` if workspace files are missing.",
+    "Use the source tasks in this plan to search web/FIA/team/weather/market sources.",
+    "Fill data/research/<event_id>/research_packet_template.json with inspected sources and normalized claims.",
+    "Attach historical_archive proof for any source inspected after the replay cutoff.",
+    "Run `python -m f1predict.cli archive-research-packet --input data/research/austrian_gp/research_packet_template.json --event austrian_gp --knowledge-cutoff 2026-06-28T00:00:00+00:00`.",
+    "Run `python -m f1predict.cli prediction-packet --event austrian_gp --knowledge-cutoff 2026-06-28T00:00:00+00:00 --iterations 1200 --write` before discussing edge quality."
+  ],
+  "output_contract": {
+    "research_packet_path": "data/research/austrian_gp/research_packet_template.json",
+    "draft_evidence_path": "data/research/austrian_gp/draft_evidence.jsonl",
+    "source_log_path": "data/research/austrian_gp/source_log.json",
+    "archive_command": "python -m f1predict.cli archive-research-packet --input data/research/austrian_gp/research_packet_template.json --event austrian_gp --knowledge-cutoff 2026-06-28T00:00:00+00:00",
+    "prediction_packet_command": "python -m f1predict.cli prediction-packet --event austrian_gp --knowledge-cutoff 2026-06-28T00:00:00+00:00 --iterations 1200 --write"
+  }
+}

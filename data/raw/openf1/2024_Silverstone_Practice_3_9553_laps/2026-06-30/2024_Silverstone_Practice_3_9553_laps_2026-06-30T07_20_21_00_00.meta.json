@@ -1,0 +1,11 @@
+{
+  "source": "openf1",
+  "dataset": "2024_Silverstone_Practice 3_9553_laps",
+  "captured_at": "2026-06-30T07:20:21+00:00",
+  "params": {
+    "session_key": 9553,
+    "endpoint": "laps"
+  },
+  "item_count": 438,
+  "data_path": "data\\raw\\openf1\\2024_Silverstone_Practice_3_9553_laps\\2026-06-30\\2024_Silverstone_Practice_3_9553_laps_2026-06-30T07_20_21_00_00.json"
+}

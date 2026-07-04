@@ -1,0 +1,22 @@
+[
+  {
+    "meeting_key": 1240,
+    "meeting_name": "British Grand Prix",
+    "meeting_official_name": "FORMULA 1 QATAR AIRWAYS BRITISH GRAND PRIX 2024",
+    "location": "Silverstone",
+    "country_key": 2,
+    "country_code": "GBR",
+    "country_name": "United Kingdom",
+    "country_flag": "https://media.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/united-kingdom-flag.png",
+    "circuit_key": 2,
+    "circuit_short_name": "Silverstone",
+    "circuit_type": "Permanent",
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/2/2024",
+    "circuit_image": "https://media.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Great Britain%20carbon.png",
+    "gmt_offset": "01:00:00",
+    "date_start": "2024-07-05T11:30:00+00:00",
+    "date_end": "2024-07-07T16:00:00+00:00",
+    "year": 2024,
+    "is_cancelled": false
+  }
+]

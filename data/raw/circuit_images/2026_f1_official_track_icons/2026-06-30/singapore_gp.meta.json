@@ -1,0 +1,15 @@
+{
+  "source": "f1_official_circuit_map",
+  "event_id": "singapore_gp",
+  "event_name": "Singapore Grand Prix",
+  "round_number": 18,
+  "circuit_key": 61,
+  "circuit_short_name": "Singapore",
+  "url": "https://media.formula1.com/image/upload/c_lfill%2Cw_3392/q_auto/v1740000001/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Singapore_Circuit.webp",
+  "asset_path": "web/assets/tracks/singapore_gp.webp",
+  "web_path": "/assets/tracks/singapore_gp.webp",
+  "raw_path": "data/raw/circuit_images/2026_f1_official_track_icons/2026-06-30/singapore_gp.webp",
+  "bytes": 57726,
+  "captured_at": "2026-07-01T10:45:03+00:00",
+  "sha256": "b87d496f540309f97921abafdb24ee3779f96e9ddb54620b5a78e14afea09561"
+}

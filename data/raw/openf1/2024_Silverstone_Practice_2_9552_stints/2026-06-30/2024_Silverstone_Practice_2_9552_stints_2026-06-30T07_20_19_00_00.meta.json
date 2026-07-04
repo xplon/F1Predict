@@ -1,0 +1,11 @@
+{
+  "source": "openf1",
+  "dataset": "2024_Silverstone_Practice 2_9552_stints",
+  "captured_at": "2026-06-30T07:20:19+00:00",
+  "params": {
+    "session_key": 9552,
+    "endpoint": "stints"
+  },
+  "item_count": 82,
+  "data_path": "data\\raw\\openf1\\2024_Silverstone_Practice_2_9552_stints\\2026-06-30\\2024_Silverstone_Practice_2_9552_stints_2026-06-30T07_20_19_00_00.json"
+}

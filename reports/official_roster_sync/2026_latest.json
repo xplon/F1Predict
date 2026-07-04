@@ -1,0 +1,14 @@
+{
+  "year": 2026,
+  "generated_at": "2026-06-30T18:16:24+00:00",
+  "seed_path": "data\\seed\\demo_season.json",
+  "knowledge_cutoff": null,
+  "source_captured_at": "2026-06-30T07:44:26+00:00",
+  "current_roster_status": "aligned",
+  "status": "no_changes",
+  "operation_count": 0,
+  "auto_apply_count": 0,
+  "review_required_count": 0,
+  "operations": [],
+  "warnings": []
+}

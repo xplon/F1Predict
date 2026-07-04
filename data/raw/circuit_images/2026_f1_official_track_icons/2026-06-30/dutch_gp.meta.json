@@ -1,0 +1,15 @@
+{
+  "source": "f1_official_circuit_map",
+  "event_id": "dutch_gp",
+  "event_name": "Dutch Grand Prix",
+  "round_number": 14,
+  "circuit_key": 55,
+  "circuit_short_name": "Zandvoort",
+  "url": "https://media.formula1.com/image/upload/c_lfill%2Cw_3392/q_auto/v1740000001/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Netherlands_Circuit.webp",
+  "asset_path": "web/assets/tracks/dutch_gp.webp",
+  "web_path": "/assets/tracks/dutch_gp.webp",
+  "raw_path": "data/raw/circuit_images/2026_f1_official_track_icons/2026-06-30/dutch_gp.webp",
+  "bytes": 130030,
+  "captured_at": "2026-07-01T10:45:03+00:00",
+  "sha256": "aeab7fa78286adf8f58554ba0ed492821fb36e4f660af089d739ed2a07a87258"
+}

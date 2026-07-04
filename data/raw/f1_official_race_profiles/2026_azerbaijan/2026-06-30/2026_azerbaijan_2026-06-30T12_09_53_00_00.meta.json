@@ -1,0 +1,12 @@
+{
+  "source": "f1_official_race_profiles",
+  "dataset": "2026_azerbaijan",
+  "captured_at": "2026-06-30T12:09:53+00:00",
+  "params": {
+    "year": 2026,
+    "slug": "azerbaijan",
+    "url": "https://www.formula1.com/en/racing/2026/azerbaijan"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\f1_official_race_profiles\\2026_azerbaijan\\2026-06-30\\2026_azerbaijan_2026-06-30T12_09_53_00_00.json"
+}

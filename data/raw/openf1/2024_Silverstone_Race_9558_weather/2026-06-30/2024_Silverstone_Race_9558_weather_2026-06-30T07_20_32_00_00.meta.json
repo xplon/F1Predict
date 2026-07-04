@@ -1,0 +1,11 @@
+{
+  "source": "openf1",
+  "dataset": "2024_Silverstone_Race_9558_weather",
+  "captured_at": "2026-06-30T07:20:32+00:00",
+  "params": {
+    "session_key": 9558,
+    "endpoint": "weather"
+  },
+  "item_count": 147,
+  "data_path": "data\\raw\\openf1\\2024_Silverstone_Race_9558_weather\\2026-06-30\\2024_Silverstone_Race_9558_weather_2026-06-30T07_20_32_00_00.json"
+}

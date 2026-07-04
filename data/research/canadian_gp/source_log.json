@@ -1,0 +1,49 @@
+{
+  "event_id": "canadian_gp",
+  "event_name": "Canadian Grand Prix",
+  "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+  "sources": [
+    {
+      "source": "Formula1.com official race-week report",
+      "url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+      "title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+      "published_at": "2026-05-23T21:19:02.498Z",
+      "observed_at": "2026-05-23T21:19:02.498Z",
+      "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+      "cutoff_status": "within_cutoff",
+      "source_class": "f1_official",
+      "reliability": 0.95,
+      "captured_at": "2026-06-30T09:45:56+00:00",
+      "snapshot_path": "data\\raw\\research_sources\\canadian_gp_f1_official_dc72e8c304fb\\2026-06-30\\canadian_gp_f1_official_dc72e8c304fb_2026-06-30T09_45_56_00_00.json",
+      "content_length": 480755,
+      "used_in_claim_ids": [
+        "canadian_gp-f1official-qualifying-russell-pole-001"
+      ],
+      "notes": "Retrospectively captured Formula1.com race-week source; published before replay cutoff, but archived after the cutoff for diagnostic backfill."
+    }
+  ],
+  "source_record_schema": {
+    "source": "name",
+    "url": "https://...",
+    "title": "optional page title",
+    "published_at": "ISO timestamp or null",
+    "observed_at": "ISO timestamp",
+    "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+    "cutoff_status": "within_cutoff|after_cutoff_published|after_cutoff_observed|unknown_published_at",
+    "source_class": "fia|f1_official|team_or_driver|media|weather|market|structured_data",
+    "reliability": "default score assigned from source_class",
+    "captured_at": "snapshot capture ISO timestamp",
+    "snapshot_path": "data/raw/research_sources/...",
+    "historical_archive": {
+      "archive_url": "https://webcache-or-archive.example/snapshot",
+      "archived_at": "ISO timestamp at or before cutoff",
+      "original_url": "https://...",
+      "verified_at": "ISO timestamp when Codex verified the archive",
+      "verification_method": "wayback|memento|publisher_archive|manual_review",
+      "notes": "optional archive proof notes"
+    },
+    "content_length": 0,
+    "used_in_claim_ids": [],
+    "notes": "short audit note"
+  }
+}

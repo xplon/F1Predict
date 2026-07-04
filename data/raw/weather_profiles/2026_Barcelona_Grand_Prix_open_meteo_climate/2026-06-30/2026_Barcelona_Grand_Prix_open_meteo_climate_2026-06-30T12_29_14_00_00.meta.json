@@ -1,0 +1,19 @@
+{
+  "source": "weather_profiles",
+  "dataset": "2026_Barcelona Grand Prix_open_meteo_climate",
+  "captured_at": "2026-06-30T12:29:14+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Barcelona Grand Prix",
+    "event_date": "2026-06-14T15:00:00+00:00",
+    "baseline_start_year": 2016,
+    "baseline_end_year": 2025,
+    "window_days": 3,
+    "location_query": "Barcelona",
+    "archive_url": "https://archive-api.open-meteo.com/v1/archive?latitude=41.38879&longitude=2.15899&start_date=2016-06-11&end_date=2025-06-17&daily=precipitation_sum%2Crain_sum%2Cweather_code&timezone=UTC",
+    "geocoding_url": "https://geocoding-api.open-meteo.com/v1/search?name=Barcelona&count=10&language=en&format=json",
+    "source": "open_meteo_archive_api"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\weather_profiles\\2026_Barcelona_Grand_Prix_open_meteo_climate\\2026-06-30\\2026_Barcelona_Grand_Prix_open_meteo_climate_2026-06-30T12_29_14_00_00.json"
+}

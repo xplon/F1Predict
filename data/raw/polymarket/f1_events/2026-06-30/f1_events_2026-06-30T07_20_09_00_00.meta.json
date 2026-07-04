@@ -1,0 +1,11 @@
+{
+  "source": "polymarket",
+  "dataset": "f1_events",
+  "captured_at": "2026-06-30T07:20:09+00:00",
+  "params": {
+    "tag_slug": "f1",
+    "limit": 5
+  },
+  "item_count": 5,
+  "data_path": "data\\raw\\polymarket\\f1_events\\2026-06-30\\f1_events_2026-06-30T07_20_09_00_00.json"
+}

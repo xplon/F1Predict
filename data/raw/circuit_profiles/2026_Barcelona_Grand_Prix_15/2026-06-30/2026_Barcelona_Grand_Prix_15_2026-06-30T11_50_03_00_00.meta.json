@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_Barcelona Grand Prix_15",
+  "captured_at": "2026-06-30T11:50:03+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Barcelona Grand Prix",
+    "meeting_key": 1287,
+    "circuit_key": 15,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/15/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_Barcelona_Grand_Prix_15\\2026-06-30\\2026_Barcelona_Grand_Prix_15_2026-06-30T11_50_03_00_00.json"
+}

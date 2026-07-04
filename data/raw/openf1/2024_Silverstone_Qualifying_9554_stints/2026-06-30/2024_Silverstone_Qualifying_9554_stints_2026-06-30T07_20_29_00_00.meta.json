@@ -1,0 +1,11 @@
+{
+  "source": "openf1",
+  "dataset": "2024_Silverstone_Qualifying_9554_stints",
+  "captured_at": "2026-06-30T07:20:29+00:00",
+  "params": {
+    "session_key": 9554,
+    "endpoint": "stints"
+  },
+  "item_count": 102,
+  "data_path": "data\\raw\\openf1\\2024_Silverstone_Qualifying_9554_stints\\2026-06-30\\2024_Silverstone_Qualifying_9554_stints_2026-06-30T07_20_29_00_00.json"
+}

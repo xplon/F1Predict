@@ -1,0 +1,39 @@
+{
+  "packet_id": "chinese_gp-codex-research-001",
+  "event_id": "chinese_gp",
+  "knowledge_cutoff": "2026-03-15T00:00:00+00:00",
+  "sources": [
+    {
+      "source": "REPLACE_WITH_SOURCE_NAME",
+      "url": "REPLACE_WITH_SOURCE_URL",
+      "source_class": "media",
+      "published_at": "REPLACE_WITH_ISO_TIMESTAMP",
+      "observed_at": "REPLACE_WITH_ISO_TIMESTAMP",
+      "used_in_claim_ids": [
+        "chinese_gp-codex-001"
+      ],
+      "notes": "Why this source is relevant and how reliable it is."
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "chinese_gp-codex-001",
+      "event_id": "chinese_gp",
+      "source": "REPLACE_WITH_SOURCE_NAME",
+      "source_url": "REPLACE_WITH_SOURCE_URL",
+      "published_at": "REPLACE_WITH_ISO_TIMESTAMP",
+      "observed_at": "REPLACE_WITH_ISO_TIMESTAMP",
+      "target_type": "team",
+      "target_id": "REPLACE_WITH_TEAM_OR_DRIVER_ID",
+      "claim_type": "upgrade|track_fit|power_unit|ers|aero|weight|weather|reliability|strategy|market",
+      "metric": "race_pace|qualifying_pace|power_unit|energy_recovery|straight_line_speed|drag_efficiency|low_speed_traction|weight|upgrade_effect|tyre_deg|reliability|wet_skill|strategy",
+      "direction": "positive",
+      "magnitude": 0.03,
+      "confidence": 0.5,
+      "uncertainty": 0.35,
+      "evidence_text": "One source-backed sentence.",
+      "reasoning": "Why this source-backed mechanism should move the selected model metric on this circuit.",
+      "review_required": true
+    }
+  ]
+}

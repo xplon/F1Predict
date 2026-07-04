@@ -1,0 +1,18 @@
+{
+  "source": "codex_evidence",
+  "event_id": "british_gp",
+  "captured_at": "2026-06-30T08:39:43+00:00",
+  "claim_count": 1,
+  "data_path": "data\\evidence\\british_gp\\packets\\2026-06-30\\british_gp_2026-06-30T08_39_43_00_00.jsonl",
+  "source_log_path": "data\\research\\british_gp\\source_log.json",
+  "params": {
+    "input": "data\\research\\british_gp\\draft_evidence.jsonl",
+    "source_audit": {
+      "source_log_path": "data\\research\\british_gp\\source_log.json",
+      "claim_count": 1,
+      "source_count": 1,
+      "can_archive": true,
+      "findings": []
+    }
+  }
+}

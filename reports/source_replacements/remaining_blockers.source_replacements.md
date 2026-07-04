@@ -1,0 +1,233 @@
+# Source Replacement Candidate Report
+
+- Generated at: `2026-07-01T16:01:29+00:00`
+- Input: `reports\source_archives\remaining_blockers_cdx_discovery.json`
+- Status: **replacement_candidates_need_archive_or_content_review**
+- Blockers: 3
+- Candidates: 14
+- Cutoff-valid replacements: 0
+- Remaining candidates needing review/proof: 14
+- Archive proof required: 12
+- Content review required: 5
+- Blocker codes: archive_lookup_failed=5, current_lookup_failed=1, cutoff_archive_missing=8, manual_current_content_review_required=5
+- Next action categories: find_cutoff_archive=7, retry_lookup=2, review_current_content=1, review_current_content_and_find_archive=4
+
+## Events
+
+| Event | Status | Cutoff | Candidates | Cutoff-Valid | Next Action |
+|---|---|---|---:|---:|---|
+| Barcelona Grand Prix | replacement_candidates_need_archive_proof | 2026-06-14T00:00:00+00:00 | 4 | 0 | Find or attach an at-or-before-cutoff historical archive proof for the verified replacement candidate. |
+| Canadian Grand Prix | replacement_candidates_need_archive_proof | 2026-05-24T00:00:00+00:00 | 5 | 0 | Find or attach an at-or-before-cutoff historical archive proof for the verified replacement candidate. |
+| Miami Grand Prix | replacement_candidates_need_archive_proof | 2026-05-03T00:00:00+00:00 | 5 | 0 | Find or attach an at-or-before-cutoff historical archive proof for the verified replacement candidate. |
+
+## Candidate Details
+
+### Barcelona Grand Prix
+
+- `barcelona_gp_fia_qualifying_classification`: candidate_needs_archive_proof
+  - URL: `https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying`
+  - Current check: verified_tool_content
+  - Current source: codex_web_open
+  - Archive check: no_archive_before_cutoff
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: cutoff_archive_missing
+  - Action category: find_cutoff_archive
+  - Review: Barcelona Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.
+  - Next: Find an archive capture for this candidate at or before 2026-06-14T00:00:00+00:00, then snapshot it into the source log.
+  - Missing: Wayback/CDX archive capture must exist at or before 2026-06-14T00:00:00+00:00
+  - Evidence available at: 2026-06-13T15:27:57.860000+00:00
+  - Nearest archive: n/a (unknown)
+- `barcelona_gp_f1_results_qualifying`: candidate_needs_content_and_archive_review
+  - URL: `https://www.formula1.com/en/results/2026/races/1287/spain/qualifying`
+  - Current check: current_content_review_required
+  - Current source: http
+  - Archive check: no_archive_before_cutoff
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: manual_current_content_review_required, cutoff_archive_missing
+  - Action category: review_current_content_and_find_archive
+  - Review: Barcelona Grand Prix candidate is not enough for formal replay yet: content review and/or cutoff-valid archive proof is still missing.
+  - Next: Verify the page supports the cited claim and find an archive capture at or before 2026-06-14T00:00:00+00:00.
+  - Missing: manual review must confirm the replacement page supports the same cited claim
+  - Missing: Wayback/CDX archive capture must exist at or before 2026-06-14T00:00:00+00:00
+  - Evidence available at: 2026-06-13T15:27:57.860000+00:00
+  - Nearest archive: n/a (unknown)
+- `barcelona_gp_techradar_race_preview_grid`: candidate_needs_archive_proof
+  - URL: `https://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free`
+  - Current check: verified_current_content
+  - Current source: http
+  - Archive check: no_archive_before_cutoff
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: cutoff_archive_missing
+  - Action category: find_cutoff_archive
+  - Review: Barcelona Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.
+  - Next: Find an archive capture for this candidate at or before 2026-06-14T00:00:00+00:00, then snapshot it into the source log.
+  - Missing: Wayback/CDX archive capture must exist at or before 2026-06-14T00:00:00+00:00
+  - Evidence available at: 2026-06-13T15:27:57.860000+00:00
+  - Nearest archive: n/a (unknown)
+- `barcelona_gp_youtube_qualifying_highlights`: candidate_needs_content_review
+  - URL: `https://www.youtube.com/watch?v=Q2fMM4H9bWY`
+  - Current check: current_content_review_required
+  - Current source: http
+  - Archive check: cutoff_valid_archive
+  - Archive content check: verified_archive_content
+  - Archive temporal check: archive_time_supports_evidence
+  - Blockers: manual_current_content_review_required
+  - Action category: review_current_content
+  - Review: Barcelona Grand Prix has archive proof, but the candidate content still needs manual review before replacement.
+  - Next: Manually verify the page supports the cited claim, then snapshot it with the existing archive proof.
+  - Missing: manual review must confirm the replacement page supports the same cited claim
+  - Evidence available at: 2026-06-13T15:27:57.860000+00:00
+
+### Canadian Grand Prix
+
+- `canadian_gp_fia_qualifying_classification`: candidate_lookup_failed
+  - URL: `https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification`
+  - Current check: current_lookup_failed
+  - Current source: lookup_failed
+  - Archive check: archive_lookup_failed
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: current_lookup_failed, archive_lookup_failed
+  - Action category: retry_lookup
+  - Review: Canadian Grand Prix candidate lookup failed and cannot be accepted without a successful retry or manual proof.
+  - Next: Retry current and archive lookup; if it still fails, replace with a different verifiable source.
+  - Missing: current replacement page must be reachable or supplied by a reviewed tool-content override
+  - Missing: archive lookup must succeed or be replaced with manually verified historical archive proof
+  - Evidence available at: 2026-05-23T21:19:02.498000+00:00
+  - Missing terms: Qualifying Classification, George Russell, Kimi Antonelli
+  - Nearest archive: n/a (unknown)
+- `canadian_gp_f1_results_qualifying`: candidate_needs_content_and_archive_review
+  - URL: `https://www.formula1.com/en/results/2026/races/1285/canada/qualifying`
+  - Current check: current_content_review_required
+  - Current source: http
+  - Archive check: archive_lookup_failed
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: manual_current_content_review_required, archive_lookup_failed
+  - Action category: review_current_content_and_find_archive
+  - Review: Canadian Grand Prix candidate is not enough for formal replay yet: content review and/or cutoff-valid archive proof is still missing.
+  - Next: Verify the page supports the cited claim and find an archive capture at or before 2026-05-24T00:00:00+00:00.
+  - Missing: manual review must confirm the replacement page supports the same cited claim
+  - Missing: archive lookup must succeed or be replaced with manually verified historical archive proof
+  - Evidence available at: 2026-05-23T21:19:02.498000+00:00
+  - Nearest archive: n/a (unknown)
+- `canadian_gp_techradar_race_preview_grid`: candidate_needs_content_and_archive_review
+  - URL: `https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free`
+  - Current check: current_content_review_required
+  - Current source: http
+  - Archive check: archive_lookup_failed
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: manual_current_content_review_required, archive_lookup_failed
+  - Action category: review_current_content_and_find_archive
+  - Review: Canadian Grand Prix candidate is not enough for formal replay yet: content review and/or cutoff-valid archive proof is still missing.
+  - Next: Verify the page supports the cited claim and find an archive capture at or before 2026-05-24T00:00:00+00:00.
+  - Missing: manual review must confirm the replacement page supports the same cited claim
+  - Missing: archive lookup must succeed or be replaced with manually verified historical archive proof
+  - Evidence available at: 2026-05-23T21:19:02.498000+00:00
+  - Nearest archive: n/a (unknown)
+- `canadian_gp_skysports_rain_grid`: candidate_needs_archive_proof
+  - URL: `https://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli`
+  - Current check: verified_current_content
+  - Current source: http
+  - Archive check: no_archive_before_cutoff
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: cutoff_archive_missing
+  - Action category: find_cutoff_archive
+  - Review: Canadian Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.
+  - Next: Find an archive capture for this candidate at or before 2026-05-24T00:00:00+00:00, then snapshot it into the source log.
+  - Missing: Wayback/CDX archive capture must exist at or before 2026-05-24T00:00:00+00:00
+  - Evidence available at: 2026-05-23T21:19:02.498000+00:00
+  - Nearest archive: n/a (unknown)
+- `canadian_gp_si_starting_grid`: candidate_needs_archive_proof
+  - URL: `https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time`
+  - Current check: verified_current_content
+  - Current source: http
+  - Archive check: archive_lookup_failed
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: archive_lookup_failed
+  - Action category: retry_lookup
+  - Review: Canadian Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.
+  - Next: Find an archive capture for this candidate at or before 2026-05-24T00:00:00+00:00, then snapshot it into the source log.
+  - Missing: archive lookup must succeed or be replaced with manually verified historical archive proof
+  - Evidence available at: 2026-05-23T21:19:02.498000+00:00
+  - Nearest archive: n/a (unknown)
+
+### Miami Grand Prix
+
+- `miami_gp_fia_qualifying_classification`: candidate_needs_archive_proof
+  - URL: `https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification`
+  - Current check: verified_tool_content
+  - Current source: codex_web_open
+  - Archive check: no_archive_before_cutoff
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: cutoff_archive_missing
+  - Action category: find_cutoff_archive
+  - Review: Miami Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.
+  - Next: Find an archive capture for this candidate at or before 2026-05-03T00:00:00+00:00, then snapshot it into the source log.
+  - Missing: Wayback/CDX archive capture must exist at or before 2026-05-03T00:00:00+00:00
+  - Evidence available at: 2026-05-02T21:17:38.879000+00:00
+  - Nearest archive: n/a (unknown)
+- `miami_gp_f1_results_qualifying`: candidate_needs_content_and_archive_review
+  - URL: `https://www.formula1.com/en/results/2026/races/1284/miami/qualifying`
+  - Current check: current_content_review_required
+  - Current source: http
+  - Archive check: archive_lookup_failed
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: manual_current_content_review_required, archive_lookup_failed
+  - Action category: review_current_content_and_find_archive
+  - Review: Miami Grand Prix candidate is not enough for formal replay yet: content review and/or cutoff-valid archive proof is still missing.
+  - Next: Verify the page supports the cited claim and find an archive capture at or before 2026-05-03T00:00:00+00:00.
+  - Missing: manual review must confirm the replacement page supports the same cited claim
+  - Missing: archive lookup must succeed or be replaced with manually verified historical archive proof
+  - Evidence available at: 2026-05-02T21:17:38.879000+00:00
+  - Nearest archive: n/a (unknown)
+- `miami_gp_techradar_race_preview_grid`: candidate_needs_archive_proof
+  - URL: `https://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule`
+  - Current check: verified_current_content
+  - Current source: http
+  - Archive check: no_archive_before_cutoff
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: cutoff_archive_missing
+  - Action category: find_cutoff_archive
+  - Review: Miami Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.
+  - Next: Find an archive capture for this candidate at or before 2026-05-03T00:00:00+00:00, then snapshot it into the source log.
+  - Missing: Wayback/CDX archive capture must exist at or before 2026-05-03T00:00:00+00:00
+  - Evidence available at: 2026-05-02T21:17:38.879000+00:00
+  - Nearest archive: n/a (unknown)
+- `miami_gp_forbes_starting_grid`: candidate_needs_archive_proof
+  - URL: `https://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/`
+  - Current check: verified_current_content
+  - Current source: http
+  - Archive check: no_archive_before_cutoff
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: cutoff_archive_missing
+  - Action category: find_cutoff_archive
+  - Review: Miami Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.
+  - Next: Find an archive capture for this candidate at or before 2026-05-03T00:00:00+00:00, then snapshot it into the source log.
+  - Missing: Wayback/CDX archive capture must exist at or before 2026-05-03T00:00:00+00:00
+  - Evidence available at: 2026-05-02T21:17:38.879000+00:00
+  - Nearest archive: n/a (unknown)
+- `miami_gp_sbnation_updated_grid`: candidate_needs_archive_proof
+  - URL: `https://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar`
+  - Current check: verified_current_content
+  - Current source: http
+  - Archive check: no_archive_before_cutoff
+  - Archive content check: not_checked
+  - Archive temporal check: not_checked
+  - Blockers: cutoff_archive_missing
+  - Action category: find_cutoff_archive
+  - Review: Miami Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.
+  - Next: Find an archive capture for this candidate at or before 2026-05-03T00:00:00+00:00, then snapshot it into the source log.
+  - Missing: Wayback/CDX archive capture must exist at or before 2026-05-03T00:00:00+00:00
+  - Evidence available at: 2026-05-02T21:17:38.879000+00:00
+  - Nearest archive: n/a (unknown)

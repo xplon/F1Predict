@@ -1,0 +1,25 @@
+{
+  "source": "codex_evidence",
+  "event_id": "monaco_gp",
+  "captured_at": "2026-06-30T09:45:58+00:00",
+  "claim_count": 1,
+  "data_path": "data\\evidence\\monaco_gp\\packets\\2026-06-30\\monaco_gp_2026-06-30T09_45_58_00_00.jsonl",
+  "source_log_path": "data\\research\\monaco_gp\\source_log.json",
+  "params": {
+    "research_packet": "monaco_gp-f1official-qualifying-research-001",
+    "source_audit": {
+      "source_log_path": "data\\research\\monaco_gp\\source_log.json",
+      "claim_count": 1,
+      "source_count": 1,
+      "can_archive": true,
+      "findings": [
+        {
+          "claim_id": "monaco_gp-f1official-qualifying-antonelli-pole-001",
+          "severity": "warning",
+          "code": "snapshot_captured_after_cutoff",
+          "detail": "Source was snapshotted after the replay knowledge cutoff; this can support retrospective research but not a frozen point-in-time replay."
+        }
+      ]
+    }
+  }
+}

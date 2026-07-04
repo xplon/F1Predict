@@ -1,0 +1,15 @@
+{
+  "source": "research_sources",
+  "dataset": "australian_gp_f1_official_bdfa728f4511",
+  "captured_at": "2026-06-30T09:45:51+00:00",
+  "params": {
+    "event_id": "australian_gp",
+    "url": "https://www.formula1.com/en/latest/article/russell-storms-to-pole-position-for-the-season-opening-australian-gp-as.59kj0cIRcQVqXUSKPp5KzG",
+    "source_class": "f1_official",
+    "published_at": "2026-03-07T06:38:35.313Z",
+    "observed_at": "2026-03-07T06:38:35.313Z",
+    "knowledge_cutoff": "2026-03-08T00:00:00+00:00"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\research_sources\\australian_gp_f1_official_bdfa728f4511\\2026-06-30\\australian_gp_f1_official_bdfa728f4511_2026-06-30T09_45_51_00_00.json"
+}

@@ -1,0 +1,11 @@
+{
+  "source": "openf1",
+  "dataset": "2024_Silverstone_Qualifying_9554_laps",
+  "captured_at": "2026-06-30T07:20:26+00:00",
+  "params": {
+    "session_key": 9554,
+    "endpoint": "laps"
+  },
+  "item_count": 368,
+  "data_path": "data\\raw\\openf1\\2024_Silverstone_Qualifying_9554_laps\\2026-06-30\\2024_Silverstone_Qualifying_9554_laps_2026-06-30T07_20_26_00_00.json"
+}

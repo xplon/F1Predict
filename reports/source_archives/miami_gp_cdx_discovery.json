@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-06-30T16:53:19+00:00",
+  "research_root": "data\\research",
+  "write": false,
+  "source_log_count": 1,
+  "source_count": 1,
+  "candidate_count": 0,
+  "sources_updated": 0,
+  "status_counts": {
+    "no_archive_before_cutoff": 1
+  },
+  "rows": [
+    {
+      "event_id": "miami_gp",
+      "source_index": 0,
+      "url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+      "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+      "captured_at": "2026-06-30T09:45:55+00:00",
+      "status": "no_archive_before_cutoff",
+      "historical_archive": null,
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-07-01T13:05:00+00:00",
+  "purpose": "Normalized current-content extracts captured by Codex web tooling when a source blocks the local HTTP client. These extracts can verify current candidate content, but they are not cutoff-valid archive proof.",
+  "overrides": [
+    {
+      "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification",
+      "title": "Qualifying Classification | Federation Internationale de l'Automobile",
+      "captured_by": "codex_web_open",
+      "captured_at": "2026-07-01T13:05:00+00:00",
+      "verification_method": "official_page_text_extraction",
+      "source_url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification",
+      "notes": "Current official FIA page text included classification and official grid rows; this is only current-content support and still requires cutoff archive proof before formal replay use.",
+      "content_text": "Qualifying Classification. CLASSIFICATION. GRID OFFICIAL. POS DRIVER TEAM TIME. 1 Andrea Kimi Antonelli Mercedes-AMG PETRONAS Forumla One Team 1:27.798. 2 Max Verstappen Oracle Red Bull Racing 1:27.964. 3 Charles Leclerc Scuderia Ferrari HP 1:28.143. 4 Lando Norris McLaren Mastercard F1 Team 1:28.183. 5 George Russell Mercedes-AMG PETRONAS Forumla One Team 1:28.197. 6 Lewis Hamilton Scuderia Ferrari HP 1:28.319."
+    },
+    {
+      "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying",
+      "title": "Qualifying Classification | Federation Internationale de l'Automobile",
+      "captured_by": "codex_web_open",
+      "captured_at": "2026-07-01T13:05:00+00:00",
+      "verification_method": "official_page_text_extraction",
+      "source_url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying",
+      "notes": "Current official FIA page text included official grid rows; this is only current-content support and still requires cutoff archive proof before formal replay use.",
+      "content_text": "Qualifying Classification. GRID OFFICIAL. POS DRIVER TEAM TIME. 1 George Russell Mercedes-AMG PETRONAS Forumla One Team 1:14.679. 2 Lewis Hamilton Scuderia Ferrari HP 1:14.743. 3 Andrea Kimi Antonelli Mercedes-AMG PETRONAS Forumla One Team 1:14.998. 4 Lando Norris McLaren Mastercard F1 Team 1:15.001. 5 Max Verstappen Oracle Red Bull Racing 1:15.021."
+    }
+  ]
+}

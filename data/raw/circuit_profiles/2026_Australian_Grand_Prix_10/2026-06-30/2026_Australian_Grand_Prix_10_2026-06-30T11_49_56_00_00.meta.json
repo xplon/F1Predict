@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_Australian Grand Prix_10",
+  "captured_at": "2026-06-30T11:49:56+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Australian Grand Prix",
+    "meeting_key": 1279,
+    "circuit_key": 10,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/10/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_Australian_Grand_Prix_10\\2026-06-30\\2026_Australian_Grand_Prix_10_2026-06-30T11_49_56_00_00.json"
+}

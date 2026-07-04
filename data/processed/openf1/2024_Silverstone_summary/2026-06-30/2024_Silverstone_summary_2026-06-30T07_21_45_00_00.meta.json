@@ -1,0 +1,8 @@
+{
+  "source": "openf1",
+  "dataset": "2024_Silverstone_summary",
+  "captured_at": "2026-06-30T07:21:45+00:00",
+  "params": {},
+  "item_count": 1,
+  "data_path": "data\\processed\\openf1\\2024_Silverstone_summary\\2026-06-30\\2024_Silverstone_summary_2026-06-30T07_21_45_00_00.json"
+}

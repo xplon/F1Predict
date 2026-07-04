@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_Austrian Grand Prix_19",
+  "captured_at": "2026-06-30T11:50:04+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Austrian Grand Prix",
+    "meeting_key": 1288,
+    "circuit_key": 19,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/19/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_Austrian_Grand_Prix_19\\2026-06-30\\2026_Austrian_Grand_Prix_19_2026-06-30T11_50_04_00_00.json"
+}

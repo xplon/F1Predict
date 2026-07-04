@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_Monaco Grand Prix_22",
+  "captured_at": "2026-06-30T11:50:02+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Monaco Grand Prix",
+    "meeting_key": 1286,
+    "circuit_key": 22,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/22/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_Monaco_Grand_Prix_22\\2026-06-30\\2026_Monaco_Grand_Prix_22_2026-06-30T11_50_02_00_00.json"
+}

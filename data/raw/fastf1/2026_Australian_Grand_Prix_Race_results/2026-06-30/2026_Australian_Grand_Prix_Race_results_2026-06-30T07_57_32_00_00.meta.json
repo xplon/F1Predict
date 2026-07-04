@@ -1,0 +1,14 @@
+{
+  "source": "fastf1",
+  "dataset": "2026_Australian Grand Prix_Race_results",
+  "captured_at": "2026-06-30T07:57:32+00:00",
+  "params": {
+    "year": 2026,
+    "event": 1,
+    "resolved_event": "Australian Grand Prix",
+    "session": "R",
+    "session_name": "Race"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\fastf1\\2026_Australian_Grand_Prix_Race_results\\2026-06-30\\2026_Australian_Grand_Prix_Race_results_2026-06-30T07_57_32_00_00.json"
+}

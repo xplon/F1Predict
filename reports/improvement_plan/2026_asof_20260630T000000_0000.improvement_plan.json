@@ -1,0 +1,206 @@
+{
+  "year": 2026,
+  "as_of": "2026-06-30T00:00:00+00:00",
+  "generated_at": "2026-07-01T05:10:17+00:00",
+  "status": "inputs_required",
+  "formal_edge_ready": false,
+  "top_priority": "Backfill Same-Time Market Snapshots",
+  "blocking_workstream_count": 3,
+  "diagnostic_workstream_count": 2,
+  "readiness_summary": {
+    "status": "inputs_required",
+    "formal_backtest_ready": false,
+    "blocking_action_count": 12,
+    "warning_action_count": 5,
+    "action_category_counts": {
+      "model_calibration_review": 5,
+      "market_snapshot_required": 7,
+      "after_cutoff_market_replacement": 2,
+      "source_archive_required": 3
+    }
+  },
+  "calibration_summary": {
+    "top_pick_hits": 3,
+    "top_pick_hit_rate": 0.375,
+    "mean_top_pick_probability": 0.3266,
+    "mean_actual_winner_probability": 0.2524,
+    "mean_winner_brier_score": 0.7337,
+    "mean_actual_log_loss": 1.4322,
+    "weighted_top_pick_calibration_gap": 0.0484,
+    "market_scored_events": 1,
+    "paper_trade_candidate_events": 1,
+    "paper_trade_candidate_hit_rate": 0.0
+  },
+  "artifact_refs": {
+    "market_readiness": "reports\\market_readiness\\2026_asof_20260630T000000_0000.market_readiness.json",
+    "source_archive_recheck": "reports\\source_archives\\remaining_blockers_cdx_discovery.json",
+    "formal_readiness": "reports\\formal_readiness\\2026_asof_20260630T000000_0000.readiness.json",
+    "calibration": "reports\\calibration\\2026_asof_20260630T000000_0000.calibration.json"
+  },
+  "workstreams": [
+    {
+      "workstream_id": "market_same_time_snapshots",
+      "title": "Backfill Same-Time Market Snapshots",
+      "priority": 1,
+      "status": "blocked_no_usable_market_definitions",
+      "blocks_formal_claim": true,
+      "why": "Formal edge and market-gap claims need winner market prices captured at or before each replay cutoff.",
+      "current_evidence": [
+        "7 events still need cutoff-valid winner market snapshots.",
+        "2 events have after-cutoff market rows that must remain excluded or be replaced.",
+        "Market scan status=search_results_need_review with 2754 search results and 0 usable definitions."
+      ],
+      "acceptance_checks": [
+        "Each completed replay event has a cutoff-valid winner market snapshot in data/market_snapshots.",
+        "After-cutoff seed or backfilled rows remain excluded from replay scoring.",
+        "formal-readiness no longer emits market_snapshot_required or after_cutoff_market_replacement actions.",
+        "verify-readiness-intake reports the relevant market action_ids as resolved."
+      ],
+      "command_templates": [
+        "python -m f1predict.cli scan-readiness-markets --year 2026 --as-of 2026-06-30T00:00:00+00:00 --limit 30 --include-closed --write",
+        "python -m f1predict.cli backfill-polymarket-history --event <event_id> --input <reviewed_gamma_payload.json> --knowledge-cutoff <cutoff> --include-closed --output reports\\market_normalization\\<event_id>_price_history.json",
+        "python -m f1predict.cli archive-market-snapshot --event <event_id> --input <normalized_market_snapshot.jsonl> --knowledge-cutoff <cutoff>",
+        "python -m f1predict.cli verify-readiness-intake --year 2026 --as-of 2026-06-30T00:00:00+00:00 --write"
+      ],
+      "metrics": {
+        "market_snapshot_required": 7,
+        "after_cutoff_market_replacement": 2,
+        "events_with_definitions": 0,
+        "unresolved_event_count": 7,
+        "issue_counts": {
+          "season_mismatch": 443,
+          "unsupported_market_type": 12
+        }
+      }
+    },
+    {
+      "workstream_id": "source_archive_proof",
+      "title": "Replace or Prove Retrospective Sources",
+      "priority": 2,
+      "status": "replacement_sources_required",
+      "blocks_formal_claim": true,
+      "why": "Codex evidence can support replay only when its source availability is proven before the event cutoff.",
+      "current_evidence": [
+        "3 source_archive_required readiness actions remain.",
+        "Wayback/CDX recheck found 0 cutoff-valid archive candidates for 3 remaining sources."
+      ],
+      "acceptance_checks": [
+        "Each retrospective source has historical_archive proof with archived_at at or before the replay cutoff, or is replaced by a pre-cutoff source.",
+        "Source coverage reports archive-backed snapshots instead of retrospective snapshots for the affected events.",
+        "formal-readiness no longer emits source_archive_required actions."
+      ],
+      "command_templates": [
+        "python -m f1predict.cli discover-source-archives --event miami_gp --event canadian_gp --event barcelona_gp --output reports\\source_archives\\remaining_blockers_cdx_discovery.json",
+        "python -m f1predict.cli snapshot-source --event <event_id> --url <url> --source <name> --source-class <class> --published-at <iso> --observed-at <iso-before-cutoff> --knowledge-cutoff <cutoff> --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url <url> --historical-verification-method wayback",
+        "python -m f1predict.cli formal-readiness --year 2026 --as-of 2026-06-30T00:00:00+00:00 --write"
+      ],
+      "metrics": {
+        "source_archive_required": 3,
+        "remaining_source_count": 3,
+        "remaining_candidate_count": 0,
+        "remaining_status_counts": {
+          "no_archive_before_cutoff": 3
+        }
+      }
+    },
+    {
+      "workstream_id": "formal_replay_freeze",
+      "title": "Regenerate Formal Replay Freeze",
+      "priority": 3,
+      "status": "blocked_by_input_readiness",
+      "blocks_formal_claim": true,
+      "why": "The replay state must be regenerated and fingerprinted after input blockers are resolved.",
+      "current_evidence": [
+        "formal_backtest_ready=False.",
+        "blocking_action_count=12."
+      ],
+      "acceptance_checks": [
+        "replay-report, analyze-replay, formal-readiness, calibration-report, and replay-freeze-manifest are rerun after input fixes.",
+        "replay-freeze-manifest has no formal_edge_claim_not_ready integrity flag.",
+        "Disk, CLI, and API freeze hashes match."
+      ],
+      "command_templates": [
+        "python -m f1predict.cli replay-report --year 2026 --as-of 2026-06-30T00:00:00+00:00 --write",
+        "python -m f1predict.cli analyze-replay --year 2026 --as-of 2026-06-30T00:00:00+00:00 --write",
+        "python -m f1predict.cli formal-readiness --year 2026 --as-of 2026-06-30T00:00:00+00:00 --write",
+        "python -m f1predict.cli calibration-report --year 2026 --as-of 2026-06-30T00:00:00+00:00 --write",
+        "python -m f1predict.cli replay-freeze-manifest --year 2026 --as-of 2026-06-30T00:00:00+00:00 --write"
+      ],
+      "metrics": {
+        "formal_backtest_ready": false,
+        "blocking_action_count": 12
+      }
+    },
+    {
+      "workstream_id": "probability_calibration",
+      "title": "Recalibrate Probabilities After Input Fixes",
+      "priority": 4,
+      "status": "diagnostic_waiting_for_inputs",
+      "blocks_formal_claim": false,
+      "why": "Probability and edge claims need enough scored events and market-scored events after input blockers are resolved.",
+      "current_evidence": [
+        "calibration status=diagnostic_only.",
+        "scored_events=8; market_scored_events=1.",
+        "warnings=diagnostic_only_not_formal_probability_calibration, same_replay_inputs_as_current_diagnostic_pipeline, small_sample_less_than_20_scored_events, market_scored_subset_incomplete."
+      ],
+      "acceptance_checks": [
+        "Calibration is rerun after market/source blockers are fixed.",
+        "Market-scored subset covers the replay events used for edge analysis.",
+        "Overconfidence and top-pick bins are reviewed before promoting edge claims."
+      ],
+      "command_templates": [
+        "python -m f1predict.cli calibration-report --year 2026 --as-of 2026-06-30T00:00:00+00:00 --write"
+      ],
+      "metrics": {
+        "status": "diagnostic_only",
+        "formal_probability_claim_ready": false,
+        "scored_events": 8,
+        "market_scored_events": 1,
+        "warnings": [
+          "diagnostic_only_not_formal_probability_calibration",
+          "same_replay_inputs_as_current_diagnostic_pipeline",
+          "small_sample_less_than_20_scored_events",
+          "market_scored_subset_incomplete"
+        ],
+        "summary": {
+          "top_pick_hits": 3,
+          "top_pick_hit_rate": 0.375,
+          "mean_top_pick_probability": 0.3266,
+          "mean_actual_winner_probability": 0.2524,
+          "mean_winner_brier_score": 0.7337,
+          "mean_actual_log_loss": 1.4322,
+          "weighted_top_pick_calibration_gap": 0.0484,
+          "market_scored_events": 1,
+          "paper_trade_candidate_events": 1,
+          "paper_trade_candidate_hit_rate": 0.0
+        }
+      }
+    },
+    {
+      "workstream_id": "model_iteration",
+      "title": "Review Misses and Model Assumptions",
+      "priority": 5,
+      "status": "diagnostic_after_formal_inputs",
+      "blocks_formal_claim": false,
+      "why": "Model ranking and confidence tuning should use the frozen replay after input integrity is fixed.",
+      "current_evidence": [
+        "Current diagnostic top-pick hit rate=0.375.",
+        "Calibration currently remains diagnostic and small-sample."
+      ],
+      "acceptance_checks": [
+        "Use only frozen replay inputs for model comparisons.",
+        "Run matched ablations before changing strategy, pace, reliability, or evidence weights.",
+        "Label model changes as diagnostic until the experiment controls are matched."
+      ],
+      "command_templates": [
+        "python -m f1predict.cli analyze-replay --year 2026 --as-of 2026-06-30T00:00:00+00:00 --write",
+        "python -m f1predict.cli calibration-report --year 2026 --as-of 2026-06-30T00:00:00+00:00 --write"
+      ],
+      "metrics": {
+        "top_pick_hit_rate": 0.375,
+        "mean_actual_winner_probability": 0.2524,
+        "weighted_top_pick_calibration_gap": 0.0484
+      }
+    }
+  ]
+}

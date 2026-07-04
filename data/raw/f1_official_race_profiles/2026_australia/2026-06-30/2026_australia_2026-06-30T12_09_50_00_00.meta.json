@@ -1,0 +1,12 @@
+{
+  "source": "f1_official_race_profiles",
+  "dataset": "2026_australia",
+  "captured_at": "2026-06-30T12:09:50+00:00",
+  "params": {
+    "year": 2026,
+    "slug": "australia",
+    "url": "https://www.formula1.com/en/racing/2026/australia"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\f1_official_race_profiles\\2026_australia\\2026-06-30\\2026_australia_2026-06-30T12_09_50_00_00.json"
+}

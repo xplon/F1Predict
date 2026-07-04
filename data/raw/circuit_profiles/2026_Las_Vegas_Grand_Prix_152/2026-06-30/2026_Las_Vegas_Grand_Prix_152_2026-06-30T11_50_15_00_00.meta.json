@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_Las Vegas Grand Prix_152",
+  "captured_at": "2026-06-30T11:50:15+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Las Vegas Grand Prix",
+    "meeting_key": 1300,
+    "circuit_key": 152,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/152/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_Las_Vegas_Grand_Prix_152\\2026-06-30\\2026_Las_Vegas_Grand_Prix_152_2026-06-30T11_50_15_00_00.json"
+}

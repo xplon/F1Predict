@@ -1,0 +1,19 @@
+{
+  "source": "weather_profiles",
+  "dataset": "2026_Hungarian Grand Prix_open_meteo_climate",
+  "captured_at": "2026-06-30T12:29:42+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Hungarian Grand Prix",
+    "event_date": "2026-07-26T15:00:00+00:00",
+    "baseline_start_year": 2016,
+    "baseline_end_year": 2025,
+    "window_days": 3,
+    "location_query": "Budapest",
+    "archive_url": "https://archive-api.open-meteo.com/v1/archive?latitude=47.49835&longitude=19.04045&start_date=2016-07-23&end_date=2025-07-29&daily=precipitation_sum%2Crain_sum%2Cweather_code&timezone=UTC",
+    "geocoding_url": "https://geocoding-api.open-meteo.com/v1/search?name=Budapest&count=10&language=en&format=json",
+    "source": "open_meteo_archive_api"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\weather_profiles\\2026_Hungarian_Grand_Prix_open_meteo_climate\\2026-06-30\\2026_Hungarian_Grand_Prix_open_meteo_climate_2026-06-30T12_29_42_00_00.json"
+}

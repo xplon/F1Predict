@@ -1,0 +1,12 @@
+{
+  "source": "f1_official_race_profiles",
+  "dataset": "2026_qatar",
+  "captured_at": "2026-06-30T12:10:16+00:00",
+  "params": {
+    "year": 2026,
+    "slug": "qatar",
+    "url": "https://www.formula1.com/en/racing/2026/qatar"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\f1_official_race_profiles\\2026_qatar\\2026-06-30\\2026_qatar_2026-06-30T12_10_16_00_00.json"
+}

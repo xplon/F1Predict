@@ -1,0 +1,19 @@
+{
+  "source": "weather_profiles",
+  "dataset": "2026_Australian Grand Prix_open_meteo_climate",
+  "captured_at": "2026-06-30T12:28:35+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Australian Grand Prix",
+    "event_date": "2026-03-08T06:00:00+00:00",
+    "baseline_start_year": 2016,
+    "baseline_end_year": 2025,
+    "window_days": 3,
+    "location_query": "Melbourne",
+    "archive_url": "https://archive-api.open-meteo.com/v1/archive?latitude=-37.814&longitude=144.96332&start_date=2016-03-05&end_date=2025-03-11&daily=precipitation_sum%2Crain_sum%2Cweather_code&timezone=UTC",
+    "geocoding_url": "https://geocoding-api.open-meteo.com/v1/search?name=Melbourne&count=10&language=en&format=json",
+    "source": "open_meteo_archive_api"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\weather_profiles\\2026_Australian_Grand_Prix_open_meteo_climate\\2026-06-30\\2026_Australian_Grand_Prix_open_meteo_climate_2026-06-30T12_28_35_00_00.json"
+}

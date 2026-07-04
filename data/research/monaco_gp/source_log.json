@@ -1,0 +1,57 @@
+{
+  "event_id": "monaco_gp",
+  "event_name": "Monaco Grand Prix",
+  "knowledge_cutoff": "2026-06-07T00:00:00+00:00",
+  "sources": [
+    {
+      "source": "Formula1.com official race-week report",
+      "url": "https://www.formula1.com/en/latest/article/antonelli-seizes-brilliant-pole-in-thrilling-monaco-qualifying-ahead-of-verstappen-and-hamilton.7lWc3kpARKr1Qnle1f8X3P",
+      "title": "2026 Monaco Grand Prix Qualifying report and highlights: Kimi Antonelli seizes pole position in thrilling Monaco Qualifying ahead of Max Verstappen and Lewis Hamilton",
+      "published_at": "2026-06-06T15:25:30.251Z",
+      "observed_at": "2026-06-06T15:25:30.251Z",
+      "knowledge_cutoff": "2026-06-07T00:00:00+00:00",
+      "cutoff_status": "within_cutoff",
+      "source_class": "f1_official",
+      "reliability": 0.95,
+      "captured_at": "2026-06-30T09:45:58+00:00",
+      "snapshot_path": "data\\raw\\research_sources\\monaco_gp_f1_official_0293299100ea\\2026-06-30\\monaco_gp_f1_official_0293299100ea_2026-06-30T09_45_58_00_00.json",
+      "content_length": 484610,
+      "used_in_claim_ids": [
+        "monaco_gp-f1official-qualifying-antonelli-pole-001"
+      ],
+      "notes": "Retrospectively captured Formula1.com race-week source; published before replay cutoff, but archived after the cutoff for diagnostic backfill.",
+      "historical_archive": {
+        "archive_url": "http://web.archive.org/web/20260606160912/https://www.formula1.com/en/latest/article/antonelli-seizes-brilliant-pole-in-thrilling-monaco-qualifying-ahead-of-verstappen-and-hamilton.7lWc3kpARKr1Qnle1f8X3P",
+        "archived_at": "2026-06-06T16:09:12+00:00",
+        "original_url": "https://www.formula1.com/en/latest/article/antonelli-seizes-brilliant-pole-in-thrilling-monaco-qualifying-ahead-of-verstappen-and-hamilton.7lWc3kpARKr1Qnle1f8X3P",
+        "verified_at": "2026-06-30T11:19:30+00:00",
+        "verification_method": "wayback_available_api",
+        "notes": "Wayback availability API status=200; timestamp=20260606160912."
+      }
+    }
+  ],
+  "source_record_schema": {
+    "source": "name",
+    "url": "https://...",
+    "title": "optional page title",
+    "published_at": "ISO timestamp or null",
+    "observed_at": "ISO timestamp",
+    "knowledge_cutoff": "2026-06-07T00:00:00+00:00",
+    "cutoff_status": "within_cutoff|after_cutoff_published|after_cutoff_observed|unknown_published_at",
+    "source_class": "fia|f1_official|team_or_driver|media|weather|market|structured_data",
+    "reliability": "default score assigned from source_class",
+    "captured_at": "snapshot capture ISO timestamp",
+    "snapshot_path": "data/raw/research_sources/...",
+    "historical_archive": {
+      "archive_url": "https://webcache-or-archive.example/snapshot",
+      "archived_at": "ISO timestamp at or before cutoff",
+      "original_url": "https://...",
+      "verified_at": "ISO timestamp when Codex verified the archive",
+      "verification_method": "wayback|memento|publisher_archive|manual_review",
+      "notes": "optional archive proof notes"
+    },
+    "content_length": 0,
+    "used_in_claim_ids": [],
+    "notes": "short audit note"
+  }
+}

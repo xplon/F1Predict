@@ -1,0 +1,95 @@
+{
+  "packet_id": "british_gp-codex-weather-openmeteo-001",
+  "event_id": "british_gp",
+  "knowledge_cutoff": "2026-06-30T12:00:00+00:00",
+  "status": "preflight_passed",
+  "claim_count": 1,
+  "valid_claim_count": 1,
+  "source_count": 1,
+  "archive_precheck_can_archive": true,
+  "blocking_issue_count": 0,
+  "warning_count": 0,
+  "quality_status_counts": {
+    "usable_diagnostic": 1
+  },
+  "conflict_status_counts": {
+    "no_conflict": 1
+  },
+  "route_status_counts": {
+    "routed_impact_not_measured": 1
+  },
+  "factor_route_counts": {
+    "wet_weather": 1
+  },
+  "average_model_input_weight": 0.7023,
+  "min_model_input_weight": 0.7023,
+  "max_model_input_weight": 0.7023,
+  "source_audit": {
+    "source_log_path": "data\\research\\british_gp\\source_log.json",
+    "claim_count": 1,
+    "source_count": 1,
+    "can_archive": true,
+    "findings": []
+  },
+  "source_candidate_audit": {
+    "status": "source_candidates_ready_for_claim_review",
+    "source": "candidate_report",
+    "candidate_count": 1,
+    "review_ready_count": 1,
+    "blocked_count": 0,
+    "warning_count": 0,
+    "matched_source_count": 1,
+    "unmatched_source_count": 0,
+    "not_ready_source_count": 0,
+    "blocked_candidate_source_count": 0,
+    "report_path": "reports\\research_candidates\\british_gp.json"
+  },
+  "findings": [],
+  "claims": [
+    {
+      "claim_id": "british_gp-weather-openmeteo-001",
+      "target_type": "event",
+      "target_id": "british_gp",
+      "metric": "wet_skill",
+      "direction": "negative",
+      "route": "wet_weather",
+      "route_status": "routed_impact_not_measured",
+      "quality_status": "usable_diagnostic",
+      "quality_score": 0.5223,
+      "source_status": "within_cutoff",
+      "triangulation_status": "single_source",
+      "conflict_status": "no_conflict",
+      "model_input_weight": 0.7023,
+      "context_multiplier": null,
+      "context_multiplier_reason": null,
+      "track_demand_component": null,
+      "track_demand_value": null,
+      "track_demand_profile": null,
+      "raw_signed_impact": -0.091,
+      "weighted_input_impact": -0.0639,
+      "effective_race_input": -0.0639,
+      "effective_qualifying_input": null,
+      "signed_input_impact": -0.0639,
+      "risk_flags": [
+        "claim_requires_review",
+        "single_source_claim"
+      ],
+      "source_audit_codes": [],
+      "factor_contract_codes": [],
+      "route_notes": [
+        "Changes wet probability or wet-performance contribution depending on target scope.",
+        "target_scope=event:british_gp",
+        "track_type=high_speed",
+        "model_input_weight=0.70",
+        "raw_signed_impact=-0.0910",
+        "weighted_input_impact=-0.0639",
+        "impact_diagnostic_missing=true"
+      ]
+    }
+  ],
+  "limitations": [
+    "Preflight is diagnostic only: it uses an existing source_log.json when available, otherwise builds a synthetic source log.",
+    "A passing preflight must still be archived with archive-research-packet before claims enter predictions.",
+    "Impact movement is not measured here; model input weights and factor routes are previewed before simulation."
+  ]
+}

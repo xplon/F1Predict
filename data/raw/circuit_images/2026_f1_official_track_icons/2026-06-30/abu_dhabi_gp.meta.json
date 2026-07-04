@@ -1,0 +1,15 @@
+{
+  "source": "f1_official_circuit_map",
+  "event_id": "abu_dhabi_gp",
+  "event_name": "Abu Dhabi Grand Prix",
+  "round_number": 24,
+  "circuit_key": 70,
+  "circuit_short_name": "Yas Marina Circuit",
+  "url": "https://media.formula1.com/image/upload/c_lfill%2Cw_3392/q_auto/v1740000001/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Abu_Dhabi_Circuit.webp",
+  "asset_path": "web/assets/tracks/abu_dhabi_gp.webp",
+  "web_path": "/assets/tracks/abu_dhabi_gp.webp",
+  "raw_path": "data/raw/circuit_images/2026_f1_official_track_icons/2026-06-30/abu_dhabi_gp.webp",
+  "bytes": 60386,
+  "captured_at": "2026-07-01T10:45:03+00:00",
+  "sha256": "5b8f8ebcf974893fb278dead26fcbe9bed2d21244dfd157347a5e898efcd97fd"
+}

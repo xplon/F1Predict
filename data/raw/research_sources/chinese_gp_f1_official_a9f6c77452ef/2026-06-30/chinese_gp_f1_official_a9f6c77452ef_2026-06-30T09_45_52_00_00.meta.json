@@ -1,0 +1,15 @@
+{
+  "source": "research_sources",
+  "dataset": "chinese_gp_f1_official_a9f6c77452ef",
+  "captured_at": "2026-06-30T09:45:52+00:00",
+  "params": {
+    "event_id": "chinese_gp",
+    "url": "https://www.formula1.com/en/latest/article/fp1-russell-sets-the-pace-from-antonelli-and-norris-during-sole-chinese.5mXgmJfYHY5aWepDGxjbi0",
+    "source_class": "f1_official",
+    "published_at": "2026-03-13T04:47:02.556Z",
+    "observed_at": "2026-03-13T04:47:02.556Z",
+    "knowledge_cutoff": "2026-03-15T00:00:00+00:00"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\research_sources\\chinese_gp_f1_official_a9f6c77452ef\\2026-06-30\\chinese_gp_f1_official_a9f6c77452ef_2026-06-30T09_45_52_00_00.json"
+}

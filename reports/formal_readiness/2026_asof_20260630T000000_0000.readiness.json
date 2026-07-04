@@ -1,0 +1,1291 @@
+{
+  "year": 2026,
+  "as_of": "2026-06-30T00:00:00+00:00",
+  "generated_at": "2026-07-01T05:09:33.209304+00:00",
+  "status": "inputs_required",
+  "formal_backtest_ready": false,
+  "blocking_action_count": 12,
+  "warning_action_count": 5,
+  "action_category_counts": {
+    "model_calibration_review": 5,
+    "market_snapshot_required": 7,
+    "after_cutoff_market_replacement": 2,
+    "source_archive_required": 3
+  },
+  "workstreams": [
+    {
+      "workstream_id": "market_snapshot_backfill",
+      "title": "Market Snapshot Backfill",
+      "priority": 1,
+      "category": "market_snapshot_required",
+      "severity": "critical",
+      "blocks_formal_claim": true,
+      "blocking_action_count": 7,
+      "warning_action_count": 0,
+      "event_ids": [
+        "chinese_gp",
+        "japanese_gp",
+        "miami_gp",
+        "canadian_gp",
+        "monaco_gp",
+        "barcelona_gp",
+        "austrian_gp"
+      ],
+      "success_criteria": [
+        "Each listed event has a cutoff-valid winner market snapshot archived under data/market_snapshots.",
+        "The selected snapshot timestamp is at or before the replay cutoff for that event.",
+        "Replay analysis reports no missing winner-market snapshot for the listed events."
+      ],
+      "command_templates": [
+        "python -m f1predict.cli search-polymarket-season --event chinese_gp --limit 15 --include-closed --output reports\\market_normalization\\chinese_gp_season_search.json",
+        "python -m f1predict.cli backfill-polymarket-history --event chinese_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-03-15T00:00:00+00:00 --include-closed --output reports\\market_normalization\\chinese_gp_price_history.json",
+        "python -m f1predict.cli archive-market-snapshot --event chinese_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-03-15T00:00:00+00:00",
+        "python -m f1predict.cli search-polymarket-season --event japanese_gp --limit 15 --include-closed --output reports\\market_normalization\\japanese_gp_season_search.json",
+        "python -m f1predict.cli backfill-polymarket-history --event japanese_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-03-29T00:00:00+00:00 --include-closed --output reports\\market_normalization\\japanese_gp_price_history.json",
+        "python -m f1predict.cli archive-market-snapshot --event japanese_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-03-29T00:00:00+00:00",
+        "python -m f1predict.cli search-polymarket-season --event miami_gp --limit 15 --include-closed --output reports\\market_normalization\\miami_gp_season_search.json",
+        "python -m f1predict.cli backfill-polymarket-history --event miami_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --include-closed --output reports\\market_normalization\\miami_gp_price_history.json"
+      ],
+      "actions": [
+        {
+          "action_id": "chinese_gp:market_snapshot",
+          "event_id": "chinese_gp",
+          "event_name": "Chinese Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-03-15T00:00:00+00:00",
+          "details": {
+            "event_id": "chinese_gp",
+            "event_name": "Chinese Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-03-15T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 1,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event chinese_gp --limit 15 --include-closed --output reports\\market_normalization\\chinese_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event chinese_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-03-15T00:00:00+00:00 --include-closed --output reports\\market_normalization\\chinese_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event chinese_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-03-15T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "japanese_gp:market_snapshot",
+          "event_id": "japanese_gp",
+          "event_name": "Japanese Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-03-29T00:00:00+00:00",
+          "details": {
+            "event_id": "japanese_gp",
+            "event_name": "Japanese Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-03-29T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 1,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event japanese_gp --limit 15 --include-closed --output reports\\market_normalization\\japanese_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event japanese_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-03-29T00:00:00+00:00 --include-closed --output reports\\market_normalization\\japanese_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event japanese_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-03-29T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "miami_gp:market_snapshot",
+          "event_id": "miami_gp",
+          "event_name": "Miami Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-05-03T00:00:00+00:00",
+          "details": {
+            "event_id": "miami_gp",
+            "event_name": "Miami Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-05-03T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 0,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event miami_gp --limit 15 --include-closed --output reports\\market_normalization\\miami_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event miami_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --include-closed --output reports\\market_normalization\\miami_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event miami_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-05-03T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "canadian_gp:market_snapshot",
+          "event_id": "canadian_gp",
+          "event_name": "Canadian Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-05-24T00:00:00+00:00",
+          "details": {
+            "event_id": "canadian_gp",
+            "event_name": "Canadian Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-05-24T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 0,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event canadian_gp --limit 15 --include-closed --output reports\\market_normalization\\canadian_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event canadian_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --include-closed --output reports\\market_normalization\\canadian_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event canadian_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-05-24T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "monaco_gp:market_snapshot",
+          "event_id": "monaco_gp",
+          "event_name": "Monaco Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-06-07T00:00:00+00:00",
+          "details": {
+            "event_id": "monaco_gp",
+            "event_name": "Monaco Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-06-07T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 0,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event monaco_gp --limit 15 --include-closed --output reports\\market_normalization\\monaco_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event monaco_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-06-07T00:00:00+00:00 --include-closed --output reports\\market_normalization\\monaco_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event monaco_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-06-07T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "barcelona_gp:market_snapshot",
+          "event_id": "barcelona_gp",
+          "event_name": "Barcelona Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-06-14T00:00:00+00:00",
+          "details": {
+            "event_id": "barcelona_gp",
+            "event_name": "Barcelona Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-06-14T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 0,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event barcelona_gp --limit 15 --include-closed --output reports\\market_normalization\\barcelona_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event barcelona_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --include-closed --output reports\\market_normalization\\barcelona_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event barcelona_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-06-14T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "austrian_gp:market_snapshot",
+          "event_id": "austrian_gp",
+          "event_name": "Austrian Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-06-28T00:00:00+00:00",
+          "details": {
+            "event_id": "austrian_gp",
+            "event_name": "Austrian Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-06-28T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 0,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event austrian_gp --limit 15 --include-closed --output reports\\market_normalization\\austrian_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event austrian_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-06-28T00:00:00+00:00 --include-closed --output reports\\market_normalization\\austrian_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event austrian_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-06-28T00:00:00+00:00"
+          ]
+        }
+      ]
+    },
+    {
+      "workstream_id": "after_cutoff_market_replacement",
+      "title": "After-Cutoff Market Replacement",
+      "priority": 2,
+      "category": "after_cutoff_market_replacement",
+      "severity": "high",
+      "blocks_formal_claim": true,
+      "blocking_action_count": 2,
+      "warning_action_count": 0,
+      "event_ids": [
+        "chinese_gp",
+        "japanese_gp"
+      ],
+      "success_criteria": [
+        "Existing after-cutoff seed or backfilled rows are replaced by cutoff-valid rows or remain excluded.",
+        "Replay analysis still records excluded late rows as diagnostics without using them for prediction."
+      ],
+      "command_templates": [
+        "python -m f1predict.cli backfill-polymarket-history --event chinese_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-03-15T00:00:00+00:00 --include-closed --output reports\\market_normalization\\chinese_gp_price_history.json",
+        "python -m f1predict.cli backfill-polymarket-history --event japanese_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-03-29T00:00:00+00:00 --include-closed --output reports\\market_normalization\\japanese_gp_price_history.json"
+      ],
+      "actions": [
+        {
+          "action_id": "chinese_gp:late_market_replacement",
+          "event_id": "chinese_gp",
+          "event_name": "Chinese Grand Prix",
+          "category": "after_cutoff_market_replacement",
+          "severity": "high",
+          "blocks_formal_claim": true,
+          "summary": "Existing market rows were captured after the replay cutoff and must be replaced.",
+          "required_by": "2026-03-15T00:00:00+00:00",
+          "details": {
+            "after_cutoff_snapshots": [
+              {
+                "event_id": "chinese_gp",
+                "event_name": "Chinese Grand Prix",
+                "market_id": "seed_chinese_gp_winner",
+                "market_type": "winner",
+                "captured_at": "2026-03-21T12:00:00Z",
+                "knowledge_cutoff": "2026-03-15T00:00:00+00:00",
+                "status": "after_cutoff",
+                "source": "seed",
+                "liquidity": 21200,
+                "spread_estimate": 0.032,
+                "outcome_count": 7,
+                "top_prices": [
+                  {
+                    "outcome_id": "antonelli",
+                    "price": 0.34
+                  },
+                  {
+                    "outcome_id": "russell",
+                    "price": 0.25
+                  },
+                  {
+                    "outcome_id": "hamilton",
+                    "price": 0.14
+                  },
+                  {
+                    "outcome_id": "leclerc",
+                    "price": 0.1
+                  },
+                  {
+                    "outcome_id": "piastri",
+                    "price": 0.07
+                  }
+                ]
+              }
+            ]
+          },
+          "command_templates": [
+            "python -m f1predict.cli backfill-polymarket-history --event chinese_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-03-15T00:00:00+00:00 --include-closed --output reports\\market_normalization\\chinese_gp_price_history.json"
+          ]
+        },
+        {
+          "action_id": "japanese_gp:late_market_replacement",
+          "event_id": "japanese_gp",
+          "event_name": "Japanese Grand Prix",
+          "category": "after_cutoff_market_replacement",
+          "severity": "high",
+          "blocks_formal_claim": true,
+          "summary": "Existing market rows were captured after the replay cutoff and must be replaced.",
+          "required_by": "2026-03-29T00:00:00+00:00",
+          "details": {
+            "after_cutoff_snapshots": [
+              {
+                "event_id": "japanese_gp",
+                "event_name": "Japanese Grand Prix",
+                "market_id": "seed_japanese_gp_winner",
+                "market_type": "winner",
+                "captured_at": "2026-04-04T12:00:00Z",
+                "knowledge_cutoff": "2026-03-29T00:00:00+00:00",
+                "status": "after_cutoff",
+                "source": "seed",
+                "liquidity": 19800,
+                "spread_estimate": 0.036,
+                "outcome_count": 7,
+                "top_prices": [
+                  {
+                    "outcome_id": "antonelli",
+                    "price": 0.32
+                  },
+                  {
+                    "outcome_id": "russell",
+                    "price": 0.22
+                  },
+                  {
+                    "outcome_id": "hamilton",
+                    "price": 0.13
+                  },
+                  {
+                    "outcome_id": "leclerc",
+                    "price": 0.1
+                  },
+                  {
+                    "outcome_id": "piastri",
+                    "price": 0.08
+                  }
+                ]
+              }
+            ]
+          },
+          "command_templates": [
+            "python -m f1predict.cli backfill-polymarket-history --event japanese_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-03-29T00:00:00+00:00 --include-closed --output reports\\market_normalization\\japanese_gp_price_history.json"
+          ]
+        }
+      ]
+    },
+    {
+      "workstream_id": "source_archive_proof",
+      "title": "Source Archive Proof",
+      "priority": 3,
+      "category": "source_archive_required",
+      "severity": "high",
+      "blocks_formal_claim": true,
+      "blocking_action_count": 3,
+      "warning_action_count": 0,
+      "event_ids": [
+        "miami_gp",
+        "canadian_gp",
+        "barcelona_gp"
+      ],
+      "success_criteria": [
+        "Each retrospective source has pre-cutoff archive proof or is replaced by a pre-cutoff source snapshot.",
+        "Source audit reports archive-backed snapshots instead of unverified retrospective snapshots."
+      ],
+      "command_templates": [
+        "python -m f1predict.cli discover-source-archives --event miami_gp --write --output reports\\source_archives\\miami_gp_wayback.json",
+        "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5 --source <source-name> --source-class <class> --published-at <published-at> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5 --historical-verification-method wayback",
+        "python -m f1predict.cli discover-source-archives --event canadian_gp --write --output reports\\source_archives\\canadian_gp_wayback.json",
+        "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT --source <source-name> --source-class <class> --published-at <published-at> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT --historical-verification-method wayback",
+        "python -m f1predict.cli discover-source-archives --event barcelona_gp --write --output reports\\source_archives\\barcelona_gp_wayback.json",
+        "python -m f1predict.cli snapshot-source --event barcelona_gp --url https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv --source <source-name> --source-class <class> --published-at <published-at> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv --historical-verification-method wayback"
+      ],
+      "actions": [
+        {
+          "action_id": "miami_gp:source_archive:1",
+          "event_id": "miami_gp",
+          "event_name": "Miami Grand Prix",
+          "category": "source_archive_required",
+          "severity": "high",
+          "blocks_formal_claim": true,
+          "summary": "A late local source snapshot needs cutoff-valid archive proof or a replacement source.",
+          "required_by": "2026-05-03T00:00:00+00:00",
+          "details": {
+            "source": "Formula1.com official race-week report",
+            "url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+            "title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+            "source_class": "f1_official",
+            "published_at": "2026-05-02T21:17:38.879Z",
+            "observed_at": "2026-05-02T21:17:38.879Z",
+            "captured_at": "2026-06-30T09:45:55+00:00",
+            "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+            "cutoff_status": "within_cutoff",
+            "snapshot_path": "data\\raw\\research_sources\\miami_gp_f1_official_073e1d43e444\\2026-06-30\\miami_gp_f1_official_073e1d43e444_2026-06-30T09_45_55_00_00.json",
+            "archive_status": "missing_cutoff_archive",
+            "archive_url": null,
+            "archived_at": null,
+            "archive_verification_method": null
+          },
+          "command_templates": [
+            "python -m f1predict.cli discover-source-archives --event miami_gp --write --output reports\\source_archives\\miami_gp_wayback.json",
+            "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5 --source <source-name> --source-class <class> --published-at <published-at> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5 --historical-verification-method wayback"
+          ]
+        },
+        {
+          "action_id": "canadian_gp:source_archive:1",
+          "event_id": "canadian_gp",
+          "event_name": "Canadian Grand Prix",
+          "category": "source_archive_required",
+          "severity": "high",
+          "blocks_formal_claim": true,
+          "summary": "A late local source snapshot needs cutoff-valid archive proof or a replacement source.",
+          "required_by": "2026-05-24T00:00:00+00:00",
+          "details": {
+            "source": "Formula1.com official race-week report",
+            "url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+            "title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+            "source_class": "f1_official",
+            "published_at": "2026-05-23T21:19:02.498Z",
+            "observed_at": "2026-05-23T21:19:02.498Z",
+            "captured_at": "2026-06-30T09:45:56+00:00",
+            "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+            "cutoff_status": "within_cutoff",
+            "snapshot_path": "data\\raw\\research_sources\\canadian_gp_f1_official_dc72e8c304fb\\2026-06-30\\canadian_gp_f1_official_dc72e8c304fb_2026-06-30T09_45_56_00_00.json",
+            "archive_status": "missing_cutoff_archive",
+            "archive_url": null,
+            "archived_at": null,
+            "archive_verification_method": null
+          },
+          "command_templates": [
+            "python -m f1predict.cli discover-source-archives --event canadian_gp --write --output reports\\source_archives\\canadian_gp_wayback.json",
+            "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT --source <source-name> --source-class <class> --published-at <published-at> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT --historical-verification-method wayback"
+          ]
+        },
+        {
+          "action_id": "barcelona_gp:source_archive:1",
+          "event_id": "barcelona_gp",
+          "event_name": "Barcelona Grand Prix",
+          "category": "source_archive_required",
+          "severity": "high",
+          "blocks_formal_claim": true,
+          "summary": "A late local source snapshot needs cutoff-valid archive proof or a replacement source.",
+          "required_by": "2026-06-14T00:00:00+00:00",
+          "details": {
+            "source": "Formula1.com official race-week report",
+            "url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+            "title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+            "source_class": "f1_official",
+            "published_at": "2026-06-13T15:27:57.860Z",
+            "observed_at": "2026-06-13T15:27:57.860Z",
+            "captured_at": "2026-06-30T09:45:59+00:00",
+            "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+            "cutoff_status": "within_cutoff",
+            "snapshot_path": "data\\raw\\research_sources\\barcelona_gp_f1_official_4465b00509cc\\2026-06-30\\barcelona_gp_f1_official_4465b00509cc_2026-06-30T09_45_59_00_00.json",
+            "archive_status": "missing_cutoff_archive",
+            "archive_url": null,
+            "archived_at": null,
+            "archive_verification_method": null
+          },
+          "command_templates": [
+            "python -m f1predict.cli discover-source-archives --event barcelona_gp --write --output reports\\source_archives\\barcelona_gp_wayback.json",
+            "python -m f1predict.cli snapshot-source --event barcelona_gp --url https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv --source <source-name> --source-class <class> --published-at <published-at> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv --historical-verification-method wayback"
+          ]
+        }
+      ]
+    },
+    {
+      "workstream_id": "model_calibration_review",
+      "title": "Model Calibration Review",
+      "priority": 6,
+      "category": "model_calibration_review",
+      "severity": "medium",
+      "blocks_formal_claim": false,
+      "blocking_action_count": 0,
+      "warning_action_count": 5,
+      "event_ids": [
+        "australian_gp",
+        "austrian_gp",
+        "barcelona_gp",
+        "miami_gp",
+        "monaco_gp"
+      ],
+      "success_criteria": [
+        "Re-run predict and calibration reports after input blockers are fixed.",
+        "Inspect misses, actual-winner ranks, and overconfidence before promoting any edge claim."
+      ],
+      "command_templates": [
+        "python -m f1predict.cli predict --event australian_gp --knowledge-cutoff 2026-03-08T00:00:00+00:00 --iterations 5000",
+        "python -m f1predict.cli predict --event austrian_gp --knowledge-cutoff 2026-06-28T00:00:00+00:00 --iterations 5000",
+        "python -m f1predict.cli predict --event barcelona_gp --knowledge-cutoff 2026-06-14T00:00:00+00:00 --iterations 5000",
+        "python -m f1predict.cli predict --event miami_gp --knowledge-cutoff 2026-05-03T00:00:00+00:00 --iterations 5000",
+        "python -m f1predict.cli predict --event monaco_gp --knowledge-cutoff 2026-06-07T00:00:00+00:00 --iterations 5000"
+      ],
+      "actions": [
+        {
+          "action_id": "australian_gp:model_calibration",
+          "event_id": "australian_gp",
+          "event_name": "Australian Grand Prix",
+          "category": "model_calibration_review",
+          "severity": "medium",
+          "blocks_formal_claim": false,
+          "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
+          "required_by": null,
+          "details": {
+            "top_pick": "verstappen",
+            "actual_winner": "russell",
+            "actual_winner_probability": 0.1625,
+            "actual_winner_rank": 4,
+            "max_evidence_win_delta": 0.0
+          },
+          "command_templates": [
+            "python -m f1predict.cli predict --event australian_gp --knowledge-cutoff 2026-03-08T00:00:00+00:00 --iterations 5000"
+          ]
+        },
+        {
+          "action_id": "austrian_gp:model_calibration",
+          "event_id": "austrian_gp",
+          "event_name": "Austrian Grand Prix",
+          "category": "model_calibration_review",
+          "severity": "medium",
+          "blocks_formal_claim": false,
+          "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
+          "required_by": null,
+          "details": {
+            "top_pick": "antonelli",
+            "actual_winner": "russell",
+            "actual_winner_probability": 0.2192,
+            "actual_winner_rank": 3,
+            "max_evidence_win_delta": 0.0
+          },
+          "command_templates": [
+            "python -m f1predict.cli predict --event austrian_gp --knowledge-cutoff 2026-06-28T00:00:00+00:00 --iterations 5000"
+          ]
+        },
+        {
+          "action_id": "barcelona_gp:model_calibration",
+          "event_id": "barcelona_gp",
+          "event_name": "Barcelona Grand Prix",
+          "category": "model_calibration_review",
+          "severity": "medium",
+          "blocks_formal_claim": false,
+          "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
+          "required_by": null,
+          "details": {
+            "top_pick": "antonelli",
+            "actual_winner": "hamilton",
+            "actual_winner_probability": 0.1325,
+            "actual_winner_rank": 4,
+            "max_evidence_win_delta": 0.0008
+          },
+          "command_templates": [
+            "python -m f1predict.cli predict --event barcelona_gp --knowledge-cutoff 2026-06-14T00:00:00+00:00 --iterations 5000"
+          ]
+        },
+        {
+          "action_id": "miami_gp:model_calibration",
+          "event_id": "miami_gp",
+          "event_name": "Miami Grand Prix",
+          "category": "model_calibration_review",
+          "severity": "medium",
+          "blocks_formal_claim": false,
+          "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
+          "required_by": null,
+          "details": {
+            "top_pick": "verstappen",
+            "actual_winner": "antonelli",
+            "actual_winner_probability": 0.2283,
+            "actual_winner_rank": 2,
+            "max_evidence_win_delta": 0.0
+          },
+          "command_templates": [
+            "python -m f1predict.cli predict --event miami_gp --knowledge-cutoff 2026-05-03T00:00:00+00:00 --iterations 5000"
+          ]
+        },
+        {
+          "action_id": "monaco_gp:model_calibration",
+          "event_id": "monaco_gp",
+          "event_name": "Monaco Grand Prix",
+          "category": "model_calibration_review",
+          "severity": "medium",
+          "blocks_formal_claim": false,
+          "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
+          "required_by": null,
+          "details": {
+            "top_pick": "verstappen",
+            "actual_winner": "antonelli",
+            "actual_winner_probability": 0.2467,
+            "actual_winner_rank": 2,
+            "max_evidence_win_delta": 0.0
+          },
+          "command_templates": [
+            "python -m f1predict.cli predict --event monaco_gp --knowledge-cutoff 2026-06-07T00:00:00+00:00 --iterations 5000"
+          ]
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "event_id": "australian_gp",
+      "event_name": "Australian Grand Prix",
+      "date_end": "2026-03-08T06:00:00+00:00",
+      "status": "diagnostic_ready_with_warnings",
+      "blocking_action_count": 0,
+      "warning_action_count": 1,
+      "actions": [
+        {
+          "action_id": "australian_gp:model_calibration",
+          "event_id": "australian_gp",
+          "event_name": "Australian Grand Prix",
+          "category": "model_calibration_review",
+          "severity": "medium",
+          "blocks_formal_claim": false,
+          "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
+          "required_by": null,
+          "details": {
+            "top_pick": "verstappen",
+            "actual_winner": "russell",
+            "actual_winner_probability": 0.1625,
+            "actual_winner_rank": 4,
+            "max_evidence_win_delta": 0.0
+          },
+          "command_templates": [
+            "python -m f1predict.cli predict --event australian_gp --knowledge-cutoff 2026-03-08T00:00:00+00:00 --iterations 5000"
+          ]
+        }
+      ]
+    },
+    {
+      "event_id": "chinese_gp",
+      "event_name": "Chinese Grand Prix",
+      "date_end": "2026-03-15T09:00:00+00:00",
+      "status": "blocked",
+      "blocking_action_count": 2,
+      "warning_action_count": 0,
+      "actions": [
+        {
+          "action_id": "chinese_gp:market_snapshot",
+          "event_id": "chinese_gp",
+          "event_name": "Chinese Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-03-15T00:00:00+00:00",
+          "details": {
+            "event_id": "chinese_gp",
+            "event_name": "Chinese Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-03-15T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 1,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event chinese_gp --limit 15 --include-closed --output reports\\market_normalization\\chinese_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event chinese_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-03-15T00:00:00+00:00 --include-closed --output reports\\market_normalization\\chinese_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event chinese_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-03-15T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "chinese_gp:late_market_replacement",
+          "event_id": "chinese_gp",
+          "event_name": "Chinese Grand Prix",
+          "category": "after_cutoff_market_replacement",
+          "severity": "high",
+          "blocks_formal_claim": true,
+          "summary": "Existing market rows were captured after the replay cutoff and must be replaced.",
+          "required_by": "2026-03-15T00:00:00+00:00",
+          "details": {
+            "after_cutoff_snapshots": [
+              {
+                "event_id": "chinese_gp",
+                "event_name": "Chinese Grand Prix",
+                "market_id": "seed_chinese_gp_winner",
+                "market_type": "winner",
+                "captured_at": "2026-03-21T12:00:00Z",
+                "knowledge_cutoff": "2026-03-15T00:00:00+00:00",
+                "status": "after_cutoff",
+                "source": "seed",
+                "liquidity": 21200,
+                "spread_estimate": 0.032,
+                "outcome_count": 7,
+                "top_prices": [
+                  {
+                    "outcome_id": "antonelli",
+                    "price": 0.34
+                  },
+                  {
+                    "outcome_id": "russell",
+                    "price": 0.25
+                  },
+                  {
+                    "outcome_id": "hamilton",
+                    "price": 0.14
+                  },
+                  {
+                    "outcome_id": "leclerc",
+                    "price": 0.1
+                  },
+                  {
+                    "outcome_id": "piastri",
+                    "price": 0.07
+                  }
+                ]
+              }
+            ]
+          },
+          "command_templates": [
+            "python -m f1predict.cli backfill-polymarket-history --event chinese_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-03-15T00:00:00+00:00 --include-closed --output reports\\market_normalization\\chinese_gp_price_history.json"
+          ]
+        }
+      ]
+    },
+    {
+      "event_id": "japanese_gp",
+      "event_name": "Japanese Grand Prix",
+      "date_end": "2026-03-29T07:00:00+00:00",
+      "status": "blocked",
+      "blocking_action_count": 2,
+      "warning_action_count": 0,
+      "actions": [
+        {
+          "action_id": "japanese_gp:market_snapshot",
+          "event_id": "japanese_gp",
+          "event_name": "Japanese Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-03-29T00:00:00+00:00",
+          "details": {
+            "event_id": "japanese_gp",
+            "event_name": "Japanese Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-03-29T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 1,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event japanese_gp --limit 15 --include-closed --output reports\\market_normalization\\japanese_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event japanese_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-03-29T00:00:00+00:00 --include-closed --output reports\\market_normalization\\japanese_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event japanese_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-03-29T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "japanese_gp:late_market_replacement",
+          "event_id": "japanese_gp",
+          "event_name": "Japanese Grand Prix",
+          "category": "after_cutoff_market_replacement",
+          "severity": "high",
+          "blocks_formal_claim": true,
+          "summary": "Existing market rows were captured after the replay cutoff and must be replaced.",
+          "required_by": "2026-03-29T00:00:00+00:00",
+          "details": {
+            "after_cutoff_snapshots": [
+              {
+                "event_id": "japanese_gp",
+                "event_name": "Japanese Grand Prix",
+                "market_id": "seed_japanese_gp_winner",
+                "market_type": "winner",
+                "captured_at": "2026-04-04T12:00:00Z",
+                "knowledge_cutoff": "2026-03-29T00:00:00+00:00",
+                "status": "after_cutoff",
+                "source": "seed",
+                "liquidity": 19800,
+                "spread_estimate": 0.036,
+                "outcome_count": 7,
+                "top_prices": [
+                  {
+                    "outcome_id": "antonelli",
+                    "price": 0.32
+                  },
+                  {
+                    "outcome_id": "russell",
+                    "price": 0.22
+                  },
+                  {
+                    "outcome_id": "hamilton",
+                    "price": 0.13
+                  },
+                  {
+                    "outcome_id": "leclerc",
+                    "price": 0.1
+                  },
+                  {
+                    "outcome_id": "piastri",
+                    "price": 0.08
+                  }
+                ]
+              }
+            ]
+          },
+          "command_templates": [
+            "python -m f1predict.cli backfill-polymarket-history --event japanese_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-03-29T00:00:00+00:00 --include-closed --output reports\\market_normalization\\japanese_gp_price_history.json"
+          ]
+        }
+      ]
+    },
+    {
+      "event_id": "Bahrain Grand Prix",
+      "event_name": "Bahrain Grand Prix",
+      "date_end": "2026-04-12T17:00:00+00:00",
+      "status": "cancelled",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "Saudi Arabian Grand Prix",
+      "event_name": "Saudi Arabian Grand Prix",
+      "date_end": "2026-04-19T19:00:00+00:00",
+      "status": "cancelled",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "miami_gp",
+      "event_name": "Miami Grand Prix",
+      "date_end": "2026-05-03T19:00:00+00:00",
+      "status": "blocked",
+      "blocking_action_count": 2,
+      "warning_action_count": 1,
+      "actions": [
+        {
+          "action_id": "miami_gp:market_snapshot",
+          "event_id": "miami_gp",
+          "event_name": "Miami Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-05-03T00:00:00+00:00",
+          "details": {
+            "event_id": "miami_gp",
+            "event_name": "Miami Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-05-03T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 0,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event miami_gp --limit 15 --include-closed --output reports\\market_normalization\\miami_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event miami_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --include-closed --output reports\\market_normalization\\miami_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event miami_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-05-03T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "miami_gp:source_archive:1",
+          "event_id": "miami_gp",
+          "event_name": "Miami Grand Prix",
+          "category": "source_archive_required",
+          "severity": "high",
+          "blocks_formal_claim": true,
+          "summary": "A late local source snapshot needs cutoff-valid archive proof or a replacement source.",
+          "required_by": "2026-05-03T00:00:00+00:00",
+          "details": {
+            "source": "Formula1.com official race-week report",
+            "url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+            "title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+            "source_class": "f1_official",
+            "published_at": "2026-05-02T21:17:38.879Z",
+            "observed_at": "2026-05-02T21:17:38.879Z",
+            "captured_at": "2026-06-30T09:45:55+00:00",
+            "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+            "cutoff_status": "within_cutoff",
+            "snapshot_path": "data\\raw\\research_sources\\miami_gp_f1_official_073e1d43e444\\2026-06-30\\miami_gp_f1_official_073e1d43e444_2026-06-30T09_45_55_00_00.json",
+            "archive_status": "missing_cutoff_archive",
+            "archive_url": null,
+            "archived_at": null,
+            "archive_verification_method": null
+          },
+          "command_templates": [
+            "python -m f1predict.cli discover-source-archives --event miami_gp --write --output reports\\source_archives\\miami_gp_wayback.json",
+            "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5 --source <source-name> --source-class <class> --published-at <published-at> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5 --historical-verification-method wayback"
+          ]
+        },
+        {
+          "action_id": "miami_gp:model_calibration",
+          "event_id": "miami_gp",
+          "event_name": "Miami Grand Prix",
+          "category": "model_calibration_review",
+          "severity": "medium",
+          "blocks_formal_claim": false,
+          "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
+          "required_by": null,
+          "details": {
+            "top_pick": "verstappen",
+            "actual_winner": "antonelli",
+            "actual_winner_probability": 0.2283,
+            "actual_winner_rank": 2,
+            "max_evidence_win_delta": 0.0
+          },
+          "command_templates": [
+            "python -m f1predict.cli predict --event miami_gp --knowledge-cutoff 2026-05-03T00:00:00+00:00 --iterations 5000"
+          ]
+        }
+      ]
+    },
+    {
+      "event_id": "canadian_gp",
+      "event_name": "Canadian Grand Prix",
+      "date_end": "2026-05-24T22:00:00+00:00",
+      "status": "blocked",
+      "blocking_action_count": 2,
+      "warning_action_count": 0,
+      "actions": [
+        {
+          "action_id": "canadian_gp:market_snapshot",
+          "event_id": "canadian_gp",
+          "event_name": "Canadian Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-05-24T00:00:00+00:00",
+          "details": {
+            "event_id": "canadian_gp",
+            "event_name": "Canadian Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-05-24T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 0,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event canadian_gp --limit 15 --include-closed --output reports\\market_normalization\\canadian_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event canadian_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --include-closed --output reports\\market_normalization\\canadian_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event canadian_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-05-24T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "canadian_gp:source_archive:1",
+          "event_id": "canadian_gp",
+          "event_name": "Canadian Grand Prix",
+          "category": "source_archive_required",
+          "severity": "high",
+          "blocks_formal_claim": true,
+          "summary": "A late local source snapshot needs cutoff-valid archive proof or a replacement source.",
+          "required_by": "2026-05-24T00:00:00+00:00",
+          "details": {
+            "source": "Formula1.com official race-week report",
+            "url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+            "title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+            "source_class": "f1_official",
+            "published_at": "2026-05-23T21:19:02.498Z",
+            "observed_at": "2026-05-23T21:19:02.498Z",
+            "captured_at": "2026-06-30T09:45:56+00:00",
+            "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+            "cutoff_status": "within_cutoff",
+            "snapshot_path": "data\\raw\\research_sources\\canadian_gp_f1_official_dc72e8c304fb\\2026-06-30\\canadian_gp_f1_official_dc72e8c304fb_2026-06-30T09_45_56_00_00.json",
+            "archive_status": "missing_cutoff_archive",
+            "archive_url": null,
+            "archived_at": null,
+            "archive_verification_method": null
+          },
+          "command_templates": [
+            "python -m f1predict.cli discover-source-archives --event canadian_gp --write --output reports\\source_archives\\canadian_gp_wayback.json",
+            "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT --source <source-name> --source-class <class> --published-at <published-at> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT --historical-verification-method wayback"
+          ]
+        }
+      ]
+    },
+    {
+      "event_id": "monaco_gp",
+      "event_name": "Monaco Grand Prix",
+      "date_end": "2026-06-07T15:00:00+00:00",
+      "status": "blocked",
+      "blocking_action_count": 1,
+      "warning_action_count": 1,
+      "actions": [
+        {
+          "action_id": "monaco_gp:market_snapshot",
+          "event_id": "monaco_gp",
+          "event_name": "Monaco Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-06-07T00:00:00+00:00",
+          "details": {
+            "event_id": "monaco_gp",
+            "event_name": "Monaco Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-06-07T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 0,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event monaco_gp --limit 15 --include-closed --output reports\\market_normalization\\monaco_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event monaco_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-06-07T00:00:00+00:00 --include-closed --output reports\\market_normalization\\monaco_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event monaco_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-06-07T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "monaco_gp:model_calibration",
+          "event_id": "monaco_gp",
+          "event_name": "Monaco Grand Prix",
+          "category": "model_calibration_review",
+          "severity": "medium",
+          "blocks_formal_claim": false,
+          "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
+          "required_by": null,
+          "details": {
+            "top_pick": "verstappen",
+            "actual_winner": "antonelli",
+            "actual_winner_probability": 0.2467,
+            "actual_winner_rank": 2,
+            "max_evidence_win_delta": 0.0
+          },
+          "command_templates": [
+            "python -m f1predict.cli predict --event monaco_gp --knowledge-cutoff 2026-06-07T00:00:00+00:00 --iterations 5000"
+          ]
+        }
+      ]
+    },
+    {
+      "event_id": "barcelona_gp",
+      "event_name": "Barcelona Grand Prix",
+      "date_end": "2026-06-14T15:00:00+00:00",
+      "status": "blocked",
+      "blocking_action_count": 2,
+      "warning_action_count": 1,
+      "actions": [
+        {
+          "action_id": "barcelona_gp:market_snapshot",
+          "event_id": "barcelona_gp",
+          "event_name": "Barcelona Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-06-14T00:00:00+00:00",
+          "details": {
+            "event_id": "barcelona_gp",
+            "event_name": "Barcelona Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-06-14T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 0,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event barcelona_gp --limit 15 --include-closed --output reports\\market_normalization\\barcelona_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event barcelona_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --include-closed --output reports\\market_normalization\\barcelona_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event barcelona_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-06-14T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "barcelona_gp:source_archive:1",
+          "event_id": "barcelona_gp",
+          "event_name": "Barcelona Grand Prix",
+          "category": "source_archive_required",
+          "severity": "high",
+          "blocks_formal_claim": true,
+          "summary": "A late local source snapshot needs cutoff-valid archive proof or a replacement source.",
+          "required_by": "2026-06-14T00:00:00+00:00",
+          "details": {
+            "source": "Formula1.com official race-week report",
+            "url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+            "title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+            "source_class": "f1_official",
+            "published_at": "2026-06-13T15:27:57.860Z",
+            "observed_at": "2026-06-13T15:27:57.860Z",
+            "captured_at": "2026-06-30T09:45:59+00:00",
+            "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+            "cutoff_status": "within_cutoff",
+            "snapshot_path": "data\\raw\\research_sources\\barcelona_gp_f1_official_4465b00509cc\\2026-06-30\\barcelona_gp_f1_official_4465b00509cc_2026-06-30T09_45_59_00_00.json",
+            "archive_status": "missing_cutoff_archive",
+            "archive_url": null,
+            "archived_at": null,
+            "archive_verification_method": null
+          },
+          "command_templates": [
+            "python -m f1predict.cli discover-source-archives --event barcelona_gp --write --output reports\\source_archives\\barcelona_gp_wayback.json",
+            "python -m f1predict.cli snapshot-source --event barcelona_gp --url https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv --source <source-name> --source-class <class> --published-at <published-at> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv --historical-verification-method wayback"
+          ]
+        },
+        {
+          "action_id": "barcelona_gp:model_calibration",
+          "event_id": "barcelona_gp",
+          "event_name": "Barcelona Grand Prix",
+          "category": "model_calibration_review",
+          "severity": "medium",
+          "blocks_formal_claim": false,
+          "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
+          "required_by": null,
+          "details": {
+            "top_pick": "antonelli",
+            "actual_winner": "hamilton",
+            "actual_winner_probability": 0.1325,
+            "actual_winner_rank": 4,
+            "max_evidence_win_delta": 0.0008
+          },
+          "command_templates": [
+            "python -m f1predict.cli predict --event barcelona_gp --knowledge-cutoff 2026-06-14T00:00:00+00:00 --iterations 5000"
+          ]
+        }
+      ]
+    },
+    {
+      "event_id": "austrian_gp",
+      "event_name": "Austrian Grand Prix",
+      "date_end": "2026-06-28T15:00:00+00:00",
+      "status": "blocked",
+      "blocking_action_count": 1,
+      "warning_action_count": 1,
+      "actions": [
+        {
+          "action_id": "austrian_gp:market_snapshot",
+          "event_id": "austrian_gp",
+          "event_name": "Austrian Grand Prix",
+          "category": "market_snapshot_required",
+          "severity": "critical",
+          "blocks_formal_claim": true,
+          "summary": "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+          "required_by": "2026-06-28T00:00:00+00:00",
+          "details": {
+            "event_id": "austrian_gp",
+            "event_name": "Austrian Grand Prix",
+            "market_type": "winner",
+            "required_at_or_before": "2026-06-28T00:00:00+00:00",
+            "status": "missing_cutoff_valid_snapshot",
+            "after_cutoff_snapshot_count": 0,
+            "recommendation": "Archive a same-time winner market snapshot before this cutoff, or backfill from a reviewed price-history source without using post-race prices."
+          },
+          "command_templates": [
+            "python -m f1predict.cli search-polymarket-season --event austrian_gp --limit 15 --include-closed --output reports\\market_normalization\\austrian_gp_season_search.json",
+            "python -m f1predict.cli backfill-polymarket-history --event austrian_gp --input <reviewed_gamma_payload.json> --knowledge-cutoff 2026-06-28T00:00:00+00:00 --include-closed --output reports\\market_normalization\\austrian_gp_price_history.json",
+            "python -m f1predict.cli archive-market-snapshot --event austrian_gp --input <normalized_market_snapshot.jsonl> --knowledge-cutoff 2026-06-28T00:00:00+00:00"
+          ]
+        },
+        {
+          "action_id": "austrian_gp:model_calibration",
+          "event_id": "austrian_gp",
+          "event_name": "Austrian Grand Prix",
+          "category": "model_calibration_review",
+          "severity": "medium",
+          "blocks_formal_claim": false,
+          "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
+          "required_by": null,
+          "details": {
+            "top_pick": "antonelli",
+            "actual_winner": "russell",
+            "actual_winner_probability": 0.2192,
+            "actual_winner_rank": 3,
+            "max_evidence_win_delta": 0.0
+          },
+          "command_templates": [
+            "python -m f1predict.cli predict --event austrian_gp --knowledge-cutoff 2026-06-28T00:00:00+00:00 --iterations 5000"
+          ]
+        }
+      ]
+    },
+    {
+      "event_id": "british_gp",
+      "event_name": "British Grand Prix",
+      "date_end": "2026-07-05T16:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "belgian_gp",
+      "event_name": "Belgian Grand Prix",
+      "date_end": "2026-07-19T15:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "hungarian_gp",
+      "event_name": "Hungarian Grand Prix",
+      "date_end": "2026-07-26T15:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "dutch_gp",
+      "event_name": "Dutch Grand Prix",
+      "date_end": "2026-08-23T15:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "italian_gp",
+      "event_name": "Italian Grand Prix",
+      "date_end": "2026-09-06T15:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "spanish_gp",
+      "event_name": "Spanish Grand Prix",
+      "date_end": "2026-09-13T15:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "azerbaijan_gp",
+      "event_name": "Azerbaijan Grand Prix",
+      "date_end": "2026-09-26T13:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "singapore_gp",
+      "event_name": "Singapore Grand Prix",
+      "date_end": "2026-10-11T14:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "united_states_gp",
+      "event_name": "United States Grand Prix",
+      "date_end": "2026-10-25T22:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "mexico_city_gp",
+      "event_name": "Mexico City Grand Prix",
+      "date_end": "2026-11-01T22:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "sao_paulo_gp",
+      "event_name": "São Paulo Grand Prix",
+      "date_end": "2026-11-08T19:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "las_vegas_gp",
+      "event_name": "Las Vegas Grand Prix",
+      "date_end": "2026-11-22T06:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "qatar_gp",
+      "event_name": "Qatar Grand Prix",
+      "date_end": "2026-11-29T18:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    },
+    {
+      "event_id": "abu_dhabi_gp",
+      "event_name": "Abu Dhabi Grand Prix",
+      "date_end": "2026-12-06T15:00:00+00:00",
+      "status": "not_due",
+      "blocking_action_count": 0,
+      "warning_action_count": 0,
+      "actions": []
+    }
+  ],
+  "next_actions": [
+    "A cutoff-valid winner-market snapshot is required before edge or CLV can be evaluated.",
+    "Existing market rows were captured after the replay cutoff and must be replaced.",
+    "A late local source snapshot needs cutoff-valid archive proof or a replacement source."
+  ]
+}

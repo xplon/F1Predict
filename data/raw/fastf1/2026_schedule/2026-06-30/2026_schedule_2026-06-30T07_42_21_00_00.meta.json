@@ -1,0 +1,10 @@
+{
+  "source": "fastf1",
+  "dataset": "2026_schedule",
+  "captured_at": "2026-06-30T07:42:21+00:00",
+  "params": {
+    "year": 2026
+  },
+  "item_count": 24,
+  "data_path": "data\\raw\\fastf1\\2026_schedule\\2026-06-30\\2026_schedule_2026-06-30T07_42_21_00_00.json"
+}

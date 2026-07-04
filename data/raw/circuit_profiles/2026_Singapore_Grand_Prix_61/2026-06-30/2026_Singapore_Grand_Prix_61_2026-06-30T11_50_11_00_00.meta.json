@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_Singapore Grand Prix_61",
+  "captured_at": "2026-06-30T11:50:11+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Singapore Grand Prix",
+    "meeting_key": 1296,
+    "circuit_key": 61,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/61/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_Singapore_Grand_Prix_61\\2026-06-30\\2026_Singapore_Grand_Prix_61_2026-06-30T11_50_11_00_00.json"
+}

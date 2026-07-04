@@ -1,0 +1,15 @@
+{
+  "source": "f1_official_circuit_map",
+  "event_id": "azerbaijan_gp",
+  "event_name": "Azerbaijan Grand Prix",
+  "round_number": 17,
+  "circuit_key": 144,
+  "circuit_short_name": "Baku",
+  "url": "https://media.formula1.com/image/upload/c_lfill%2Cw_3392/q_auto/v1740000001/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Baku_Circuit.webp",
+  "asset_path": "web/assets/tracks/azerbaijan_gp.webp",
+  "web_path": "/assets/tracks/azerbaijan_gp.webp",
+  "raw_path": "data/raw/circuit_images/2026_f1_official_track_icons/2026-06-30/azerbaijan_gp.webp",
+  "bytes": 38004,
+  "captured_at": "2026-07-01T10:45:03+00:00",
+  "sha256": "ba05898e89dce3fde7a67fdb0b617b54876b27e6937da6e0cffce0a1fa03ed82"
+}

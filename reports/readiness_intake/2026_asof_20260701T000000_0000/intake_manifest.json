@@ -1,0 +1,107 @@
+{
+  "year": 2026,
+  "as_of": "2026-07-01T00:00:00+00:00",
+  "generated_at": "2026-07-01T16:51:28+00:00",
+  "bundle_dir": "reports\\readiness_intake\\2026_asof_20260701T000000_0000",
+  "readiness_status": "inputs_required",
+  "formal_backtest_ready": false,
+  "blocking_action_count": 9,
+  "warning_action_count": 7,
+  "workstream_count": 4,
+  "action_count": 16,
+  "workstreams": [
+    {
+      "workstream_id": "market_snapshot_backfill",
+      "title": "Market Snapshot Backfill",
+      "priority": 1,
+      "category": "market_snapshot_required",
+      "severity": "critical",
+      "blocks_formal_claim": true,
+      "blocking_action_count": 6,
+      "warning_action_count": 0,
+      "event_ids": [
+        "japanese_gp",
+        "miami_gp",
+        "canadian_gp",
+        "monaco_gp",
+        "barcelona_gp",
+        "austrian_gp"
+      ],
+      "success_criteria": [
+        "Each listed event has a cutoff-valid model-supported market snapshot archived under data/market_snapshots.",
+        "The selected snapshot timestamp is at or before the replay cutoff for that event.",
+        "Replay analysis reports no missing supported-market snapshot for the listed events."
+      ]
+    },
+    {
+      "workstream_id": "after_cutoff_market_replacement",
+      "title": "After-Cutoff Market Replacement",
+      "priority": 2,
+      "category": "after_cutoff_market_replacement",
+      "severity": "medium",
+      "blocks_formal_claim": false,
+      "blocking_action_count": 0,
+      "warning_action_count": 2,
+      "event_ids": [
+        "chinese_gp",
+        "japanese_gp"
+      ],
+      "success_criteria": [
+        "Existing after-cutoff seed or backfilled rows are replaced by cutoff-valid rows or remain excluded.",
+        "Replay analysis still records excluded late rows as diagnostics without using them for prediction."
+      ]
+    },
+    {
+      "workstream_id": "source_archive_proof",
+      "title": "Source Archive Proof",
+      "priority": 3,
+      "category": "source_archive_required",
+      "severity": "high",
+      "blocks_formal_claim": true,
+      "blocking_action_count": 3,
+      "warning_action_count": 0,
+      "event_ids": [
+        "miami_gp",
+        "canadian_gp",
+        "barcelona_gp"
+      ],
+      "success_criteria": [
+        "Each retrospective source has pre-cutoff archive proof or is replaced by a pre-cutoff source snapshot.",
+        "Source audit reports archive-backed snapshots instead of unverified retrospective snapshots."
+      ]
+    },
+    {
+      "workstream_id": "model_calibration_review",
+      "title": "Model Calibration Review",
+      "priority": 6,
+      "category": "model_calibration_review",
+      "severity": "medium",
+      "blocks_formal_claim": false,
+      "blocking_action_count": 0,
+      "warning_action_count": 5,
+      "event_ids": [
+        "australian_gp",
+        "austrian_gp",
+        "barcelona_gp",
+        "miami_gp",
+        "monaco_gp"
+      ],
+      "success_criteria": [
+        "Re-run predict and calibration reports after input blockers are fixed.",
+        "Inspect misses, actual-winner ranks, and overconfidence before promoting any edge claim."
+      ]
+    }
+  ],
+  "files": {
+    "actions_jsonl": "reports\\readiness_intake\\2026_asof_20260701T000000_0000\\actions.jsonl",
+    "workstreams_csv": "reports\\readiness_intake\\2026_asof_20260701T000000_0000\\workstreams.csv",
+    "market_snapshot_backfill_jsonl": "reports\\readiness_intake\\2026_asof_20260701T000000_0000\\market_snapshot_backfill.actions.jsonl",
+    "market_snapshot_backfill_csv": "reports\\readiness_intake\\2026_asof_20260701T000000_0000\\market_snapshot_backfill.actions.csv",
+    "after_cutoff_market_replacement_jsonl": "reports\\readiness_intake\\2026_asof_20260701T000000_0000\\after_cutoff_market_replacement.actions.jsonl",
+    "after_cutoff_market_replacement_csv": "reports\\readiness_intake\\2026_asof_20260701T000000_0000\\after_cutoff_market_replacement.actions.csv",
+    "source_archive_proof_jsonl": "reports\\readiness_intake\\2026_asof_20260701T000000_0000\\source_archive_proof.actions.jsonl",
+    "source_archive_proof_csv": "reports\\readiness_intake\\2026_asof_20260701T000000_0000\\source_archive_proof.actions.csv",
+    "model_calibration_review_jsonl": "reports\\readiness_intake\\2026_asof_20260701T000000_0000\\model_calibration_review.actions.jsonl",
+    "model_calibration_review_csv": "reports\\readiness_intake\\2026_asof_20260701T000000_0000\\model_calibration_review.actions.csv"
+  }
+}

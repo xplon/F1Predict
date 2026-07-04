@@ -1,0 +1,15 @@
+{
+  "source": "f1_official_circuit_map",
+  "event_id": "miami_gp",
+  "event_name": "Miami Grand Prix",
+  "round_number": 6,
+  "circuit_key": 151,
+  "circuit_short_name": "Miami",
+  "url": "https://media.formula1.com/image/upload/c_lfill%2Cw_3392/q_auto/v1740000001/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Miami_Circuit.webp",
+  "asset_path": "web/assets/tracks/miami_gp.webp",
+  "web_path": "/assets/tracks/miami_gp.webp",
+  "raw_path": "data/raw/circuit_images/2026_f1_official_track_icons/2026-06-30/miami_gp.webp",
+  "bytes": 67354,
+  "captured_at": "2026-07-01T10:45:03+00:00",
+  "sha256": "4beea82b59567ab03a07eb4290f46487aad5af6cc48e6cd1ee9f48edd6353cca"
+}

@@ -1,0 +1,15 @@
+{
+  "source": "f1_official_circuit_map",
+  "event_id": "belgian_gp",
+  "event_name": "Belgian Grand Prix",
+  "round_number": 12,
+  "circuit_key": 7,
+  "circuit_short_name": "Spa-Francorchamps",
+  "url": "https://media.formula1.com/image/upload/c_lfill%2Cw_3392/q_auto/v1740000001/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Belgium_Circuit.webp",
+  "asset_path": "web/assets/tracks/belgian_gp.webp",
+  "web_path": "/assets/tracks/belgian_gp.webp",
+  "raw_path": "data/raw/circuit_images/2026_f1_official_track_icons/2026-06-30/belgian_gp.webp",
+  "bytes": 37910,
+  "captured_at": "2026-07-01T10:45:03+00:00",
+  "sha256": "6da54623cc0aa498acde318e24780a3f8e049388c048e12fc3c954901821236e"
+}

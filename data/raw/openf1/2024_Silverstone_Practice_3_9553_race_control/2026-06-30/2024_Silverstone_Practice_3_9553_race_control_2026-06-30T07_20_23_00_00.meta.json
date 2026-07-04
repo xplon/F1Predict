@@ -1,0 +1,11 @@
+{
+  "source": "openf1",
+  "dataset": "2024_Silverstone_Practice 3_9553_race_control",
+  "captured_at": "2026-06-30T07:20:23+00:00",
+  "params": {
+    "session_key": 9553,
+    "endpoint": "race_control"
+  },
+  "item_count": 24,
+  "data_path": "data\\raw\\openf1\\2024_Silverstone_Practice_3_9553_race_control\\2026-06-30\\2024_Silverstone_Practice_3_9553_race_control_2026-06-30T07_20_23_00_00.json"
+}

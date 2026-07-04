@@ -1,0 +1,685 @@
+{
+  "year": 2024,
+  "event_query": "Silverstone",
+  "sessions": {
+    "Practice_1_9551": {
+      "laps": {
+        "lap_count": 459,
+        "driver_count": 20,
+        "fastest_drivers": [
+          {
+            "driver_number": "4",
+            "lap_count": 24,
+            "fastest_lap": 87.42,
+            "median_lap": 91.083,
+            "long_run_proxy": 89.544
+          },
+          {
+            "driver_number": "18",
+            "lap_count": 20,
+            "fastest_lap": 87.554,
+            "median_lap": 104.011,
+            "long_run_proxy": 90.014
+          },
+          {
+            "driver_number": "81",
+            "lap_count": 15,
+            "fastest_lap": 87.631,
+            "median_lap": 110.384,
+            "long_run_proxy": 98.355
+          },
+          {
+            "driver_number": "1",
+            "lap_count": 23,
+            "fastest_lap": 87.729,
+            "median_lap": 92.485,
+            "long_run_proxy": 90.305
+          },
+          {
+            "driver_number": "63",
+            "lap_count": 24,
+            "fastest_lap": 87.738,
+            "median_lap": 95.15,
+            "long_run_proxy": 90.07
+          },
+          {
+            "driver_number": "14",
+            "lap_count": 25,
+            "fastest_lap": 87.794,
+            "median_lap": 108.18,
+            "long_run_proxy": 90.762
+          },
+          {
+            "driver_number": "44",
+            "lap_count": 24,
+            "fastest_lap": 87.858,
+            "median_lap": 97.629,
+            "long_run_proxy": 90.367
+          },
+          {
+            "driver_number": "16",
+            "lap_count": 24,
+            "fastest_lap": 87.903,
+            "median_lap": 92.738,
+            "long_run_proxy": 90.076
+          },
+          {
+            "driver_number": "55",
+            "lap_count": 25,
+            "fastest_lap": 87.925,
+            "median_lap": 92.15,
+            "long_run_proxy": 89.441
+          },
+          {
+            "driver_number": "31",
+            "lap_count": 22,
+            "fastest_lap": 87.974,
+            "median_lap": 108.748,
+            "long_run_proxy": 90.554
+          }
+        ]
+      },
+      "race_control": {
+        "message_count": 24,
+        "categories": {
+          "Flag": 11,
+          "Other": 8,
+          "SessionStatus": 4,
+          "Drs": 1
+        },
+        "flags": {
+          "CLEAR": 4,
+          "GREEN": 2,
+          "YELLOW": 2,
+          "DOUBLE YELLOW": 1,
+          "RED": 1,
+          "CHEQUERED": 1
+        }
+      },
+      "stints": {
+        "stint_count": 87,
+        "compounds": {
+          "HARD": 46,
+          "SOFT": 24,
+          "MEDIUM": 17
+        }
+      },
+      "weather": {
+        "sample_count": 81,
+        "air_temp_avg": 16.39,
+        "track_temp_avg": 24.55,
+        "rainfall_samples": 0,
+        "rainfall_ratio": 0.0,
+        "humidity_avg": 75.62
+      }
+    },
+    "Practice_2_9552": {
+      "laps": {
+        "lap_count": 477,
+        "driver_count": 20,
+        "fastest_drivers": [
+          {
+            "driver_number": "4",
+            "lap_count": 25,
+            "fastest_lap": 86.549,
+            "median_lap": 92.652,
+            "long_run_proxy": 90.305
+          },
+          {
+            "driver_number": "81",
+            "lap_count": 23,
+            "fastest_lap": 86.88,
+            "median_lap": 92.839,
+            "long_run_proxy": 90.457
+          },
+          {
+            "driver_number": "11",
+            "lap_count": 24,
+            "fastest_lap": 86.983,
+            "median_lap": 104.351,
+            "long_run_proxy": 90.645
+          },
+          {
+            "driver_number": "27",
+            "lap_count": 25,
+            "fastest_lap": 86.99,
+            "median_lap": 97.556,
+            "long_run_proxy": 91.465
+          },
+          {
+            "driver_number": "16",
+            "lap_count": 26,
+            "fastest_lap": 87.15,
+            "median_lap": 97.985,
+            "long_run_proxy": 90.478
+          },
+          {
+            "driver_number": "44",
+            "lap_count": 25,
+            "fastest_lap": 87.202,
+            "median_lap": 94.171,
+            "long_run_proxy": 90.212
+          },
+          {
+            "driver_number": "1",
+            "lap_count": 20,
+            "fastest_lap": 87.233,
+            "median_lap": 92.913,
+            "long_run_proxy": 91.137
+          },
+          {
+            "driver_number": "55",
+            "lap_count": 30,
+            "fastest_lap": 87.249,
+            "median_lap": 97.159,
+            "long_run_proxy": 89.758
+          },
+          {
+            "driver_number": "18",
+            "lap_count": 20,
+            "fastest_lap": 87.274,
+            "median_lap": 93.767,
+            "long_run_proxy": 90.801
+          },
+          {
+            "driver_number": "63",
+            "lap_count": 25,
+            "fastest_lap": 87.294,
+            "median_lap": 100.308,
+            "long_run_proxy": 90.861
+          }
+        ]
+      },
+      "race_control": {
+        "message_count": 13,
+        "categories": {
+          "Other": 6,
+          "Flag": 5,
+          "SessionStatus": 2
+        },
+        "flags": {
+          "CLEAR": 3,
+          "GREEN": 1,
+          "CHEQUERED": 1
+        }
+      },
+      "stints": {
+        "stint_count": 82,
+        "compounds": {
+          "MEDIUM": 37,
+          "SOFT": 32,
+          "INTERMEDIATE": 9,
+          "HARD": 4
+        }
+      },
+      "weather": {
+        "sample_count": 81,
+        "air_temp_avg": 18.32,
+        "track_temp_avg": 29.3,
+        "rainfall_samples": 14,
+        "rainfall_ratio": 0.173,
+        "humidity_avg": 67.57
+      }
+    },
+    "Practice_3_9553": {
+      "laps": {
+        "lap_count": 438,
+        "driver_count": 19,
+        "fastest_drivers": [
+          {
+            "driver_number": "81",
+            "lap_count": 25,
+            "fastest_lap": 96.654,
+            "median_lap": 103.025,
+            "long_run_proxy": 99.688
+          },
+          {
+            "driver_number": "63",
+            "lap_count": 21,
+            "fastest_lap": 97.529,
+            "median_lap": 101.574,
+            "long_run_proxy": 99.743
+          },
+          {
+            "driver_number": "44",
+            "lap_count": 26,
+            "fastest_lap": 97.564,
+            "median_lap": 104.328,
+            "long_run_proxy": 100.129
+          },
+          {
+            "driver_number": "4",
+            "lap_count": 18,
+            "fastest_lap": 97.714,
+            "median_lap": 103.708,
+            "long_run_proxy": 100.378
+          },
+          {
+            "driver_number": "55",
+            "lap_count": 21,
+            "fastest_lap": 98.139,
+            "median_lap": 102.962,
+            "long_run_proxy": 99.961
+          },
+          {
+            "driver_number": "1",
+            "lap_count": 18,
+            "fastest_lap": 98.393,
+            "median_lap": 105.187,
+            "long_run_proxy": 100.776
+          },
+          {
+            "driver_number": "16",
+            "lap_count": 24,
+            "fastest_lap": 98.454,
+            "median_lap": 102.294,
+            "long_run_proxy": 99.665
+          },
+          {
+            "driver_number": "14",
+            "lap_count": 19,
+            "fastest_lap": 98.94,
+            "median_lap": 110.779,
+            "long_run_proxy": 103.586
+          },
+          {
+            "driver_number": "11",
+            "lap_count": 16,
+            "fastest_lap": 99.284,
+            "median_lap": 109.665,
+            "long_run_proxy": 104.699
+          },
+          {
+            "driver_number": "27",
+            "lap_count": 14,
+            "fastest_lap": 99.34,
+            "median_lap": 113.037,
+            "long_run_proxy": 107.349
+          }
+        ]
+      },
+      "race_control": {
+        "message_count": 24,
+        "categories": {
+          "Flag": 10,
+          "Other": 8,
+          "SessionStatus": 4,
+          "Drs": 2
+        },
+        "flags": {
+          "CLEAR": 4,
+          "GREEN": 2,
+          "YELLOW": 2,
+          "RED": 1,
+          "CHEQUERED": 1
+        }
+      },
+      "stints": {
+        "stint_count": 76,
+        "compounds": {
+          "INTERMEDIATE": 76
+        }
+      },
+      "weather": {
+        "sample_count": 82,
+        "air_temp_avg": 11.17,
+        "track_temp_avg": 16.29,
+        "rainfall_samples": 54,
+        "rainfall_ratio": 0.659,
+        "humidity_avg": 89.43
+      }
+    },
+    "Qualifying_9554": {
+      "laps": {
+        "lap_count": 368,
+        "driver_count": 20,
+        "fastest_drivers": [
+          {
+            "driver_number": "63",
+            "lap_count": 23,
+            "fastest_lap": 85.819,
+            "median_lap": 97.8,
+            "long_run_proxy": 89.833
+          },
+          {
+            "driver_number": "44",
+            "lap_count": 22,
+            "fastest_lap": 85.99,
+            "median_lap": 97.447,
+            "long_run_proxy": 90.512
+          },
+          {
+            "driver_number": "4",
+            "lap_count": 19,
+            "fastest_lap": 86.03,
+            "median_lap": 107.232,
+            "long_run_proxy": 96.177
+          },
+          {
+            "driver_number": "1",
+            "lap_count": 22,
+            "fastest_lap": 86.203,
+            "median_lap": 104.112,
+            "long_run_proxy": 90.995
+          },
+          {
+            "driver_number": "81",
+            "lap_count": 21,
+            "fastest_lap": 86.237,
+            "median_lap": 104.903,
+            "long_run_proxy": 91.137
+          },
+          {
+            "driver_number": "27",
+            "lap_count": 15,
+            "fastest_lap": 86.338,
+            "median_lap": 96.123,
+            "long_run_proxy": 93.106
+          },
+          {
+            "driver_number": "55",
+            "lap_count": 21,
+            "fastest_lap": 86.509,
+            "median_lap": 103.234,
+            "long_run_proxy": 91.087
+          },
+          {
+            "driver_number": "18",
+            "lap_count": 22,
+            "fastest_lap": 86.585,
+            "median_lap": 103.329,
+            "long_run_proxy": 91.749
+          },
+          {
+            "driver_number": "23",
+            "lap_count": 20,
+            "fastest_lap": 86.64,
+            "median_lap": 113.355,
+            "long_run_proxy": 93.752
+          },
+          {
+            "driver_number": "14",
+            "lap_count": 21,
+            "fastest_lap": 86.73,
+            "median_lap": 105.783,
+            "long_run_proxy": 92.873
+          }
+        ]
+      },
+      "race_control": {
+        "message_count": 54,
+        "categories": {
+          "Other": 30,
+          "Flag": 13,
+          "SessionStatus": 8,
+          "Drs": 3
+        },
+        "flags": {
+          "GREEN": 4,
+          "CLEAR": 4,
+          "CHEQUERED": 3,
+          "YELLOW": 1,
+          "RED": 1
+        }
+      },
+      "stints": {
+        "stint_count": 102,
+        "compounds": {
+          "SOFT": 83,
+          "INTERMEDIATE": 19
+        }
+      },
+      "weather": {
+        "sample_count": 85,
+        "air_temp_avg": 13.7,
+        "track_temp_avg": 21.22,
+        "rainfall_samples": 6,
+        "rainfall_ratio": 0.071,
+        "humidity_avg": 74.39
+      }
+    },
+    "Race_9558": {
+      "laps": {
+        "lap_count": 962,
+        "driver_count": 19,
+        "fastest_drivers": [
+          {
+            "driver_number": "55",
+            "lap_count": 52,
+            "fastest_lap": 88.293,
+            "median_lap": 92.469,
+            "long_run_proxy": 89.479
+          },
+          {
+            "driver_number": "81",
+            "lap_count": 52,
+            "fastest_lap": 88.748,
+            "median_lap": 91.926,
+            "long_run_proxy": 89.232
+          },
+          {
+            "driver_number": "1",
+            "lap_count": 52,
+            "fastest_lap": 88.952,
+            "median_lap": 92.09,
+            "long_run_proxy": 89.281
+          },
+          {
+            "driver_number": "4",
+            "lap_count": 52,
+            "fastest_lap": 89.262,
+            "median_lap": 91.976,
+            "long_run_proxy": 89.98
+          },
+          {
+            "driver_number": "44",
+            "lap_count": 52,
+            "fastest_lap": 89.438,
+            "median_lap": 91.731,
+            "long_run_proxy": 89.639
+          },
+          {
+            "driver_number": "11",
+            "lap_count": 49,
+            "fastest_lap": 89.707,
+            "median_lap": 94.231,
+            "long_run_proxy": 90.754
+          },
+          {
+            "driver_number": "14",
+            "lap_count": 52,
+            "fastest_lap": 89.71,
+            "median_lap": 92.727,
+            "long_run_proxy": 90.153
+          },
+          {
+            "driver_number": "23",
+            "lap_count": 52,
+            "fastest_lap": 89.718,
+            "median_lap": 93.079,
+            "long_run_proxy": 90.086
+          },
+          {
+            "driver_number": "16",
+            "lap_count": 51,
+            "fastest_lap": 89.748,
+            "median_lap": 92.858,
+            "long_run_proxy": 90.137
+          },
+          {
+            "driver_number": "27",
+            "lap_count": 52,
+            "fastest_lap": 89.836,
+            "median_lap": 92.751,
+            "long_run_proxy": 90.293
+          }
+        ]
+      },
+      "race_control": {
+        "message_count": 110,
+        "categories": {
+          "Flag": 72,
+          "Other": 30,
+          "Drs": 6,
+          "SessionStatus": 2
+        },
+        "flags": {
+          "BLUE": 57,
+          "CLEAR": 12,
+          "GREEN": 2,
+          "CHEQUERED": 1
+        }
+      },
+      "stints": {
+        "stint_count": 65,
+        "compounds": {
+          "MEDIUM": 25,
+          "INTERMEDIATE": 23,
+          "SOFT": 14,
+          "HARD": 3
+        }
+      },
+      "weather": {
+        "sample_count": 147,
+        "air_temp_avg": 15.77,
+        "track_temp_avg": 27.67,
+        "rainfall_samples": 51,
+        "rainfall_ratio": 0.347,
+        "humidity_avg": 67.33
+      }
+    }
+  },
+  "source_files": [
+    "data\\raw\\openf1\\2024_Silverstone_meetings\\2026-06-30\\2024_Silverstone_meetings_2026-06-30T07_20_10_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Practice_1_9551_laps\\2026-06-30\\2024_Silverstone_Practice_1_9551_laps_2026-06-30T07_20_11_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Practice_1_9551_race_control\\2026-06-30\\2024_Silverstone_Practice_1_9551_race_control_2026-06-30T07_20_13_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Practice_1_9551_stints\\2026-06-30\\2024_Silverstone_Practice_1_9551_stints_2026-06-30T07_20_14_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Practice_1_9551_weather\\2026-06-30\\2024_Silverstone_Practice_1_9551_weather_2026-06-30T07_20_12_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Practice_2_9552_laps\\2026-06-30\\2024_Silverstone_Practice_2_9552_laps_2026-06-30T07_20_16_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Practice_2_9552_race_control\\2026-06-30\\2024_Silverstone_Practice_2_9552_race_control_2026-06-30T07_20_18_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Practice_2_9552_stints\\2026-06-30\\2024_Silverstone_Practice_2_9552_stints_2026-06-30T07_20_19_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Practice_2_9552_weather\\2026-06-30\\2024_Silverstone_Practice_2_9552_weather_2026-06-30T07_20_17_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Practice_3_9553_laps\\2026-06-30\\2024_Silverstone_Practice_3_9553_laps_2026-06-30T07_20_21_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Practice_3_9553_race_control\\2026-06-30\\2024_Silverstone_Practice_3_9553_race_control_2026-06-30T07_20_23_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Practice_3_9553_stints\\2026-06-30\\2024_Silverstone_Practice_3_9553_stints_2026-06-30T07_20_24_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Practice_3_9553_weather\\2026-06-30\\2024_Silverstone_Practice_3_9553_weather_2026-06-30T07_20_22_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Qualifying_9554_laps\\2026-06-30\\2024_Silverstone_Qualifying_9554_laps_2026-06-30T07_20_26_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Qualifying_9554_race_control\\2026-06-30\\2024_Silverstone_Qualifying_9554_race_control_2026-06-30T07_20_28_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Qualifying_9554_stints\\2026-06-30\\2024_Silverstone_Qualifying_9554_stints_2026-06-30T07_20_29_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Qualifying_9554_weather\\2026-06-30\\2024_Silverstone_Qualifying_9554_weather_2026-06-30T07_20_27_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Race_9558_laps\\2026-06-30\\2024_Silverstone_Race_9558_laps_2026-06-30T07_20_31_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Race_9558_race_control\\2026-06-30\\2024_Silverstone_Race_9558_race_control_2026-06-30T07_20_34_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Race_9558_stints\\2026-06-30\\2024_Silverstone_Race_9558_stints_2026-06-30T07_20_35_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_Race_9558_weather\\2026-06-30\\2024_Silverstone_Race_9558_weather_2026-06-30T07_20_32_00_00.json",
+    "data\\raw\\openf1\\2024_Silverstone_sessions\\2026-06-30\\2024_Silverstone_sessions_2026-06-30T07_20_10_00_00.json"
+  ],
+  "meeting_metadata": [
+    {
+      "meeting_key": 1240,
+      "meeting_name": "British Grand Prix",
+      "meeting_official_name": "FORMULA 1 QATAR AIRWAYS BRITISH GRAND PRIX 2024",
+      "location": "Silverstone",
+      "country_key": 2,
+      "country_code": "GBR",
+      "country_name": "United Kingdom",
+      "country_flag": "https://media.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/united-kingdom-flag.png",
+      "circuit_key": 2,
+      "circuit_short_name": "Silverstone",
+      "circuit_type": "Permanent",
+      "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/2/2024",
+      "circuit_image": "https://media.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Great Britain%20carbon.png",
+      "gmt_offset": "01:00:00",
+      "date_start": "2024-07-05T11:30:00+00:00",
+      "date_end": "2024-07-07T16:00:00+00:00",
+      "year": 2024,
+      "is_cancelled": false
+    }
+  ],
+  "session_metadata": [
+    {
+      "session_key": 9551,
+      "session_type": "Practice",
+      "session_name": "Practice 1",
+      "date_start": "2024-07-05T11:30:00+00:00",
+      "date_end": "2024-07-05T12:30:00+00:00",
+      "meeting_key": 1240,
+      "circuit_key": 2,
+      "circuit_short_name": "Silverstone",
+      "country_key": 2,
+      "country_code": "GBR",
+      "country_name": "United Kingdom",
+      "location": "Silverstone",
+      "gmt_offset": "01:00:00",
+      "year": 2024,
+      "is_cancelled": false
+    },
+    {
+      "session_key": 9552,
+      "session_type": "Practice",
+      "session_name": "Practice 2",
+      "date_start": "2024-07-05T15:00:00+00:00",
+      "date_end": "2024-07-05T16:00:00+00:00",
+      "meeting_key": 1240,
+      "circuit_key": 2,
+      "circuit_short_name": "Silverstone",
+      "country_key": 2,
+      "country_code": "GBR",
+      "country_name": "United Kingdom",
+      "location": "Silverstone",
+      "gmt_offset": "01:00:00",
+      "year": 2024,
+      "is_cancelled": false
+    },
+    {
+      "session_key": 9553,
+      "session_type": "Practice",
+      "session_name": "Practice 3",
+      "date_start": "2024-07-06T10:30:00+00:00",
+      "date_end": "2024-07-06T11:30:00+00:00",
+      "meeting_key": 1240,
+      "circuit_key": 2,
+      "circuit_short_name": "Silverstone",
+      "country_key": 2,
+      "country_code": "GBR",
+      "country_name": "United Kingdom",
+      "location": "Silverstone",
+      "gmt_offset": "01:00:00",
+      "year": 2024,
+      "is_cancelled": false
+    },
+    {
+      "session_key": 9554,
+      "session_type": "Qualifying",
+      "session_name": "Qualifying",
+      "date_start": "2024-07-06T14:00:00+00:00",
+      "date_end": "2024-07-06T15:00:00+00:00",
+      "meeting_key": 1240,
+      "circuit_key": 2,
+      "circuit_short_name": "Silverstone",
+      "country_key": 2,
+      "country_code": "GBR",
+      "country_name": "United Kingdom",
+      "location": "Silverstone",
+      "gmt_offset": "01:00:00",
+      "year": 2024,
+      "is_cancelled": false
+    },
+    {
+      "session_key": 9558,
+      "session_type": "Race",
+      "session_name": "Race",
+      "date_start": "2024-07-07T14:00:00+00:00",
+      "date_end": "2024-07-07T16:00:00+00:00",
+      "meeting_key": 1240,
+      "circuit_key": 2,
+      "circuit_short_name": "Silverstone",
+      "country_key": 2,
+      "country_code": "GBR",
+      "country_name": "United Kingdom",
+      "location": "Silverstone",
+      "gmt_offset": "01:00:00",
+      "year": 2024,
+      "is_cancelled": false
+    }
+  ]
+}

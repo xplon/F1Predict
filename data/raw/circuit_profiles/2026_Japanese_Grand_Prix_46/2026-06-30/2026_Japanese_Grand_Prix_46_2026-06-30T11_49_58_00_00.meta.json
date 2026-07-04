@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_Japanese Grand Prix_46",
+  "captured_at": "2026-06-30T11:49:58+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Japanese Grand Prix",
+    "meeting_key": 1281,
+    "circuit_key": 46,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/46/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_Japanese_Grand_Prix_46\\2026-06-30\\2026_Japanese_Grand_Prix_46_2026-06-30T11_49_58_00_00.json"
+}

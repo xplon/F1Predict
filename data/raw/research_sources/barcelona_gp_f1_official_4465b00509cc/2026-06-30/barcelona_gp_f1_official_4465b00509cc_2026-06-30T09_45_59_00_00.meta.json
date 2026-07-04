@@ -1,0 +1,15 @@
+{
+  "source": "research_sources",
+  "dataset": "barcelona_gp_f1_official_4465b00509cc",
+  "captured_at": "2026-06-30T09:45:59+00:00",
+  "params": {
+    "event_id": "barcelona_gp",
+    "url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+    "source_class": "f1_official",
+    "published_at": "2026-06-13T15:27:57.860Z",
+    "observed_at": "2026-06-13T15:27:57.860Z",
+    "knowledge_cutoff": "2026-06-14T00:00:00+00:00"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\research_sources\\barcelona_gp_f1_official_4465b00509cc\\2026-06-30\\barcelona_gp_f1_official_4465b00509cc_2026-06-30T09_45_59_00_00.json"
+}

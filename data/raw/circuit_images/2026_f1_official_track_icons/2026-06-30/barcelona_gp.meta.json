@@ -1,0 +1,16 @@
+{
+  "source": "f1_official_circuit_map",
+  "event_id": "barcelona_gp",
+  "event_name": "Barcelona Grand Prix",
+  "round_number": 9,
+  "circuit_key": 15,
+  "circuit_short_name": "Catalunya",
+  "url": "https://media.formula1.com/image/upload/c_lfill%2Cw_3392/q_auto/v1740000001/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Spain_Circuit.webp",
+  "asset_path": "web/assets/tracks/barcelona_gp.webp",
+  "web_path": "/assets/tracks/barcelona_gp.webp",
+  "raw_path": "data/raw/circuit_images/2026_f1_official_track_icons/2026-06-30/barcelona_gp.webp",
+  "bytes": 31670,
+  "captured_at": "2026-07-01T10:45:03+00:00",
+  "page_url": "https://www.formula1.com/en/information/spain-circuit-de-barcelona-catalunya-barcelona.6F5mWJGRuYkQ1XPX48pl8",
+  "sha256": "da9dcb41d592197b0708f93deadf5926b1f193efb3dee8b6b0d386056ba4015f"
+}

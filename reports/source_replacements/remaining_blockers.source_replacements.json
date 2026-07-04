@@ -1,0 +1,2267 @@
+{
+  "generated_at": "2026-07-01T16:01:29+00:00",
+  "input_path": "reports\\source_archives\\remaining_blockers_cdx_discovery.json",
+  "status": "replacement_candidates_need_archive_or_content_review",
+  "check_current": true,
+  "check_archive": true,
+  "blocker_count": 3,
+  "event_count": 3,
+  "candidate_count": 14,
+  "cutoff_valid_replacement_count": 0,
+  "remaining_candidate_count": 14,
+  "archive_proof_required_count": 12,
+  "content_review_required_count": 5,
+  "lookup_failed_count": 1,
+  "blocker_code_counts": {
+    "archive_lookup_failed": 5,
+    "current_lookup_failed": 1,
+    "cutoff_archive_missing": 8,
+    "manual_current_content_review_required": 5
+  },
+  "next_action_category_counts": {
+    "find_cutoff_archive": 7,
+    "retry_lookup": 2,
+    "review_current_content": 1,
+    "review_current_content_and_find_archive": 4
+  },
+  "status_counts": {
+    "candidate_lookup_failed": 1,
+    "candidate_needs_archive_proof": 8,
+    "candidate_needs_content_and_archive_review": 4,
+    "candidate_needs_content_review": 1
+  },
+  "event_status_counts": {
+    "replacement_candidates_need_archive_proof": 3
+  },
+  "events": [
+    {
+      "event_id": "barcelona_gp",
+      "event_name": "Barcelona Grand Prix",
+      "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+      "original_url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+      "original_title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+      "status": "replacement_candidates_need_archive_proof",
+      "next_action": "Find or attach an at-or-before-cutoff historical archive proof for the verified replacement candidate.",
+      "candidate_count": 4,
+      "cutoff_valid_replacement_count": 0,
+      "used_in_claim_ids": [
+        "barcelona_gp-f1official-qualifying-hamilton-frontrow-001"
+      ],
+      "blocker_code_counts": {
+        "cutoff_archive_missing": 3,
+        "manual_current_content_review_required": 2
+      },
+      "next_action_category_counts": {
+        "find_cutoff_archive": 2,
+        "review_current_content": 1,
+        "review_current_content_and_find_archive": 1
+      },
+      "candidates": [
+        {
+          "event_id": "barcelona_gp",
+          "event_name": "Barcelona Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+          "original_title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+          "original_published_at": "2026-06-13T15:27:57.860Z",
+          "original_observed_at": "2026-06-13T15:27:57.860Z",
+          "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "barcelona_gp-f1official-qualifying-hamilton-frontrow-001"
+          ],
+          "candidate_id": "barcelona_gp_fia_qualifying_classification",
+          "source": "FIA official qualifying classification",
+          "source_class": "fia",
+          "evidence_type": "official_classification",
+          "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying",
+          "status": "candidate_needs_archive_proof",
+          "current_check_status": "verified_tool_content",
+          "current_content_source": "codex_web_open",
+          "archive_check_status": "no_archive_before_cutoff",
+          "current_content_verified": true,
+          "current_content_review_required": false,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-06-13T15:27:57.860000+00:00",
+          "formal_replacement_ready": false,
+          "title": "Qualifying Classification | Federation Internationale de l'Automobile",
+          "content_length": 351,
+          "found_terms": [
+            "Qualifying Classification",
+            "George Russell",
+            "1:14.679",
+            "Lewis Hamilton",
+            "Andrea Kimi Antonelli"
+          ],
+          "missing_terms": [],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying: HTTP Error 429: Too Many Requests; availability:http://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying",
+            "verified_at": "2026-07-01T15:56:44+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": {
+            "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying",
+            "title": "Qualifying Classification | Federation Internationale de l'Automobile",
+            "captured_by": "codex_web_open",
+            "captured_at": "2026-07-01T13:05:00+00:00",
+            "verification_method": "official_page_text_extraction",
+            "source_url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying",
+            "notes": "Current official FIA page text included official grid rows; this is only current-content support and still requires cutoff archive proof before formal replay use."
+          },
+          "manual_content_review": {
+            "verification_method": "official_page_text_extraction",
+            "supports_claim": false
+          },
+          "error": null,
+          "notes": "Official FIA classification page observed as a strong current-content candidate; still needs cutoff-valid archive proof.",
+          "blocker_codes": [
+            "cutoff_archive_missing"
+          ],
+          "next_action_category": "find_cutoff_archive",
+          "minimum_missing_requirements": [
+            "Wayback/CDX archive capture must exist at or before 2026-06-14T00:00:00+00:00"
+          ],
+          "review_summary": "Barcelona Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+          "next_action": "Find an archive capture for this candidate at or before 2026-06-14T00:00:00+00:00, then snapshot it into the source log.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event barcelona_gp --write",
+            "python -m f1predict.cli snapshot-source --event barcelona_gp --url https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying --source \"FIA official qualifying classification\" --source-class fia --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying --historical-verification-method wayback --claim-id barcelona_gp-f1official-qualifying-hamilton-frontrow-001",
+            "python -m f1predict.cli discover-source-archives --event barcelona_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-06-14T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        },
+        {
+          "event_id": "barcelona_gp",
+          "event_name": "Barcelona Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+          "original_title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+          "original_published_at": "2026-06-13T15:27:57.860Z",
+          "original_observed_at": "2026-06-13T15:27:57.860Z",
+          "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "barcelona_gp-f1official-qualifying-hamilton-frontrow-001"
+          ],
+          "candidate_id": "barcelona_gp_f1_results_qualifying",
+          "source": "Formula1.com official qualifying results",
+          "source_class": "f1_official",
+          "evidence_type": "official_results_page",
+          "url": "https://www.formula1.com/en/results/2026/races/1287/spain/qualifying",
+          "status": "candidate_needs_content_and_archive_review",
+          "current_check_status": "current_content_review_required",
+          "current_content_source": "http",
+          "archive_check_status": "no_archive_before_cutoff",
+          "current_content_verified": false,
+          "current_content_review_required": true,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-06-13T15:27:57.860000+00:00",
+          "formal_replacement_ready": false,
+          "title": "FORMULA 1 MSC CRUISES GRAN PREMIO DE BARCELONA-CATALUNYA 2026 - QUALIFYING",
+          "content_length": 566674,
+          "found_terms": [
+            "Spain",
+            "Qualifying"
+          ],
+          "missing_terms": [],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.formula1.com/en/results/2026/races/1287/spain/qualifying: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1000)>; availability:http://www.formula1.com/en/results/2026/races/1287/spain/qualifying: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.formula1.com/en/results/2026/races/1287/spain/qualifying",
+            "verified_at": "2026-07-01T15:57:02+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": null,
+          "manual_content_review": null,
+          "error": null,
+          "notes": "Formula1.com results pages require structured-content review because the page payload can include unrelated site JSON.",
+          "blocker_codes": [
+            "manual_current_content_review_required",
+            "cutoff_archive_missing"
+          ],
+          "next_action_category": "review_current_content_and_find_archive",
+          "minimum_missing_requirements": [
+            "manual review must confirm the replacement page supports the same cited claim",
+            "Wayback/CDX archive capture must exist at or before 2026-06-14T00:00:00+00:00"
+          ],
+          "review_summary": "Barcelona Grand Prix candidate is not enough for formal replay yet: content review and/or cutoff-valid archive proof is still missing.",
+          "next_action": "Verify the page supports the cited claim and find an archive capture at or before 2026-06-14T00:00:00+00:00.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event barcelona_gp --write",
+            "python -m f1predict.cli snapshot-source --event barcelona_gp --url https://www.formula1.com/en/results/2026/races/1287/spain/qualifying --source \"Formula1.com official qualifying results\" --source-class f1_official --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/results/2026/races/1287/spain/qualifying --historical-verification-method wayback --claim-id barcelona_gp-f1official-qualifying-hamilton-frontrow-001",
+            "python -m f1predict.cli discover-source-archives --event barcelona_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-06-14T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        },
+        {
+          "event_id": "barcelona_gp",
+          "event_name": "Barcelona Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+          "original_title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+          "original_published_at": "2026-06-13T15:27:57.860Z",
+          "original_observed_at": "2026-06-13T15:27:57.860Z",
+          "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "barcelona_gp-f1official-qualifying-hamilton-frontrow-001"
+          ],
+          "candidate_id": "barcelona_gp_techradar_race_preview_grid",
+          "source": "TechRadar race preview and starting grid",
+          "source_class": "media",
+          "evidence_type": "media_starting_grid",
+          "url": "https://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free",
+          "status": "candidate_needs_archive_proof",
+          "current_check_status": "verified_current_content",
+          "current_content_source": "http",
+          "archive_check_status": "no_archive_before_cutoff",
+          "current_content_verified": true,
+          "current_content_review_required": false,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-06-13T15:27:57.860000+00:00",
+          "formal_replacement_ready": false,
+          "title": "How to watch Barcelona-Catalunya Grand Prix 2026 F1: Live Stream, Preview, Schedule | TechRadar",
+          "content_length": 2048689,
+          "found_terms": [
+            "Barcelona-Catalunya Grand Prix",
+            "George Russell",
+            "Lewis Hamilton",
+            "Kimi Antonelli",
+            "Starting Grid"
+          ],
+          "missing_terms": [],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free: HTTP Error 429: Too Many Requests; availability:http://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free",
+            "verified_at": "2026-07-01T15:57:17+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": null,
+          "manual_content_review": null,
+          "error": null,
+          "notes": "Web-search-discovered media candidate. Search metadata indicates publication after the midnight UTC cutoff, so it should remain rejected unless archive proof contradicts that.",
+          "blocker_codes": [
+            "cutoff_archive_missing"
+          ],
+          "next_action_category": "find_cutoff_archive",
+          "minimum_missing_requirements": [
+            "Wayback/CDX archive capture must exist at or before 2026-06-14T00:00:00+00:00"
+          ],
+          "review_summary": "Barcelona Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+          "next_action": "Find an archive capture for this candidate at or before 2026-06-14T00:00:00+00:00, then snapshot it into the source log.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event barcelona_gp --write",
+            "python -m f1predict.cli snapshot-source --event barcelona_gp --url https://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free --source \"TechRadar race preview and starting grid\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free --historical-verification-method wayback --claim-id barcelona_gp-f1official-qualifying-hamilton-frontrow-001",
+            "python -m f1predict.cli discover-source-archives --event barcelona_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-06-14T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        },
+        {
+          "event_id": "barcelona_gp",
+          "event_name": "Barcelona Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+          "original_title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+          "original_published_at": "2026-06-13T15:27:57.860Z",
+          "original_observed_at": "2026-06-13T15:27:57.860Z",
+          "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "barcelona_gp-f1official-qualifying-hamilton-frontrow-001"
+          ],
+          "candidate_id": "barcelona_gp_youtube_qualifying_highlights",
+          "source": "Formula 1 YouTube qualifying highlights",
+          "source_class": "media",
+          "evidence_type": "video_highlights_page",
+          "url": "https://www.youtube.com/watch?v=Q2fMM4H9bWY",
+          "status": "candidate_needs_content_review",
+          "current_check_status": "current_content_review_required",
+          "current_content_source": "http",
+          "archive_check_status": "cutoff_valid_archive",
+          "current_content_verified": false,
+          "current_content_review_required": true,
+          "archive_content_verified": true,
+          "archive_content_check_status": "verified_archive_content",
+          "archive_temporal_check_status": "archive_time_supports_evidence",
+          "evidence_available_at": "2026-06-13T15:27:57.860000+00:00",
+          "formal_replacement_ready": false,
+          "title": "Qualifying Highlights | 2026 Barcelona-Catalunya Grand Prix - YouTube",
+          "content_length": 1312528,
+          "found_terms": [
+            "Qualifying Highlights",
+            "Barcelona-Catalunya Grand Prix",
+            "Russell"
+          ],
+          "missing_terms": [],
+          "archive_content_length": 1448424,
+          "archive_found_terms": [
+            "Qualifying Highlights",
+            "Barcelona-Catalunya Grand Prix",
+            "Russell"
+          ],
+          "archive_missing_terms": [],
+          "historical_archive": {
+            "archive_url": "http://web.archive.org/web/20260613211230/https://www.youtube.com/watch?v=Q2fMM4H9bWY",
+            "archived_at": "2026-06-13T21:12:30+00:00",
+            "original_url": "https://www.youtube.com/watch?v=Q2fMM4H9bWY",
+            "verified_at": "2026-07-01T15:57:34+00:00",
+            "verification_method": "wayback_cdx_api",
+            "notes": "Wayback CDX API status=200; timestamp=20260613211230; matched_url=https://www.youtube.com/watch?v=Q2fMM4H9bWY; mimetype=text/html."
+          },
+          "nearest_archive": null,
+          "current_content_snapshot": null,
+          "manual_content_review": null,
+          "error": null,
+          "notes": "Wayback CDX has cutoff-valid captures for this URL, but archived YouTube HTML may not expose enough claim text; keep it manual-review only.",
+          "blocker_codes": [
+            "manual_current_content_review_required"
+          ],
+          "next_action_category": "review_current_content",
+          "minimum_missing_requirements": [
+            "manual review must confirm the replacement page supports the same cited claim"
+          ],
+          "review_summary": "Barcelona Grand Prix has archive proof, but the candidate content still needs manual review before replacement.",
+          "next_action": "Manually verify the page supports the cited claim, then snapshot it with the existing archive proof.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event barcelona_gp --write",
+            "python -m f1predict.cli snapshot-source --event barcelona_gp --url https://www.youtube.com/watch?v=Q2fMM4H9bWY --source \"Formula 1 YouTube qualifying highlights\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.youtube.com/watch?v=Q2fMM4H9bWY --historical-verification-method wayback --claim-id barcelona_gp-f1official-qualifying-hamilton-frontrow-001",
+            "python -m f1predict.cli discover-source-archives --event barcelona_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-06-14T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        }
+      ]
+    },
+    {
+      "event_id": "canadian_gp",
+      "event_name": "Canadian Grand Prix",
+      "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+      "original_url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+      "original_title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+      "status": "replacement_candidates_need_archive_proof",
+      "next_action": "Find or attach an at-or-before-cutoff historical archive proof for the verified replacement candidate.",
+      "candidate_count": 5,
+      "cutoff_valid_replacement_count": 0,
+      "used_in_claim_ids": [
+        "canadian_gp-f1official-qualifying-russell-pole-001"
+      ],
+      "blocker_code_counts": {
+        "archive_lookup_failed": 4,
+        "current_lookup_failed": 1,
+        "cutoff_archive_missing": 1,
+        "manual_current_content_review_required": 2
+      },
+      "next_action_category_counts": {
+        "find_cutoff_archive": 1,
+        "retry_lookup": 2,
+        "review_current_content_and_find_archive": 2
+      },
+      "candidates": [
+        {
+          "event_id": "canadian_gp",
+          "event_name": "Canadian Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+          "original_title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+          "original_published_at": "2026-05-23T21:19:02.498Z",
+          "original_observed_at": "2026-05-23T21:19:02.498Z",
+          "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "canadian_gp-f1official-qualifying-russell-pole-001"
+          ],
+          "candidate_id": "canadian_gp_fia_qualifying_classification",
+          "source": "FIA official qualifying classification",
+          "source_class": "fia",
+          "evidence_type": "official_classification",
+          "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification",
+          "status": "candidate_lookup_failed",
+          "current_check_status": "current_lookup_failed",
+          "current_content_source": "lookup_failed",
+          "archive_check_status": "archive_lookup_failed",
+          "current_content_verified": false,
+          "current_content_review_required": false,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-05-23T21:19:02.498000+00:00",
+          "formal_replacement_ready": false,
+          "title": null,
+          "content_length": null,
+          "found_terms": [],
+          "missing_terms": [
+            "Qualifying Classification",
+            "George Russell",
+            "Kimi Antonelli"
+          ],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification: HTTP Error 429: Too Many Requests; availability:http://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification",
+            "verified_at": "2026-07-01T15:58:04+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": null,
+          "manual_content_review": null,
+          "error": "current:HTTP Error 403: Forbidden; archive:availability:https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification: HTTP Error 429: Too Many Requests; availability:http://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification: HTTP Error 429: Too Many Requests; cdx:https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification: The read operation timed out; cdx:http://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification: The read operation timed out",
+          "notes": "Official FIA classification page candidate; current public HTML may be incomplete and must be reviewed before replacement.",
+          "blocker_codes": [
+            "current_lookup_failed",
+            "archive_lookup_failed"
+          ],
+          "next_action_category": "retry_lookup",
+          "minimum_missing_requirements": [
+            "current replacement page must be reachable or supplied by a reviewed tool-content override",
+            "archive lookup must succeed or be replaced with manually verified historical archive proof"
+          ],
+          "review_summary": "Canadian Grand Prix candidate lookup failed and cannot be accepted without a successful retry or manual proof.",
+          "next_action": "Retry current and archive lookup; if it still fails, replace with a different verifiable source.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event canadian_gp --write",
+            "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification --source \"FIA official qualifying classification\" --source-class fia --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification --historical-verification-method wayback --claim-id canadian_gp-f1official-qualifying-russell-pole-001",
+            "python -m f1predict.cli discover-source-archives --event canadian_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-05-24T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        },
+        {
+          "event_id": "canadian_gp",
+          "event_name": "Canadian Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+          "original_title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+          "original_published_at": "2026-05-23T21:19:02.498Z",
+          "original_observed_at": "2026-05-23T21:19:02.498Z",
+          "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "canadian_gp-f1official-qualifying-russell-pole-001"
+          ],
+          "candidate_id": "canadian_gp_f1_results_qualifying",
+          "source": "Formula1.com official qualifying results",
+          "source_class": "f1_official",
+          "evidence_type": "official_results_page",
+          "url": "https://www.formula1.com/en/results/2026/races/1285/canada/qualifying",
+          "status": "candidate_needs_content_and_archive_review",
+          "current_check_status": "current_content_review_required",
+          "current_content_source": "http",
+          "archive_check_status": "archive_lookup_failed",
+          "current_content_verified": false,
+          "current_content_review_required": true,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-05-23T21:19:02.498000+00:00",
+          "formal_replacement_ready": false,
+          "title": "FORMULA 1 LENOVO GRAND PRIX DU CANADA 2026 - QUALIFYING",
+          "content_length": 567373,
+          "found_terms": [
+            "Canada",
+            "Qualifying"
+          ],
+          "missing_terms": [],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.formula1.com/en/results/2026/races/1285/canada/qualifying: HTTP Error 429: Too Many Requests; availability:http://www.formula1.com/en/results/2026/races/1285/canada/qualifying: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.formula1.com/en/results/2026/races/1285/canada/qualifying",
+            "verified_at": "2026-07-01T15:58:30+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": null,
+          "manual_content_review": null,
+          "error": "archive:availability:https://www.formula1.com/en/results/2026/races/1285/canada/qualifying: HTTP Error 429: Too Many Requests; availability:http://www.formula1.com/en/results/2026/races/1285/canada/qualifying: HTTP Error 429: Too Many Requests; cdx:https://www.formula1.com/en/results/2026/races/1285/canada/qualifying: The read operation timed out; cdx:http://www.formula1.com/en/results/2026/races/1285/canada/qualifying: The read operation timed out",
+          "notes": "Formula1.com results pages require structured-content review because the page payload can include unrelated site JSON.",
+          "blocker_codes": [
+            "manual_current_content_review_required",
+            "archive_lookup_failed"
+          ],
+          "next_action_category": "review_current_content_and_find_archive",
+          "minimum_missing_requirements": [
+            "manual review must confirm the replacement page supports the same cited claim",
+            "archive lookup must succeed or be replaced with manually verified historical archive proof"
+          ],
+          "review_summary": "Canadian Grand Prix candidate is not enough for formal replay yet: content review and/or cutoff-valid archive proof is still missing.",
+          "next_action": "Verify the page supports the cited claim and find an archive capture at or before 2026-05-24T00:00:00+00:00.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event canadian_gp --write",
+            "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.formula1.com/en/results/2026/races/1285/canada/qualifying --source \"Formula1.com official qualifying results\" --source-class f1_official --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/results/2026/races/1285/canada/qualifying --historical-verification-method wayback --claim-id canadian_gp-f1official-qualifying-russell-pole-001",
+            "python -m f1predict.cli discover-source-archives --event canadian_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-05-24T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        },
+        {
+          "event_id": "canadian_gp",
+          "event_name": "Canadian Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+          "original_title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+          "original_published_at": "2026-05-23T21:19:02.498Z",
+          "original_observed_at": "2026-05-23T21:19:02.498Z",
+          "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "canadian_gp-f1official-qualifying-russell-pole-001"
+          ],
+          "candidate_id": "canadian_gp_techradar_race_preview_grid",
+          "source": "TechRadar race preview and starting grid",
+          "source_class": "media",
+          "evidence_type": "media_starting_grid",
+          "url": "https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free",
+          "status": "candidate_needs_content_and_archive_review",
+          "current_check_status": "current_content_review_required",
+          "current_content_source": "http",
+          "archive_check_status": "archive_lookup_failed",
+          "current_content_verified": false,
+          "current_content_review_required": true,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-05-23T21:19:02.498000+00:00",
+          "formal_replacement_ready": false,
+          "title": "How to watch Canadian Grand Prix 2026 F1: Live Stream, Preview, Schedule | TechRadar",
+          "content_length": 2004627,
+          "found_terms": [
+            "Canadian Grand Prix",
+            "George Russell",
+            "Kimi Antonelli",
+            "Starting Grid",
+            "pole"
+          ],
+          "missing_terms": [],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free: HTTP Error 429: Too Many Requests; availability:http://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free",
+            "verified_at": "2026-07-01T15:58:55+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": null,
+          "manual_content_review": null,
+          "error": "archive:availability:https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free: HTTP Error 429: Too Many Requests; availability:http://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free: HTTP Error 429: Too Many Requests; cdx:https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free: The read operation timed out; cdx:http://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free: The read operation timed out",
+          "notes": "Web-search-discovered media candidate. A Wayback capture may predate the qualifying result, so this candidate requires manual body-content review before it can replace a pole-position claim.",
+          "blocker_codes": [
+            "manual_current_content_review_required",
+            "archive_lookup_failed"
+          ],
+          "next_action_category": "review_current_content_and_find_archive",
+          "minimum_missing_requirements": [
+            "manual review must confirm the replacement page supports the same cited claim",
+            "archive lookup must succeed or be replaced with manually verified historical archive proof"
+          ],
+          "review_summary": "Canadian Grand Prix candidate is not enough for formal replay yet: content review and/or cutoff-valid archive proof is still missing.",
+          "next_action": "Verify the page supports the cited claim and find an archive capture at or before 2026-05-24T00:00:00+00:00.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event canadian_gp --write",
+            "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free --source \"TechRadar race preview and starting grid\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free --historical-verification-method wayback --claim-id canadian_gp-f1official-qualifying-russell-pole-001",
+            "python -m f1predict.cli discover-source-archives --event canadian_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-05-24T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        },
+        {
+          "event_id": "canadian_gp",
+          "event_name": "Canadian Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+          "original_title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+          "original_published_at": "2026-05-23T21:19:02.498Z",
+          "original_observed_at": "2026-05-23T21:19:02.498Z",
+          "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "canadian_gp-f1official-qualifying-russell-pole-001"
+          ],
+          "candidate_id": "canadian_gp_skysports_rain_grid",
+          "source": "Sky Sports Canadian GP grid article",
+          "source_class": "media",
+          "evidence_type": "media_starting_grid",
+          "url": "https://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli",
+          "status": "candidate_needs_archive_proof",
+          "current_check_status": "verified_current_content",
+          "current_content_source": "http",
+          "archive_check_status": "no_archive_before_cutoff",
+          "current_content_verified": true,
+          "current_content_review_required": false,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-05-23T21:19:02.498000+00:00",
+          "formal_replacement_ready": false,
+          "title": "Canadian GP: Rain set to cause &#x27;chaos&#x27; in Sunday&#x27;s race with George Russell on pole from Mercedes team-mate Kimi Antonelli | F1 News | Sky Sports",
+          "content_length": 209767,
+          "found_terms": [
+            "Canadian GP",
+            "George Russell",
+            "Kimi Antonelli",
+            "Lando Norris",
+            "pole"
+          ],
+          "missing_terms": [],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli: HTTP Error 429: Too Many Requests; availability:http://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli",
+            "verified_at": "2026-07-01T15:59:15+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": null,
+          "manual_content_review": null,
+          "error": null,
+          "notes": "Web-search-discovered media candidate with explicit grid text in search results; still requires current-content and cutoff-valid archive checks.",
+          "blocker_codes": [
+            "cutoff_archive_missing"
+          ],
+          "next_action_category": "find_cutoff_archive",
+          "minimum_missing_requirements": [
+            "Wayback/CDX archive capture must exist at or before 2026-05-24T00:00:00+00:00"
+          ],
+          "review_summary": "Canadian Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+          "next_action": "Find an archive capture for this candidate at or before 2026-05-24T00:00:00+00:00, then snapshot it into the source log.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event canadian_gp --write",
+            "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli --source \"Sky Sports Canadian GP grid article\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli --historical-verification-method wayback --claim-id canadian_gp-f1official-qualifying-russell-pole-001",
+            "python -m f1predict.cli discover-source-archives --event canadian_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-05-24T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        },
+        {
+          "event_id": "canadian_gp",
+          "event_name": "Canadian Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+          "original_title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+          "original_published_at": "2026-05-23T21:19:02.498Z",
+          "original_observed_at": "2026-05-23T21:19:02.498Z",
+          "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "canadian_gp-f1official-qualifying-russell-pole-001"
+          ],
+          "candidate_id": "canadian_gp_si_starting_grid",
+          "source": "Sports Illustrated starting grid article",
+          "source_class": "media",
+          "evidence_type": "media_starting_grid",
+          "url": "https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time",
+          "status": "candidate_needs_archive_proof",
+          "current_check_status": "verified_current_content",
+          "current_content_source": "http",
+          "archive_check_status": "archive_lookup_failed",
+          "current_content_verified": true,
+          "current_content_review_required": false,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-05-23T21:19:02.498000+00:00",
+          "formal_replacement_ready": false,
+          "title": "F1 Canadian Grand Prix Starting Grid and Start Time",
+          "content_length": 299826,
+          "found_terms": [
+            "Canadian Grand Prix",
+            "George Russell",
+            "Kimi Antonelli",
+            "Lando Norris",
+            "pole"
+          ],
+          "missing_terms": [],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time: HTTP Error 429: Too Many Requests; availability:http://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time",
+            "verified_at": "2026-07-01T15:59:40+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": null,
+          "manual_content_review": null,
+          "error": "archive:availability:https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time: HTTP Error 429: Too Many Requests; availability:http://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time: HTTP Error 429: Too Many Requests; cdx:https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time: The read operation timed out; cdx:http://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time: The read operation timed out",
+          "notes": "Web-search-discovered media candidate. It is useful only if archived at or before the replay cutoff.",
+          "blocker_codes": [
+            "archive_lookup_failed"
+          ],
+          "next_action_category": "retry_lookup",
+          "minimum_missing_requirements": [
+            "archive lookup must succeed or be replaced with manually verified historical archive proof"
+          ],
+          "review_summary": "Canadian Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+          "next_action": "Find an archive capture for this candidate at or before 2026-05-24T00:00:00+00:00, then snapshot it into the source log.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event canadian_gp --write",
+            "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time --source \"Sports Illustrated starting grid article\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time --historical-verification-method wayback --claim-id canadian_gp-f1official-qualifying-russell-pole-001",
+            "python -m f1predict.cli discover-source-archives --event canadian_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-05-24T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        }
+      ]
+    },
+    {
+      "event_id": "miami_gp",
+      "event_name": "Miami Grand Prix",
+      "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+      "original_url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+      "original_title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+      "status": "replacement_candidates_need_archive_proof",
+      "next_action": "Find or attach an at-or-before-cutoff historical archive proof for the verified replacement candidate.",
+      "candidate_count": 5,
+      "cutoff_valid_replacement_count": 0,
+      "used_in_claim_ids": [
+        "miami_gp-f1official-qualifying-antonelli-pole-001"
+      ],
+      "blocker_code_counts": {
+        "archive_lookup_failed": 1,
+        "cutoff_archive_missing": 4,
+        "manual_current_content_review_required": 1
+      },
+      "next_action_category_counts": {
+        "find_cutoff_archive": 4,
+        "review_current_content_and_find_archive": 1
+      },
+      "candidates": [
+        {
+          "event_id": "miami_gp",
+          "event_name": "Miami Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+          "original_title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+          "original_published_at": "2026-05-02T21:17:38.879Z",
+          "original_observed_at": "2026-05-02T21:17:38.879Z",
+          "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "miami_gp-f1official-qualifying-antonelli-pole-001"
+          ],
+          "candidate_id": "miami_gp_fia_qualifying_classification",
+          "source": "FIA official qualifying classification",
+          "source_class": "fia",
+          "evidence_type": "official_classification",
+          "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification",
+          "status": "candidate_needs_archive_proof",
+          "current_check_status": "verified_tool_content",
+          "current_content_source": "codex_web_open",
+          "archive_check_status": "no_archive_before_cutoff",
+          "current_content_verified": true,
+          "current_content_review_required": false,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-05-02T21:17:38.879000+00:00",
+          "formal_replacement_ready": false,
+          "title": "Qualifying Classification | Federation Internationale de l'Automobile",
+          "content_length": 415,
+          "found_terms": [
+            "Qualifying Classification",
+            "Andrea Kimi Antonelli",
+            "1:27.798",
+            "Max Verstappen",
+            "Charles Leclerc"
+          ],
+          "missing_terms": [],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification: HTTP Error 429: Too Many Requests; availability:http://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification",
+            "verified_at": "2026-07-01T15:59:57+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": {
+            "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification",
+            "title": "Qualifying Classification | Federation Internationale de l'Automobile",
+            "captured_by": "codex_web_open",
+            "captured_at": "2026-07-01T13:05:00+00:00",
+            "verification_method": "official_page_text_extraction",
+            "source_url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification",
+            "notes": "Current official FIA page text included classification and official grid rows; this is only current-content support and still requires cutoff archive proof before formal replay use."
+          },
+          "manual_content_review": {
+            "verification_method": "official_page_text_extraction",
+            "supports_claim": false
+          },
+          "error": null,
+          "notes": "Official FIA classification page observed as a strong current-content candidate; still needs cutoff-valid archive proof.",
+          "blocker_codes": [
+            "cutoff_archive_missing"
+          ],
+          "next_action_category": "find_cutoff_archive",
+          "minimum_missing_requirements": [
+            "Wayback/CDX archive capture must exist at or before 2026-05-03T00:00:00+00:00"
+          ],
+          "review_summary": "Miami Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+          "next_action": "Find an archive capture for this candidate at or before 2026-05-03T00:00:00+00:00, then snapshot it into the source log.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event miami_gp --write",
+            "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification --source \"FIA official qualifying classification\" --source-class fia --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification --historical-verification-method wayback --claim-id miami_gp-f1official-qualifying-antonelli-pole-001",
+            "python -m f1predict.cli discover-source-archives --event miami_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-05-03T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        },
+        {
+          "event_id": "miami_gp",
+          "event_name": "Miami Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+          "original_title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+          "original_published_at": "2026-05-02T21:17:38.879Z",
+          "original_observed_at": "2026-05-02T21:17:38.879Z",
+          "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "miami_gp-f1official-qualifying-antonelli-pole-001"
+          ],
+          "candidate_id": "miami_gp_f1_results_qualifying",
+          "source": "Formula1.com official qualifying results",
+          "source_class": "f1_official",
+          "evidence_type": "official_results_page",
+          "url": "https://www.formula1.com/en/results/2026/races/1284/miami/qualifying",
+          "status": "candidate_needs_content_and_archive_review",
+          "current_check_status": "current_content_review_required",
+          "current_content_source": "http",
+          "archive_check_status": "archive_lookup_failed",
+          "current_content_verified": false,
+          "current_content_review_required": true,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-05-02T21:17:38.879000+00:00",
+          "formal_replacement_ready": false,
+          "title": "FORMULA 1 CRYPTO.COM MIAMI GRAND PRIX 2026 - QUALIFYING",
+          "content_length": 569139,
+          "found_terms": [
+            "Miami",
+            "Qualifying"
+          ],
+          "missing_terms": [],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.formula1.com/en/results/2026/races/1284/miami/qualifying: HTTP Error 429: Too Many Requests; availability:http://www.formula1.com/en/results/2026/races/1284/miami/qualifying: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.formula1.com/en/results/2026/races/1284/miami/qualifying",
+            "verified_at": "2026-07-01T16:00:24+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": null,
+          "manual_content_review": null,
+          "error": "archive:availability:https://www.formula1.com/en/results/2026/races/1284/miami/qualifying: HTTP Error 429: Too Many Requests; availability:http://www.formula1.com/en/results/2026/races/1284/miami/qualifying: HTTP Error 429: Too Many Requests; cdx:https://www.formula1.com/en/results/2026/races/1284/miami/qualifying: The read operation timed out; cdx:http://www.formula1.com/en/results/2026/races/1284/miami/qualifying: The read operation timed out",
+          "notes": "Formula1.com results pages require structured-content review because the page payload can include unrelated site JSON.",
+          "blocker_codes": [
+            "manual_current_content_review_required",
+            "archive_lookup_failed"
+          ],
+          "next_action_category": "review_current_content_and_find_archive",
+          "minimum_missing_requirements": [
+            "manual review must confirm the replacement page supports the same cited claim",
+            "archive lookup must succeed or be replaced with manually verified historical archive proof"
+          ],
+          "review_summary": "Miami Grand Prix candidate is not enough for formal replay yet: content review and/or cutoff-valid archive proof is still missing.",
+          "next_action": "Verify the page supports the cited claim and find an archive capture at or before 2026-05-03T00:00:00+00:00.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event miami_gp --write",
+            "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.formula1.com/en/results/2026/races/1284/miami/qualifying --source \"Formula1.com official qualifying results\" --source-class f1_official --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/results/2026/races/1284/miami/qualifying --historical-verification-method wayback --claim-id miami_gp-f1official-qualifying-antonelli-pole-001",
+            "python -m f1predict.cli discover-source-archives --event miami_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-05-03T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        },
+        {
+          "event_id": "miami_gp",
+          "event_name": "Miami Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+          "original_title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+          "original_published_at": "2026-05-02T21:17:38.879Z",
+          "original_observed_at": "2026-05-02T21:17:38.879Z",
+          "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "miami_gp-f1official-qualifying-antonelli-pole-001"
+          ],
+          "candidate_id": "miami_gp_techradar_race_preview_grid",
+          "source": "TechRadar race preview and starting grid",
+          "source_class": "media",
+          "evidence_type": "media_starting_grid",
+          "url": "https://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule",
+          "status": "candidate_needs_archive_proof",
+          "current_check_status": "verified_current_content",
+          "current_content_source": "http",
+          "archive_check_status": "no_archive_before_cutoff",
+          "current_content_verified": true,
+          "current_content_review_required": false,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-05-02T21:17:38.879000+00:00",
+          "formal_replacement_ready": false,
+          "title": "How to watch Miami Grand Prix 2026 F1: Live Stream, Preview, Schedule | TechRadar",
+          "content_length": 2008118,
+          "found_terms": [
+            "Miami Grand Prix",
+            "Antonelli",
+            "pole",
+            "Max Verstappen",
+            "Charles Leclerc"
+          ],
+          "missing_terms": [],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule: HTTP Error 429: Too Many Requests; availability:http://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule",
+            "verified_at": "2026-07-01T16:00:44+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": null,
+          "manual_content_review": null,
+          "error": null,
+          "notes": "Web-search-discovered media candidate. It can only replace the blocked source if current content supports the claim and Wayback/CDX proves availability at or before the cutoff.",
+          "blocker_codes": [
+            "cutoff_archive_missing"
+          ],
+          "next_action_category": "find_cutoff_archive",
+          "minimum_missing_requirements": [
+            "Wayback/CDX archive capture must exist at or before 2026-05-03T00:00:00+00:00"
+          ],
+          "review_summary": "Miami Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+          "next_action": "Find an archive capture for this candidate at or before 2026-05-03T00:00:00+00:00, then snapshot it into the source log.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event miami_gp --write",
+            "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule --source \"TechRadar race preview and starting grid\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule --historical-verification-method wayback --claim-id miami_gp-f1official-qualifying-antonelli-pole-001",
+            "python -m f1predict.cli discover-source-archives --event miami_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-05-03T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        },
+        {
+          "event_id": "miami_gp",
+          "event_name": "Miami Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+          "original_title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+          "original_published_at": "2026-05-02T21:17:38.879Z",
+          "original_observed_at": "2026-05-02T21:17:38.879Z",
+          "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "miami_gp-f1official-qualifying-antonelli-pole-001"
+          ],
+          "candidate_id": "miami_gp_forbes_starting_grid",
+          "source": "Forbes starting grid article",
+          "source_class": "media",
+          "evidence_type": "media_starting_grid",
+          "url": "https://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/",
+          "status": "candidate_needs_archive_proof",
+          "current_check_status": "verified_current_content",
+          "current_content_source": "http",
+          "archive_check_status": "no_archive_before_cutoff",
+          "current_content_verified": true,
+          "current_content_review_required": false,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-05-02T21:17:38.879000+00:00",
+          "formal_replacement_ready": false,
+          "title": "Antonelli Secures Third Straight Pole at Miami GP as Verstappen Misses Out",
+          "content_length": 1309694,
+          "found_terms": [
+            "Miami Grand Prix",
+            "Antonelli",
+            "Max Verstappen",
+            "Charles Leclerc",
+            "Starting Grid"
+          ],
+          "missing_terms": [],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/: HTTP Error 429: Too Many Requests; availability:http://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/",
+            "verified_at": "2026-07-01T16:01:05+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": null,
+          "manual_content_review": null,
+          "error": null,
+          "notes": "Web-search-discovered media candidate. The article date is close to the replay cutoff, so archive timing must be checked before use.",
+          "blocker_codes": [
+            "cutoff_archive_missing"
+          ],
+          "next_action_category": "find_cutoff_archive",
+          "minimum_missing_requirements": [
+            "Wayback/CDX archive capture must exist at or before 2026-05-03T00:00:00+00:00"
+          ],
+          "review_summary": "Miami Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+          "next_action": "Find an archive capture for this candidate at or before 2026-05-03T00:00:00+00:00, then snapshot it into the source log.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event miami_gp --write",
+            "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/ --source \"Forbes starting grid article\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/ --historical-verification-method wayback --claim-id miami_gp-f1official-qualifying-antonelli-pole-001",
+            "python -m f1predict.cli discover-source-archives --event miami_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-05-03T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        },
+        {
+          "event_id": "miami_gp",
+          "event_name": "Miami Grand Prix",
+          "source_index": 0,
+          "original_url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+          "original_title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+          "original_published_at": "2026-05-02T21:17:38.879Z",
+          "original_observed_at": "2026-05-02T21:17:38.879Z",
+          "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+          "used_in_claim_ids": [
+            "miami_gp-f1official-qualifying-antonelli-pole-001"
+          ],
+          "candidate_id": "miami_gp_sbnation_updated_grid",
+          "source": "SB Nation updated starting grid article",
+          "source_class": "media",
+          "evidence_type": "media_starting_grid",
+          "url": "https://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar",
+          "status": "candidate_needs_archive_proof",
+          "current_check_status": "verified_current_content",
+          "current_content_source": "http",
+          "archive_check_status": "no_archive_before_cutoff",
+          "current_content_verified": true,
+          "current_content_review_required": false,
+          "archive_content_verified": false,
+          "archive_content_check_status": "not_checked",
+          "archive_temporal_check_status": "not_checked",
+          "evidence_available_at": "2026-05-02T21:17:38.879000+00:00",
+          "formal_replacement_ready": false,
+          "title": "F1 Miami Grand Prix: Updated starting grid following Isack Hadjar’s disqualification | SB Nation",
+          "content_length": 322302,
+          "found_terms": [
+            "Miami Grand Prix",
+            "Antonelli",
+            "pole",
+            "Max Verstappen",
+            "Hadjar"
+          ],
+          "missing_terms": [],
+          "archive_content_length": null,
+          "archive_found_terms": [],
+          "archive_missing_terms": [],
+          "historical_archive": null,
+          "nearest_archive": {
+            "error": "availability:https://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar: HTTP Error 429: Too Many Requests; availability:http://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar: HTTP Error 429: Too Many Requests",
+            "original_url": "https://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar",
+            "verified_at": "2026-07-01T16:01:29+00:00",
+            "verification_method": "wayback_available_api"
+          },
+          "current_content_snapshot": null,
+          "manual_content_review": null,
+          "error": null,
+          "notes": "Web-search-discovered media candidate. This may be a post-qualifying grid-update source; it still requires cutoff-valid archive proof.",
+          "blocker_codes": [
+            "cutoff_archive_missing"
+          ],
+          "next_action_category": "find_cutoff_archive",
+          "minimum_missing_requirements": [
+            "Wayback/CDX archive capture must exist at or before 2026-05-03T00:00:00+00:00"
+          ],
+          "review_summary": "Miami Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+          "next_action": "Find an archive capture for this candidate at or before 2026-05-03T00:00:00+00:00, then snapshot it into the source log.",
+          "command_templates": [
+            "python -m f1predict.cli source-replacement-candidates --event miami_gp --write",
+            "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar --source \"SB Nation updated starting grid article\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar --historical-verification-method wayback --claim-id miami_gp-f1official-qualifying-antonelli-pole-001",
+            "python -m f1predict.cli discover-source-archives --event miami_gp --write"
+          ],
+          "acceptance_criteria": [
+            "candidate page content supports the same claim IDs as the original blocked source",
+            "published_at and observed_at are at or before 2026-05-03T00:00:00+00:00",
+            "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+            "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+            "historical_archive.original_url matches the replacement URL",
+            "source audit passes after replacing or supplementing the original source record"
+          ]
+        }
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "event_id": "barcelona_gp",
+      "event_name": "Barcelona Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+      "original_title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+      "original_published_at": "2026-06-13T15:27:57.860Z",
+      "original_observed_at": "2026-06-13T15:27:57.860Z",
+      "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "barcelona_gp-f1official-qualifying-hamilton-frontrow-001"
+      ],
+      "candidate_id": "barcelona_gp_fia_qualifying_classification",
+      "source": "FIA official qualifying classification",
+      "source_class": "fia",
+      "evidence_type": "official_classification",
+      "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying",
+      "status": "candidate_needs_archive_proof",
+      "current_check_status": "verified_tool_content",
+      "current_content_source": "codex_web_open",
+      "archive_check_status": "no_archive_before_cutoff",
+      "current_content_verified": true,
+      "current_content_review_required": false,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-06-13T15:27:57.860000+00:00",
+      "formal_replacement_ready": false,
+      "title": "Qualifying Classification | Federation Internationale de l'Automobile",
+      "content_length": 351,
+      "found_terms": [
+        "Qualifying Classification",
+        "George Russell",
+        "1:14.679",
+        "Lewis Hamilton",
+        "Andrea Kimi Antonelli"
+      ],
+      "missing_terms": [],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying: HTTP Error 429: Too Many Requests; availability:http://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying",
+        "verified_at": "2026-07-01T15:56:44+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": {
+        "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying",
+        "title": "Qualifying Classification | Federation Internationale de l'Automobile",
+        "captured_by": "codex_web_open",
+        "captured_at": "2026-07-01T13:05:00+00:00",
+        "verification_method": "official_page_text_extraction",
+        "source_url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying",
+        "notes": "Current official FIA page text included official grid rows; this is only current-content support and still requires cutoff archive proof before formal replay use."
+      },
+      "manual_content_review": {
+        "verification_method": "official_page_text_extraction",
+        "supports_claim": false
+      },
+      "error": null,
+      "notes": "Official FIA classification page observed as a strong current-content candidate; still needs cutoff-valid archive proof.",
+      "blocker_codes": [
+        "cutoff_archive_missing"
+      ],
+      "next_action_category": "find_cutoff_archive",
+      "minimum_missing_requirements": [
+        "Wayback/CDX archive capture must exist at or before 2026-06-14T00:00:00+00:00"
+      ],
+      "review_summary": "Barcelona Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+      "next_action": "Find an archive capture for this candidate at or before 2026-06-14T00:00:00+00:00, then snapshot it into the source log.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event barcelona_gp --write",
+        "python -m f1predict.cli snapshot-source --event barcelona_gp --url https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying --source \"FIA official qualifying classification\" --source-class fia --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.fia.com/events/fia-formula-one-world-championship/season-2026/barcelona-catalunya-grand-prix/qualifying --historical-verification-method wayback --claim-id barcelona_gp-f1official-qualifying-hamilton-frontrow-001",
+        "python -m f1predict.cli discover-source-archives --event barcelona_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-06-14T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "barcelona_gp",
+      "event_name": "Barcelona Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+      "original_title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+      "original_published_at": "2026-06-13T15:27:57.860Z",
+      "original_observed_at": "2026-06-13T15:27:57.860Z",
+      "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "barcelona_gp-f1official-qualifying-hamilton-frontrow-001"
+      ],
+      "candidate_id": "barcelona_gp_f1_results_qualifying",
+      "source": "Formula1.com official qualifying results",
+      "source_class": "f1_official",
+      "evidence_type": "official_results_page",
+      "url": "https://www.formula1.com/en/results/2026/races/1287/spain/qualifying",
+      "status": "candidate_needs_content_and_archive_review",
+      "current_check_status": "current_content_review_required",
+      "current_content_source": "http",
+      "archive_check_status": "no_archive_before_cutoff",
+      "current_content_verified": false,
+      "current_content_review_required": true,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-06-13T15:27:57.860000+00:00",
+      "formal_replacement_ready": false,
+      "title": "FORMULA 1 MSC CRUISES GRAN PREMIO DE BARCELONA-CATALUNYA 2026 - QUALIFYING",
+      "content_length": 566674,
+      "found_terms": [
+        "Spain",
+        "Qualifying"
+      ],
+      "missing_terms": [],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.formula1.com/en/results/2026/races/1287/spain/qualifying: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1000)>; availability:http://www.formula1.com/en/results/2026/races/1287/spain/qualifying: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.formula1.com/en/results/2026/races/1287/spain/qualifying",
+        "verified_at": "2026-07-01T15:57:02+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": null,
+      "manual_content_review": null,
+      "error": null,
+      "notes": "Formula1.com results pages require structured-content review because the page payload can include unrelated site JSON.",
+      "blocker_codes": [
+        "manual_current_content_review_required",
+        "cutoff_archive_missing"
+      ],
+      "next_action_category": "review_current_content_and_find_archive",
+      "minimum_missing_requirements": [
+        "manual review must confirm the replacement page supports the same cited claim",
+        "Wayback/CDX archive capture must exist at or before 2026-06-14T00:00:00+00:00"
+      ],
+      "review_summary": "Barcelona Grand Prix candidate is not enough for formal replay yet: content review and/or cutoff-valid archive proof is still missing.",
+      "next_action": "Verify the page supports the cited claim and find an archive capture at or before 2026-06-14T00:00:00+00:00.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event barcelona_gp --write",
+        "python -m f1predict.cli snapshot-source --event barcelona_gp --url https://www.formula1.com/en/results/2026/races/1287/spain/qualifying --source \"Formula1.com official qualifying results\" --source-class f1_official --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/results/2026/races/1287/spain/qualifying --historical-verification-method wayback --claim-id barcelona_gp-f1official-qualifying-hamilton-frontrow-001",
+        "python -m f1predict.cli discover-source-archives --event barcelona_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-06-14T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "barcelona_gp",
+      "event_name": "Barcelona Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+      "original_title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+      "original_published_at": "2026-06-13T15:27:57.860Z",
+      "original_observed_at": "2026-06-13T15:27:57.860Z",
+      "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "barcelona_gp-f1official-qualifying-hamilton-frontrow-001"
+      ],
+      "candidate_id": "barcelona_gp_techradar_race_preview_grid",
+      "source": "TechRadar race preview and starting grid",
+      "source_class": "media",
+      "evidence_type": "media_starting_grid",
+      "url": "https://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free",
+      "status": "candidate_needs_archive_proof",
+      "current_check_status": "verified_current_content",
+      "current_content_source": "http",
+      "archive_check_status": "no_archive_before_cutoff",
+      "current_content_verified": true,
+      "current_content_review_required": false,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-06-13T15:27:57.860000+00:00",
+      "formal_replacement_ready": false,
+      "title": "How to watch Barcelona-Catalunya Grand Prix 2026 F1: Live Stream, Preview, Schedule | TechRadar",
+      "content_length": 2048689,
+      "found_terms": [
+        "Barcelona-Catalunya Grand Prix",
+        "George Russell",
+        "Lewis Hamilton",
+        "Kimi Antonelli",
+        "Starting Grid"
+      ],
+      "missing_terms": [],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free: HTTP Error 429: Too Many Requests; availability:http://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free",
+        "verified_at": "2026-07-01T15:57:17+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": null,
+      "manual_content_review": null,
+      "error": null,
+      "notes": "Web-search-discovered media candidate. Search metadata indicates publication after the midnight UTC cutoff, so it should remain rejected unless archive proof contradicts that.",
+      "blocker_codes": [
+        "cutoff_archive_missing"
+      ],
+      "next_action_category": "find_cutoff_archive",
+      "minimum_missing_requirements": [
+        "Wayback/CDX archive capture must exist at or before 2026-06-14T00:00:00+00:00"
+      ],
+      "review_summary": "Barcelona Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+      "next_action": "Find an archive capture for this candidate at or before 2026-06-14T00:00:00+00:00, then snapshot it into the source log.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event barcelona_gp --write",
+        "python -m f1predict.cli snapshot-source --event barcelona_gp --url https://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free --source \"TechRadar race preview and starting grid\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.techradar.com/how-to-watch/formula-one/catalunya-grand-prix-2026-f1-free --historical-verification-method wayback --claim-id barcelona_gp-f1official-qualifying-hamilton-frontrow-001",
+        "python -m f1predict.cli discover-source-archives --event barcelona_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-06-14T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "barcelona_gp",
+      "event_name": "Barcelona Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+      "original_title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+      "original_published_at": "2026-06-13T15:27:57.860Z",
+      "original_observed_at": "2026-06-13T15:27:57.860Z",
+      "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "barcelona_gp-f1official-qualifying-hamilton-frontrow-001"
+      ],
+      "candidate_id": "barcelona_gp_youtube_qualifying_highlights",
+      "source": "Formula 1 YouTube qualifying highlights",
+      "source_class": "media",
+      "evidence_type": "video_highlights_page",
+      "url": "https://www.youtube.com/watch?v=Q2fMM4H9bWY",
+      "status": "candidate_needs_content_review",
+      "current_check_status": "current_content_review_required",
+      "current_content_source": "http",
+      "archive_check_status": "cutoff_valid_archive",
+      "current_content_verified": false,
+      "current_content_review_required": true,
+      "archive_content_verified": true,
+      "archive_content_check_status": "verified_archive_content",
+      "archive_temporal_check_status": "archive_time_supports_evidence",
+      "evidence_available_at": "2026-06-13T15:27:57.860000+00:00",
+      "formal_replacement_ready": false,
+      "title": "Qualifying Highlights | 2026 Barcelona-Catalunya Grand Prix - YouTube",
+      "content_length": 1312528,
+      "found_terms": [
+        "Qualifying Highlights",
+        "Barcelona-Catalunya Grand Prix",
+        "Russell"
+      ],
+      "missing_terms": [],
+      "archive_content_length": 1448424,
+      "archive_found_terms": [
+        "Qualifying Highlights",
+        "Barcelona-Catalunya Grand Prix",
+        "Russell"
+      ],
+      "archive_missing_terms": [],
+      "historical_archive": {
+        "archive_url": "http://web.archive.org/web/20260613211230/https://www.youtube.com/watch?v=Q2fMM4H9bWY",
+        "archived_at": "2026-06-13T21:12:30+00:00",
+        "original_url": "https://www.youtube.com/watch?v=Q2fMM4H9bWY",
+        "verified_at": "2026-07-01T15:57:34+00:00",
+        "verification_method": "wayback_cdx_api",
+        "notes": "Wayback CDX API status=200; timestamp=20260613211230; matched_url=https://www.youtube.com/watch?v=Q2fMM4H9bWY; mimetype=text/html."
+      },
+      "nearest_archive": null,
+      "current_content_snapshot": null,
+      "manual_content_review": null,
+      "error": null,
+      "notes": "Wayback CDX has cutoff-valid captures for this URL, but archived YouTube HTML may not expose enough claim text; keep it manual-review only.",
+      "blocker_codes": [
+        "manual_current_content_review_required"
+      ],
+      "next_action_category": "review_current_content",
+      "minimum_missing_requirements": [
+        "manual review must confirm the replacement page supports the same cited claim"
+      ],
+      "review_summary": "Barcelona Grand Prix has archive proof, but the candidate content still needs manual review before replacement.",
+      "next_action": "Manually verify the page supports the cited claim, then snapshot it with the existing archive proof.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event barcelona_gp --write",
+        "python -m f1predict.cli snapshot-source --event barcelona_gp --url https://www.youtube.com/watch?v=Q2fMM4H9bWY --source \"Formula 1 YouTube qualifying highlights\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-06-14T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.youtube.com/watch?v=Q2fMM4H9bWY --historical-verification-method wayback --claim-id barcelona_gp-f1official-qualifying-hamilton-frontrow-001",
+        "python -m f1predict.cli discover-source-archives --event barcelona_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-06-14T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "canadian_gp",
+      "event_name": "Canadian Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+      "original_title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+      "original_published_at": "2026-05-23T21:19:02.498Z",
+      "original_observed_at": "2026-05-23T21:19:02.498Z",
+      "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "canadian_gp-f1official-qualifying-russell-pole-001"
+      ],
+      "candidate_id": "canadian_gp_fia_qualifying_classification",
+      "source": "FIA official qualifying classification",
+      "source_class": "fia",
+      "evidence_type": "official_classification",
+      "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification",
+      "status": "candidate_lookup_failed",
+      "current_check_status": "current_lookup_failed",
+      "current_content_source": "lookup_failed",
+      "archive_check_status": "archive_lookup_failed",
+      "current_content_verified": false,
+      "current_content_review_required": false,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-05-23T21:19:02.498000+00:00",
+      "formal_replacement_ready": false,
+      "title": null,
+      "content_length": null,
+      "found_terms": [],
+      "missing_terms": [
+        "Qualifying Classification",
+        "George Russell",
+        "Kimi Antonelli"
+      ],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification: HTTP Error 429: Too Many Requests; availability:http://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification",
+        "verified_at": "2026-07-01T15:58:04+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": null,
+      "manual_content_review": null,
+      "error": "current:HTTP Error 403: Forbidden; archive:availability:https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification: HTTP Error 429: Too Many Requests; availability:http://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification: HTTP Error 429: Too Many Requests; cdx:https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification: The read operation timed out; cdx:http://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification: The read operation timed out",
+      "notes": "Official FIA classification page candidate; current public HTML may be incomplete and must be reviewed before replacement.",
+      "blocker_codes": [
+        "current_lookup_failed",
+        "archive_lookup_failed"
+      ],
+      "next_action_category": "retry_lookup",
+      "minimum_missing_requirements": [
+        "current replacement page must be reachable or supplied by a reviewed tool-content override",
+        "archive lookup must succeed or be replaced with manually verified historical archive proof"
+      ],
+      "review_summary": "Canadian Grand Prix candidate lookup failed and cannot be accepted without a successful retry or manual proof.",
+      "next_action": "Retry current and archive lookup; if it still fails, replace with a different verifiable source.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event canadian_gp --write",
+        "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification --source \"FIA official qualifying classification\" --source-class fia --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.fia.com/events/fia-formula-one-world-championship/season-2026/canadian-grand-prix/qualifying-classification --historical-verification-method wayback --claim-id canadian_gp-f1official-qualifying-russell-pole-001",
+        "python -m f1predict.cli discover-source-archives --event canadian_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-05-24T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "canadian_gp",
+      "event_name": "Canadian Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+      "original_title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+      "original_published_at": "2026-05-23T21:19:02.498Z",
+      "original_observed_at": "2026-05-23T21:19:02.498Z",
+      "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "canadian_gp-f1official-qualifying-russell-pole-001"
+      ],
+      "candidate_id": "canadian_gp_f1_results_qualifying",
+      "source": "Formula1.com official qualifying results",
+      "source_class": "f1_official",
+      "evidence_type": "official_results_page",
+      "url": "https://www.formula1.com/en/results/2026/races/1285/canada/qualifying",
+      "status": "candidate_needs_content_and_archive_review",
+      "current_check_status": "current_content_review_required",
+      "current_content_source": "http",
+      "archive_check_status": "archive_lookup_failed",
+      "current_content_verified": false,
+      "current_content_review_required": true,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-05-23T21:19:02.498000+00:00",
+      "formal_replacement_ready": false,
+      "title": "FORMULA 1 LENOVO GRAND PRIX DU CANADA 2026 - QUALIFYING",
+      "content_length": 567373,
+      "found_terms": [
+        "Canada",
+        "Qualifying"
+      ],
+      "missing_terms": [],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.formula1.com/en/results/2026/races/1285/canada/qualifying: HTTP Error 429: Too Many Requests; availability:http://www.formula1.com/en/results/2026/races/1285/canada/qualifying: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.formula1.com/en/results/2026/races/1285/canada/qualifying",
+        "verified_at": "2026-07-01T15:58:30+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": null,
+      "manual_content_review": null,
+      "error": "archive:availability:https://www.formula1.com/en/results/2026/races/1285/canada/qualifying: HTTP Error 429: Too Many Requests; availability:http://www.formula1.com/en/results/2026/races/1285/canada/qualifying: HTTP Error 429: Too Many Requests; cdx:https://www.formula1.com/en/results/2026/races/1285/canada/qualifying: The read operation timed out; cdx:http://www.formula1.com/en/results/2026/races/1285/canada/qualifying: The read operation timed out",
+      "notes": "Formula1.com results pages require structured-content review because the page payload can include unrelated site JSON.",
+      "blocker_codes": [
+        "manual_current_content_review_required",
+        "archive_lookup_failed"
+      ],
+      "next_action_category": "review_current_content_and_find_archive",
+      "minimum_missing_requirements": [
+        "manual review must confirm the replacement page supports the same cited claim",
+        "archive lookup must succeed or be replaced with manually verified historical archive proof"
+      ],
+      "review_summary": "Canadian Grand Prix candidate is not enough for formal replay yet: content review and/or cutoff-valid archive proof is still missing.",
+      "next_action": "Verify the page supports the cited claim and find an archive capture at or before 2026-05-24T00:00:00+00:00.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event canadian_gp --write",
+        "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.formula1.com/en/results/2026/races/1285/canada/qualifying --source \"Formula1.com official qualifying results\" --source-class f1_official --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/results/2026/races/1285/canada/qualifying --historical-verification-method wayback --claim-id canadian_gp-f1official-qualifying-russell-pole-001",
+        "python -m f1predict.cli discover-source-archives --event canadian_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-05-24T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "canadian_gp",
+      "event_name": "Canadian Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+      "original_title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+      "original_published_at": "2026-05-23T21:19:02.498Z",
+      "original_observed_at": "2026-05-23T21:19:02.498Z",
+      "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "canadian_gp-f1official-qualifying-russell-pole-001"
+      ],
+      "candidate_id": "canadian_gp_techradar_race_preview_grid",
+      "source": "TechRadar race preview and starting grid",
+      "source_class": "media",
+      "evidence_type": "media_starting_grid",
+      "url": "https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free",
+      "status": "candidate_needs_content_and_archive_review",
+      "current_check_status": "current_content_review_required",
+      "current_content_source": "http",
+      "archive_check_status": "archive_lookup_failed",
+      "current_content_verified": false,
+      "current_content_review_required": true,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-05-23T21:19:02.498000+00:00",
+      "formal_replacement_ready": false,
+      "title": "How to watch Canadian Grand Prix 2026 F1: Live Stream, Preview, Schedule | TechRadar",
+      "content_length": 2004627,
+      "found_terms": [
+        "Canadian Grand Prix",
+        "George Russell",
+        "Kimi Antonelli",
+        "Starting Grid",
+        "pole"
+      ],
+      "missing_terms": [],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free: HTTP Error 429: Too Many Requests; availability:http://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free",
+        "verified_at": "2026-07-01T15:58:55+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": null,
+      "manual_content_review": null,
+      "error": "archive:availability:https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free: HTTP Error 429: Too Many Requests; availability:http://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free: HTTP Error 429: Too Many Requests; cdx:https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free: The read operation timed out; cdx:http://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free: The read operation timed out",
+      "notes": "Web-search-discovered media candidate. A Wayback capture may predate the qualifying result, so this candidate requires manual body-content review before it can replace a pole-position claim.",
+      "blocker_codes": [
+        "manual_current_content_review_required",
+        "archive_lookup_failed"
+      ],
+      "next_action_category": "review_current_content_and_find_archive",
+      "minimum_missing_requirements": [
+        "manual review must confirm the replacement page supports the same cited claim",
+        "archive lookup must succeed or be replaced with manually verified historical archive proof"
+      ],
+      "review_summary": "Canadian Grand Prix candidate is not enough for formal replay yet: content review and/or cutoff-valid archive proof is still missing.",
+      "next_action": "Verify the page supports the cited claim and find an archive capture at or before 2026-05-24T00:00:00+00:00.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event canadian_gp --write",
+        "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free --source \"TechRadar race preview and starting grid\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.techradar.com/how-to-watch/formula-one/canadian-grand-prix-2026-f1-free --historical-verification-method wayback --claim-id canadian_gp-f1official-qualifying-russell-pole-001",
+        "python -m f1predict.cli discover-source-archives --event canadian_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-05-24T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "canadian_gp",
+      "event_name": "Canadian Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+      "original_title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+      "original_published_at": "2026-05-23T21:19:02.498Z",
+      "original_observed_at": "2026-05-23T21:19:02.498Z",
+      "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "canadian_gp-f1official-qualifying-russell-pole-001"
+      ],
+      "candidate_id": "canadian_gp_skysports_rain_grid",
+      "source": "Sky Sports Canadian GP grid article",
+      "source_class": "media",
+      "evidence_type": "media_starting_grid",
+      "url": "https://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli",
+      "status": "candidate_needs_archive_proof",
+      "current_check_status": "verified_current_content",
+      "current_content_source": "http",
+      "archive_check_status": "no_archive_before_cutoff",
+      "current_content_verified": true,
+      "current_content_review_required": false,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-05-23T21:19:02.498000+00:00",
+      "formal_replacement_ready": false,
+      "title": "Canadian GP: Rain set to cause &#x27;chaos&#x27; in Sunday&#x27;s race with George Russell on pole from Mercedes team-mate Kimi Antonelli | F1 News | Sky Sports",
+      "content_length": 209767,
+      "found_terms": [
+        "Canadian GP",
+        "George Russell",
+        "Kimi Antonelli",
+        "Lando Norris",
+        "pole"
+      ],
+      "missing_terms": [],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli: HTTP Error 429: Too Many Requests; availability:http://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli",
+        "verified_at": "2026-07-01T15:59:15+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": null,
+      "manual_content_review": null,
+      "error": null,
+      "notes": "Web-search-discovered media candidate with explicit grid text in search results; still requires current-content and cutoff-valid archive checks.",
+      "blocker_codes": [
+        "cutoff_archive_missing"
+      ],
+      "next_action_category": "find_cutoff_archive",
+      "minimum_missing_requirements": [
+        "Wayback/CDX archive capture must exist at or before 2026-05-24T00:00:00+00:00"
+      ],
+      "review_summary": "Canadian Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+      "next_action": "Find an archive capture for this candidate at or before 2026-05-24T00:00:00+00:00, then snapshot it into the source log.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event canadian_gp --write",
+        "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli --source \"Sky Sports Canadian GP grid article\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.skysports.com/f1/news/12433/13547300/canadian-gp-rain-set-to-cause-chaos-in-sundays-race-with-george-russell-on-pole-from-mercedes-team-mate-kimi-antonelli --historical-verification-method wayback --claim-id canadian_gp-f1official-qualifying-russell-pole-001",
+        "python -m f1predict.cli discover-source-archives --event canadian_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-05-24T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "canadian_gp",
+      "event_name": "Canadian Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+      "original_title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+      "original_published_at": "2026-05-23T21:19:02.498Z",
+      "original_observed_at": "2026-05-23T21:19:02.498Z",
+      "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "canadian_gp-f1official-qualifying-russell-pole-001"
+      ],
+      "candidate_id": "canadian_gp_si_starting_grid",
+      "source": "Sports Illustrated starting grid article",
+      "source_class": "media",
+      "evidence_type": "media_starting_grid",
+      "url": "https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time",
+      "status": "candidate_needs_archive_proof",
+      "current_check_status": "verified_current_content",
+      "current_content_source": "http",
+      "archive_check_status": "archive_lookup_failed",
+      "current_content_verified": true,
+      "current_content_review_required": false,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-05-23T21:19:02.498000+00:00",
+      "formal_replacement_ready": false,
+      "title": "F1 Canadian Grand Prix Starting Grid and Start Time",
+      "content_length": 299826,
+      "found_terms": [
+        "Canadian Grand Prix",
+        "George Russell",
+        "Kimi Antonelli",
+        "Lando Norris",
+        "pole"
+      ],
+      "missing_terms": [],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time: HTTP Error 429: Too Many Requests; availability:http://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time",
+        "verified_at": "2026-07-01T15:59:40+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": null,
+      "manual_content_review": null,
+      "error": "archive:availability:https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time: HTTP Error 429: Too Many Requests; availability:http://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time: HTTP Error 429: Too Many Requests; cdx:https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time: The read operation timed out; cdx:http://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time: The read operation timed out",
+      "notes": "Web-search-discovered media candidate. It is useful only if archived at or before the replay cutoff.",
+      "blocker_codes": [
+        "archive_lookup_failed"
+      ],
+      "next_action_category": "retry_lookup",
+      "minimum_missing_requirements": [
+        "archive lookup must succeed or be replaced with manually verified historical archive proof"
+      ],
+      "review_summary": "Canadian Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+      "next_action": "Find an archive capture for this candidate at or before 2026-05-24T00:00:00+00:00, then snapshot it into the source log.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event canadian_gp --write",
+        "python -m f1predict.cli snapshot-source --event canadian_gp --url https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time --source \"Sports Illustrated starting grid article\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-24T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.si.com/onsi/f1/news/f1-canadian-grand-prix-starting-grid-and-start-time --historical-verification-method wayback --claim-id canadian_gp-f1official-qualifying-russell-pole-001",
+        "python -m f1predict.cli discover-source-archives --event canadian_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-05-24T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "miami_gp",
+      "event_name": "Miami Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+      "original_title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+      "original_published_at": "2026-05-02T21:17:38.879Z",
+      "original_observed_at": "2026-05-02T21:17:38.879Z",
+      "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "miami_gp-f1official-qualifying-antonelli-pole-001"
+      ],
+      "candidate_id": "miami_gp_fia_qualifying_classification",
+      "source": "FIA official qualifying classification",
+      "source_class": "fia",
+      "evidence_type": "official_classification",
+      "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification",
+      "status": "candidate_needs_archive_proof",
+      "current_check_status": "verified_tool_content",
+      "current_content_source": "codex_web_open",
+      "archive_check_status": "no_archive_before_cutoff",
+      "current_content_verified": true,
+      "current_content_review_required": false,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-05-02T21:17:38.879000+00:00",
+      "formal_replacement_ready": false,
+      "title": "Qualifying Classification | Federation Internationale de l'Automobile",
+      "content_length": 415,
+      "found_terms": [
+        "Qualifying Classification",
+        "Andrea Kimi Antonelli",
+        "1:27.798",
+        "Max Verstappen",
+        "Charles Leclerc"
+      ],
+      "missing_terms": [],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification: HTTP Error 429: Too Many Requests; availability:http://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification",
+        "verified_at": "2026-07-01T15:59:57+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": {
+        "url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification",
+        "title": "Qualifying Classification | Federation Internationale de l'Automobile",
+        "captured_by": "codex_web_open",
+        "captured_at": "2026-07-01T13:05:00+00:00",
+        "verification_method": "official_page_text_extraction",
+        "source_url": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification",
+        "notes": "Current official FIA page text included classification and official grid rows; this is only current-content support and still requires cutoff archive proof before formal replay use."
+      },
+      "manual_content_review": {
+        "verification_method": "official_page_text_extraction",
+        "supports_claim": false
+      },
+      "error": null,
+      "notes": "Official FIA classification page observed as a strong current-content candidate; still needs cutoff-valid archive proof.",
+      "blocker_codes": [
+        "cutoff_archive_missing"
+      ],
+      "next_action_category": "find_cutoff_archive",
+      "minimum_missing_requirements": [
+        "Wayback/CDX archive capture must exist at or before 2026-05-03T00:00:00+00:00"
+      ],
+      "review_summary": "Miami Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+      "next_action": "Find an archive capture for this candidate at or before 2026-05-03T00:00:00+00:00, then snapshot it into the source log.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event miami_gp --write",
+        "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification --source \"FIA official qualifying classification\" --source-class fia --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.fia.com/events/fia-formula-one-world-championship/season-2026/miami-grand-prix/qualifying-classification --historical-verification-method wayback --claim-id miami_gp-f1official-qualifying-antonelli-pole-001",
+        "python -m f1predict.cli discover-source-archives --event miami_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-05-03T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "miami_gp",
+      "event_name": "Miami Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+      "original_title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+      "original_published_at": "2026-05-02T21:17:38.879Z",
+      "original_observed_at": "2026-05-02T21:17:38.879Z",
+      "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "miami_gp-f1official-qualifying-antonelli-pole-001"
+      ],
+      "candidate_id": "miami_gp_f1_results_qualifying",
+      "source": "Formula1.com official qualifying results",
+      "source_class": "f1_official",
+      "evidence_type": "official_results_page",
+      "url": "https://www.formula1.com/en/results/2026/races/1284/miami/qualifying",
+      "status": "candidate_needs_content_and_archive_review",
+      "current_check_status": "current_content_review_required",
+      "current_content_source": "http",
+      "archive_check_status": "archive_lookup_failed",
+      "current_content_verified": false,
+      "current_content_review_required": true,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-05-02T21:17:38.879000+00:00",
+      "formal_replacement_ready": false,
+      "title": "FORMULA 1 CRYPTO.COM MIAMI GRAND PRIX 2026 - QUALIFYING",
+      "content_length": 569139,
+      "found_terms": [
+        "Miami",
+        "Qualifying"
+      ],
+      "missing_terms": [],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.formula1.com/en/results/2026/races/1284/miami/qualifying: HTTP Error 429: Too Many Requests; availability:http://www.formula1.com/en/results/2026/races/1284/miami/qualifying: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.formula1.com/en/results/2026/races/1284/miami/qualifying",
+        "verified_at": "2026-07-01T16:00:24+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": null,
+      "manual_content_review": null,
+      "error": "archive:availability:https://www.formula1.com/en/results/2026/races/1284/miami/qualifying: HTTP Error 429: Too Many Requests; availability:http://www.formula1.com/en/results/2026/races/1284/miami/qualifying: HTTP Error 429: Too Many Requests; cdx:https://www.formula1.com/en/results/2026/races/1284/miami/qualifying: The read operation timed out; cdx:http://www.formula1.com/en/results/2026/races/1284/miami/qualifying: The read operation timed out",
+      "notes": "Formula1.com results pages require structured-content review because the page payload can include unrelated site JSON.",
+      "blocker_codes": [
+        "manual_current_content_review_required",
+        "archive_lookup_failed"
+      ],
+      "next_action_category": "review_current_content_and_find_archive",
+      "minimum_missing_requirements": [
+        "manual review must confirm the replacement page supports the same cited claim",
+        "archive lookup must succeed or be replaced with manually verified historical archive proof"
+      ],
+      "review_summary": "Miami Grand Prix candidate is not enough for formal replay yet: content review and/or cutoff-valid archive proof is still missing.",
+      "next_action": "Verify the page supports the cited claim and find an archive capture at or before 2026-05-03T00:00:00+00:00.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event miami_gp --write",
+        "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.formula1.com/en/results/2026/races/1284/miami/qualifying --source \"Formula1.com official qualifying results\" --source-class f1_official --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/results/2026/races/1284/miami/qualifying --historical-verification-method wayback --claim-id miami_gp-f1official-qualifying-antonelli-pole-001",
+        "python -m f1predict.cli discover-source-archives --event miami_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-05-03T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "miami_gp",
+      "event_name": "Miami Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+      "original_title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+      "original_published_at": "2026-05-02T21:17:38.879Z",
+      "original_observed_at": "2026-05-02T21:17:38.879Z",
+      "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "miami_gp-f1official-qualifying-antonelli-pole-001"
+      ],
+      "candidate_id": "miami_gp_techradar_race_preview_grid",
+      "source": "TechRadar race preview and starting grid",
+      "source_class": "media",
+      "evidence_type": "media_starting_grid",
+      "url": "https://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule",
+      "status": "candidate_needs_archive_proof",
+      "current_check_status": "verified_current_content",
+      "current_content_source": "http",
+      "archive_check_status": "no_archive_before_cutoff",
+      "current_content_verified": true,
+      "current_content_review_required": false,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-05-02T21:17:38.879000+00:00",
+      "formal_replacement_ready": false,
+      "title": "How to watch Miami Grand Prix 2026 F1: Live Stream, Preview, Schedule | TechRadar",
+      "content_length": 2008118,
+      "found_terms": [
+        "Miami Grand Prix",
+        "Antonelli",
+        "pole",
+        "Max Verstappen",
+        "Charles Leclerc"
+      ],
+      "missing_terms": [],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule: HTTP Error 429: Too Many Requests; availability:http://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule",
+        "verified_at": "2026-07-01T16:00:44+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": null,
+      "manual_content_review": null,
+      "error": null,
+      "notes": "Web-search-discovered media candidate. It can only replace the blocked source if current content supports the claim and Wayback/CDX proves availability at or before the cutoff.",
+      "blocker_codes": [
+        "cutoff_archive_missing"
+      ],
+      "next_action_category": "find_cutoff_archive",
+      "minimum_missing_requirements": [
+        "Wayback/CDX archive capture must exist at or before 2026-05-03T00:00:00+00:00"
+      ],
+      "review_summary": "Miami Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+      "next_action": "Find an archive capture for this candidate at or before 2026-05-03T00:00:00+00:00, then snapshot it into the source log.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event miami_gp --write",
+        "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule --source \"TechRadar race preview and starting grid\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.techradar.com/how-to-watch/formula-one/how-to-watch-miami-grand-prix-2026-f1-live-stream-preview-schedule --historical-verification-method wayback --claim-id miami_gp-f1official-qualifying-antonelli-pole-001",
+        "python -m f1predict.cli discover-source-archives --event miami_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-05-03T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "miami_gp",
+      "event_name": "Miami Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+      "original_title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+      "original_published_at": "2026-05-02T21:17:38.879Z",
+      "original_observed_at": "2026-05-02T21:17:38.879Z",
+      "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "miami_gp-f1official-qualifying-antonelli-pole-001"
+      ],
+      "candidate_id": "miami_gp_forbes_starting_grid",
+      "source": "Forbes starting grid article",
+      "source_class": "media",
+      "evidence_type": "media_starting_grid",
+      "url": "https://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/",
+      "status": "candidate_needs_archive_proof",
+      "current_check_status": "verified_current_content",
+      "current_content_source": "http",
+      "archive_check_status": "no_archive_before_cutoff",
+      "current_content_verified": true,
+      "current_content_review_required": false,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-05-02T21:17:38.879000+00:00",
+      "formal_replacement_ready": false,
+      "title": "Antonelli Secures Third Straight Pole at Miami GP as Verstappen Misses Out",
+      "content_length": 1309694,
+      "found_terms": [
+        "Miami Grand Prix",
+        "Antonelli",
+        "Max Verstappen",
+        "Charles Leclerc",
+        "Starting Grid"
+      ],
+      "missing_terms": [],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/: HTTP Error 429: Too Many Requests; availability:http://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/",
+        "verified_at": "2026-07-01T16:01:05+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": null,
+      "manual_content_review": null,
+      "error": null,
+      "notes": "Web-search-discovered media candidate. The article date is close to the replay cutoff, so archive timing must be checked before use.",
+      "blocker_codes": [
+        "cutoff_archive_missing"
+      ],
+      "next_action_category": "find_cutoff_archive",
+      "minimum_missing_requirements": [
+        "Wayback/CDX archive capture must exist at or before 2026-05-03T00:00:00+00:00"
+      ],
+      "review_summary": "Miami Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+      "next_action": "Find an archive capture for this candidate at or before 2026-05-03T00:00:00+00:00, then snapshot it into the source log.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event miami_gp --write",
+        "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/ --source \"Forbes starting grid article\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.forbes.com/sites/yaraelshebiny/2026/05/03/starting-grid-for-the-2026-f1-miami-grand-prix/ --historical-verification-method wayback --claim-id miami_gp-f1official-qualifying-antonelli-pole-001",
+        "python -m f1predict.cli discover-source-archives --event miami_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-05-03T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    },
+    {
+      "event_id": "miami_gp",
+      "event_name": "Miami Grand Prix",
+      "source_index": 0,
+      "original_url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+      "original_title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+      "original_published_at": "2026-05-02T21:17:38.879Z",
+      "original_observed_at": "2026-05-02T21:17:38.879Z",
+      "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+      "used_in_claim_ids": [
+        "miami_gp-f1official-qualifying-antonelli-pole-001"
+      ],
+      "candidate_id": "miami_gp_sbnation_updated_grid",
+      "source": "SB Nation updated starting grid article",
+      "source_class": "media",
+      "evidence_type": "media_starting_grid",
+      "url": "https://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar",
+      "status": "candidate_needs_archive_proof",
+      "current_check_status": "verified_current_content",
+      "current_content_source": "http",
+      "archive_check_status": "no_archive_before_cutoff",
+      "current_content_verified": true,
+      "current_content_review_required": false,
+      "archive_content_verified": false,
+      "archive_content_check_status": "not_checked",
+      "archive_temporal_check_status": "not_checked",
+      "evidence_available_at": "2026-05-02T21:17:38.879000+00:00",
+      "formal_replacement_ready": false,
+      "title": "F1 Miami Grand Prix: Updated starting grid following Isack Hadjar’s disqualification | SB Nation",
+      "content_length": 322302,
+      "found_terms": [
+        "Miami Grand Prix",
+        "Antonelli",
+        "pole",
+        "Max Verstappen",
+        "Hadjar"
+      ],
+      "missing_terms": [],
+      "archive_content_length": null,
+      "archive_found_terms": [],
+      "archive_missing_terms": [],
+      "historical_archive": null,
+      "nearest_archive": {
+        "error": "availability:https://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar: HTTP Error 429: Too Many Requests; availability:http://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar: HTTP Error 429: Too Many Requests",
+        "original_url": "https://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar",
+        "verified_at": "2026-07-01T16:01:29+00:00",
+        "verification_method": "wayback_available_api"
+      },
+      "current_content_snapshot": null,
+      "manual_content_review": null,
+      "error": null,
+      "notes": "Web-search-discovered media candidate. This may be a post-qualifying grid-update source; it still requires cutoff-valid archive proof.",
+      "blocker_codes": [
+        "cutoff_archive_missing"
+      ],
+      "next_action_category": "find_cutoff_archive",
+      "minimum_missing_requirements": [
+        "Wayback/CDX archive capture must exist at or before 2026-05-03T00:00:00+00:00"
+      ],
+      "review_summary": "Miami Grand Prix has a strong current replacement candidate, but no Wayback/CDX capture at or before the replay cutoff was found.",
+      "next_action": "Find an archive capture for this candidate at or before 2026-05-03T00:00:00+00:00, then snapshot it into the source log.",
+      "command_templates": [
+        "python -m f1predict.cli source-replacement-candidates --event miami_gp --write",
+        "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar --source \"SB Nation updated starting grid article\" --source-class media --published-at <published-before-cutoff> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.sbnation.com/formula-one/1113160/miami-grand-prix-starting-grid-hadjar --historical-verification-method wayback --claim-id miami_gp-f1official-qualifying-antonelli-pole-001",
+        "python -m f1predict.cli discover-source-archives --event miami_gp --write"
+      ],
+      "acceptance_criteria": [
+        "candidate page content supports the same claim IDs as the original blocked source",
+        "published_at and observed_at are at or before 2026-05-03T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "historical_archive.archived_at is not earlier than the claim/source evidence timestamp",
+        "historical_archive.original_url matches the replacement URL",
+        "source audit passes after replacing or supplementing the original source record"
+      ]
+    }
+  ]
+}

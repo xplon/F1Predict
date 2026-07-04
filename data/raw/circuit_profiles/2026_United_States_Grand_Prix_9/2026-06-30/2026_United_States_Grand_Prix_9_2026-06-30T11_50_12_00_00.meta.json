@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_United States Grand Prix_9",
+  "captured_at": "2026-06-30T11:50:12+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "United States Grand Prix",
+    "meeting_key": 1297,
+    "circuit_key": 9,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/9/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_United_States_Grand_Prix_9\\2026-06-30\\2026_United_States_Grand_Prix_9_2026-06-30T11_50_12_00_00.json"
+}

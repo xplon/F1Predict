@@ -1,0 +1,29 @@
+{
+  "event_id": "british_gp",
+  "knowledge_cutoff": "2026-06-30T12:00:00+00:00",
+  "notes": "Diagnostic source-candidate input backfilled from the already captured Open-Meteo source snapshot for the British GP weather claim.",
+  "candidates": [
+    {
+      "candidate_id": "british_gp-weather-openmeteo-candidate-001",
+      "event_id": "british_gp",
+      "task_id": "british_gp:weather",
+      "query": "British Grand Prix 2026-07-05 weather forecast Silverstone rain probability wet skill",
+      "source": "Open-Meteo forecast API",
+      "source_class": "weather",
+      "url": "https://api.open-meteo.com/v1/forecast?latitude=52.0733&longitude=-1.0147&daily=precipitation_probability_max,precipitation_sum,weather_code&hourly=precipitation_probability,precipitation&timezone=UTC&start_date=2026-07-05&end_date=2026-07-05",
+      "title": "British Grand Prix Silverstone race-day Open-Meteo forecast",
+      "snippet": "British Grand Prix Silverstone forecast snapshot before cutoff: precipitation probability max 2% and precipitation sum 0.00mm for race day, supporting an event-level wet_skill adjustment.",
+      "published_at": "2026-06-30T08:38:16+00:00",
+      "observed_at": "2026-06-30T08:38:16+00:00",
+      "captured_by": "codex_existing_source_snapshot",
+      "model_metrics": [
+        "wet_skill"
+      ],
+      "target_hints": [
+        "british_gp",
+        "Silverstone",
+        "wet_skill"
+      ]
+    }
+  ]
+}

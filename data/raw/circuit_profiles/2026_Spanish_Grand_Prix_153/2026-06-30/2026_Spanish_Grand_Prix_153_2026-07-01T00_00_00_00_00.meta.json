@@ -1,0 +1,23 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "derived_f1_official_track_icon",
+  "captured_at": "2026-07-01T00:00:00+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Spanish Grand Prix",
+    "meeting_key": 1294,
+    "circuit_key": 153,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/153/2026",
+    "fallback_source_url": "https://media.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Madrid%20carbon.png",
+    "source": "derived_f1_official_track_icon"
+  },
+  "item_count": 1,
+  "data_path": "data/raw/circuit_profiles/2026_Spanish_Grand_Prix_153/2026-06-30/2026_Spanish_Grand_Prix_153_2026-07-01T00_00_00_00_00.json",
+  "derivation": {
+    "method": "largest_alpha_component_contour",
+    "input_asset": "web/assets/tracks/spanish_gp.png",
+    "source_point_count": 900,
+    "component_pixels": 187264,
+    "license_note": "F1 official visual asset archived for local MVP display; geometry is a display contour, not telemetry-grade racing line."
+  }
+}

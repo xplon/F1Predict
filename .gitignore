@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.playwright-cli/
+.pytest_cache/
+.venv/
+venv/
+node_modules/
+data/cache/
+output/
+test-results/
+reports/market_normalization/
+*.log
+tmp/
+temp/
+**/.git.disabled/

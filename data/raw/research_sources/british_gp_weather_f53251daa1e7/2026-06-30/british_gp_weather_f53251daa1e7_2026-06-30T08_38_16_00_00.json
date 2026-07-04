@@ -1,0 +1,15 @@
+{
+  "event_id": "british_gp",
+  "url": "https://api.open-meteo.com/v1/forecast?latitude=52.0733&longitude=-1.0147&daily=precipitation_probability_max,precipitation_sum,weather_code&hourly=precipitation_probability,precipitation&timezone=UTC&start_date=2026-07-05&end_date=2026-07-05",
+  "source": "Open-Meteo forecast API",
+  "source_class": "weather",
+  "reliability": 0.7,
+  "published_at": "2026-06-30T08:38:16+00:00",
+  "observed_at": "2026-06-30T08:38:16+00:00",
+  "knowledge_cutoff": "2026-06-30T12:00:00+00:00",
+  "cutoff_status": "within_cutoff",
+  "title": null,
+  "content": "{\"latitude\":52.0,\"longitude\":-1.0,\"generationtime_ms\":0.2256631851196289,\"utc_offset_seconds\":0,\"timezone\":\"GMT\",\"timezone_abbreviation\":\"GMT\",\"elevation\":155.0,\"hourly_units\":{\"time\":\"iso8601\",\"precipitation_probability\":\"%\",\"precipitation\":\"mm\"},\"hourly\":{\"time\":[\"2026-07-05T00:00\",\"2026-07-05T01:00\",\"2026-07-05T02:00\",\"2026-07-05T03:00\",\"2026-07-05T04:00\",\"2026-07-05T05:00\",\"2026-07-05T06:00\",\"2026-07-05T07:00\",\"2026-07-05T08:00\",\"2026-07-05T09:00\",\"2026-07-05T10:00\",\"2026-07-05T11:00\",\"2026-07-05T12:00\",\"2026-07-05T13:00\",\"2026-07-05T14:00\",\"2026-07-05T15:00\",\"2026-07-05T16:00\",\"2026-07-05T17:00\",\"2026-07-05T18:00\",\"2026-07-05T19:00\",\"2026-07-05T20:00\",\"2026-07-05T21:00\",\"2026-07-05T22:00\",\"2026-07-05T23:00\"],\"precipitation_probability\":[0,0,0,0,0,0,0,1,1,2,2,2,2,2,2,2,1,1,0,0,1,1,1,0],\"precipitation\":[0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00]},\"daily_units\":{\"time\":\"iso8601\",\"precipitation_probability_max\":\"%\",\"precipitation_sum\":\"mm\",\"weather_code\":\"wmo code\"},\"daily\":{\"time\":[\"2026-07-05\"],\"precipitation_probability_max\":[2],\"precipitation_sum\":[0.00],\"weather_code\":[3]}}",
+  "content_length": 1174,
+  "sha256": "620673d73eea4f55fd05c6592e901f665939d31029f3437fa9e767d520fdbea5"
+}

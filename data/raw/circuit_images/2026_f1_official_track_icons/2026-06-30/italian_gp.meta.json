@@ -1,0 +1,15 @@
+{
+  "source": "f1_official_circuit_map",
+  "event_id": "italian_gp",
+  "event_name": "Italian Grand Prix",
+  "round_number": 15,
+  "circuit_key": 39,
+  "circuit_short_name": "Monza",
+  "url": "https://media.formula1.com/image/upload/c_lfill%2Cw_3392/q_auto/v1740000001/content/dam/fom-website/2018-redesign-assets/Circuit%20maps%2016x9/Italy_Circuit.webp",
+  "asset_path": "web/assets/tracks/italian_gp.webp",
+  "web_path": "/assets/tracks/italian_gp.webp",
+  "raw_path": "data/raw/circuit_images/2026_f1_official_track_icons/2026-06-30/italian_gp.webp",
+  "bytes": 45788,
+  "captured_at": "2026-07-01T10:45:03+00:00",
+  "sha256": "e3259de6f47eeb2cd7296c659bb07a87fad9b5c469682b7adaccde436da91d99"
+}

@@ -1,0 +1,157 @@
+{
+  "generated_at": "2026-07-03T13:45:14+00:00",
+  "event_id": "british_gp",
+  "event_name": "British Grand Prix",
+  "knowledge_cutoff": "2026-06-30T12:00:00+00:00",
+  "status": "source_candidates_ready_for_claim_review",
+  "candidate_count": 1,
+  "review_ready_count": 1,
+  "blocked_count": 0,
+  "warning_count": 0,
+  "status_counts": {
+    "candidate_ready_for_claim_review": 1
+  },
+  "source_class_counts": {
+    "weather": 1
+  },
+  "task_link_counts": {
+    "linked_to_research_task": 1
+  },
+  "rows": [
+    {
+      "candidate_id": "british_gp-weather-openmeteo-candidate-001",
+      "event_id": "british_gp",
+      "task_id": "british_gp:weather",
+      "query": "British Grand Prix 2026-07-05 weather forecast Silverstone rain probability wet skill",
+      "source": "Open-Meteo forecast API",
+      "source_class": "weather",
+      "url": "https://api.open-meteo.com/v1/forecast?latitude=52.0733&longitude=-1.0147&daily=precipitation_probability_max,precipitation_sum,weather_code&hourly=precipitation_probability,precipitation&timezone=UTC&start_date=2026-07-05&end_date=2026-07-05",
+      "title": "British Grand Prix Silverstone race-day Open-Meteo forecast",
+      "snippet": "British Grand Prix Silverstone forecast snapshot before cutoff: precipitation probability max 2% and precipitation sum 0.00mm for race day, supporting an event-level wet_skill adjustment.",
+      "published_at": "2026-06-30T08:38:16+00:00",
+      "observed_at": "2026-06-30T08:38:16+00:00",
+      "captured_by": "codex_existing_source_snapshot",
+      "model_metrics": [
+        "wet_skill"
+      ],
+      "target_hints": [
+        "british_gp",
+        "Silverstone",
+        "wet_skill"
+      ],
+      "route_preview": [
+        {
+          "metric": "wet_skill",
+          "route": "wet_weather",
+          "model_surface": "wet-race branch",
+          "route_notes": [
+            "Changes wet probability or wet-performance contribution depending on target scope."
+          ],
+          "valid_target_types": [
+            "driver",
+            "event"
+          ],
+          "valid_claim_types": [
+            "weather",
+            "weather_forecast",
+            "rain_timing",
+            "wind",
+            "track_condition",
+            "corroboration",
+            "quote",
+            "contradiction",
+            "risk"
+          ],
+          "metric_notes": "Event-level weather changes wet probability; driver-level claims affect relative wet performance.",
+          "context_multiplier": null,
+          "context_multiplier_reason": null,
+          "track_demand_component": null,
+          "track_demand_value": null,
+          "track_demand_profile": null
+        }
+      ],
+      "impact_band_guidance": [
+        {
+          "band": "negligible",
+          "signed_magnitude_range": [
+            -0.01,
+            0.01
+          ],
+          "confidence_cap": 0.75,
+          "use_when": "Context is directionally relevant but unlikely to change simulation ordering.",
+          "review_rule": "May be archived without review only when source reliability is at least 0.75."
+        },
+        {
+          "band": "small",
+          "signed_magnitude_range": [
+            -0.03,
+            0.03
+          ],
+          "confidence_cap": 0.72,
+          "use_when": "Single-source setup, weather, or form signal with plausible but limited race effect.",
+          "review_rule": "Review required when source reliability is below 0.70 or timestamps are uncertain."
+        },
+        {
+          "band": "moderate",
+          "signed_magnitude_range": [
+            -0.06,
+            0.06
+          ],
+          "confidence_cap": 0.68,
+          "use_when": "Source-backed event-specific issue, upgrade, penalty, or weather signal likely to move a target group.",
+          "review_rule": "Needs source linkage plus either official/team/structured source or independent corroboration."
+        },
+        {
+          "band": "material",
+          "signed_magnitude_range": [
+            -0.1,
+            0.1
+          ],
+          "confidence_cap": 0.62,
+          "use_when": "Confirmed grid penalty, major reliability issue, substantial rain change, or run-tested upgrade effect.",
+          "review_rule": "Always review; require at least one high-reliability source and explicit reasoning."
+        }
+      ],
+      "status": "candidate_ready_for_claim_review",
+      "source_reliability": 0.7,
+      "relevance_score": 1.0,
+      "cutoff_status": "within_cutoff",
+      "task_link_status": "linked_to_research_task",
+      "risk_flags": [],
+      "findings": [],
+      "next_action": "Open and snapshot the source, then convert only source-backed facts into research_packet_template.json claims."
+    }
+  ],
+  "input_contract": {
+    "path": "data/research/british_gp/source_candidates.json",
+    "knowledge_cutoff": "2026-06-30T12:00:00+00:00",
+    "schema": {
+      "candidates": [
+        {
+          "candidate_id": "british_gp-source-001",
+          "task_id": "british_gp:team-updates-track-fit",
+          "query": "search query Codex used",
+          "source": "publisher or provider name",
+          "source_class": "f1_official|fia|team_or_driver|structured_data|media|weather|market|rumor|social",
+          "url": "https://...",
+          "title": "search result or page title",
+          "snippet": "tool-visible source-backed excerpt or summary",
+          "published_at": "ISO timestamp or null",
+          "observed_at": "ISO timestamp when Codex saw it",
+          "captured_by": "codex_web_search|codex_web_open|manual",
+          "model_metrics": [
+            "energy_recovery"
+          ],
+          "target_hints": [
+            "mercedes"
+          ]
+        }
+      ]
+    }
+  },
+  "output_contract": {
+    "candidate_report_json": "reports/research_candidates/british_gp.json",
+    "candidate_report_markdown": "reports/research_candidates/british_gp.md",
+    "next_step": "Review ready candidates, inspect/snapshot accepted sources, then fill research_packet_template.json."
+  }
+}

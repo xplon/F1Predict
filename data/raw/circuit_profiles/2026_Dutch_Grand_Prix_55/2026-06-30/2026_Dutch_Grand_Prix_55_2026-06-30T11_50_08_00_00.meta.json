@@ -1,0 +1,15 @@
+{
+  "source": "circuit_profiles",
+  "dataset": "2026_Dutch Grand Prix_55",
+  "captured_at": "2026-06-30T11:50:08+00:00",
+  "params": {
+    "year": 2026,
+    "event_name": "Dutch Grand Prix",
+    "meeting_key": 1292,
+    "circuit_key": 55,
+    "circuit_info_url": "https://api.multiviewer.app/api/v1/circuits/55/2026",
+    "source": "openf1_circuit_info_url"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\circuit_profiles\\2026_Dutch_Grand_Prix_55\\2026-06-30\\2026_Dutch_Grand_Prix_55_2026-06-30T11_50_08_00_00.json"
+}

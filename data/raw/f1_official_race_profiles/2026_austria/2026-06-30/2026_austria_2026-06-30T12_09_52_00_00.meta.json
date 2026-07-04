@@ -1,0 +1,12 @@
+{
+  "source": "f1_official_race_profiles",
+  "dataset": "2026_austria",
+  "captured_at": "2026-06-30T12:09:52+00:00",
+  "params": {
+    "year": 2026,
+    "slug": "austria",
+    "url": "https://www.formula1.com/en/racing/2026/austria"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\f1_official_race_profiles\\2026_austria\\2026-06-30\\2026_austria_2026-06-30T12_09_52_00_00.json"
+}

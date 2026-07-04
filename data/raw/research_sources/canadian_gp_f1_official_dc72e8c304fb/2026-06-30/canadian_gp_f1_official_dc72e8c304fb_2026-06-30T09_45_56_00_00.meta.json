@@ -1,0 +1,15 @@
+{
+  "source": "research_sources",
+  "dataset": "canadian_gp_f1_official_dc72e8c304fb",
+  "captured_at": "2026-06-30T09:45:56+00:00",
+  "params": {
+    "event_id": "canadian_gp",
+    "url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+    "source_class": "f1_official",
+    "published_at": "2026-05-23T21:19:02.498Z",
+    "observed_at": "2026-05-23T21:19:02.498Z",
+    "knowledge_cutoff": "2026-05-24T00:00:00+00:00"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\research_sources\\canadian_gp_f1_official_dc72e8c304fb\\2026-06-30\\canadian_gp_f1_official_dc72e8c304fb_2026-06-30T09_45_56_00_00.json"
+}

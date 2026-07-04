@@ -1,0 +1,16 @@
+{
+  "source": "madring_official_circuit_map",
+  "event_id": "spanish_gp",
+  "event_name": "Spanish Grand Prix",
+  "round_number": 16,
+  "circuit_key": 153,
+  "circuit_short_name": "Madring",
+  "url": "https://www.madring.com/img/trazado-madring-curvas/mapa-curva-1.svg",
+  "asset_path": "web/assets/tracks/spanish_gp.svg",
+  "web_path": "/assets/tracks/spanish_gp.svg",
+  "raw_path": "data/raw/circuit_images/2026_f1_official_track_icons/2026-06-30/spanish_gp.svg",
+  "bytes": 608787,
+  "captured_at": "2026-07-01T10:45:03+00:00",
+  "page_url": "https://www.madring.com/en/circuit",
+  "sha256": "019348d02e833c1eb22b8cbcb9e4f5738b1a46585737ae3e235c8debc76712f5"
+}

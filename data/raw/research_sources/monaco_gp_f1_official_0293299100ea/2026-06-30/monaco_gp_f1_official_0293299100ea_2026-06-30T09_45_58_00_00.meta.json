@@ -1,0 +1,15 @@
+{
+  "source": "research_sources",
+  "dataset": "monaco_gp_f1_official_0293299100ea",
+  "captured_at": "2026-06-30T09:45:58+00:00",
+  "params": {
+    "event_id": "monaco_gp",
+    "url": "https://www.formula1.com/en/latest/article/antonelli-seizes-brilliant-pole-in-thrilling-monaco-qualifying-ahead-of-verstappen-and-hamilton.7lWc3kpARKr1Qnle1f8X3P",
+    "source_class": "f1_official",
+    "published_at": "2026-06-06T15:25:30.251Z",
+    "observed_at": "2026-06-06T15:25:30.251Z",
+    "knowledge_cutoff": "2026-06-07T00:00:00+00:00"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\research_sources\\monaco_gp_f1_official_0293299100ea\\2026-06-30\\monaco_gp_f1_official_0293299100ea_2026-06-30T09_45_58_00_00.json"
+}

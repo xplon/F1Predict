@@ -1,0 +1,23 @@
+{
+  "notes": "Manual fallback template. Copy one completed object per line into draft_evidence.jsonl, then audit and archive it before replay.",
+  "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+  "example_claim": {
+    "claim_id": "miami_gp-codex-001",
+    "event_id": "miami_gp",
+    "source": "REPLACE_WITH_SOURCE_NAME",
+    "source_url": "REPLACE_WITH_SOURCE_URL",
+    "published_at": "REPLACE_WITH_ISO_TIMESTAMP",
+    "observed_at": "REPLACE_WITH_ISO_TIMESTAMP",
+    "target_type": "team",
+    "target_id": "REPLACE_WITH_TEAM_OR_DRIVER_ID",
+    "claim_type": "upgrade|track_fit|power_unit|ers|aero|weight|weather|reliability|strategy|market",
+    "metric": "race_pace|qualifying_pace|power_unit|energy_recovery|straight_line_speed|drag_efficiency|low_speed_traction|weight|upgrade_effect|tyre_deg|reliability|wet_skill|strategy",
+    "direction": "positive",
+    "magnitude": 0.03,
+    "confidence": 0.5,
+    "uncertainty": 0.35,
+    "evidence_text": "One source-backed sentence.",
+    "reasoning": "Why this source-backed mechanism should move the selected model metric on this circuit.",
+    "review_required": true
+  }
+}

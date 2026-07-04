@@ -1,0 +1,10 @@
+{
+  "source": "openf1",
+  "dataset": "2024_Silverstone_sessions",
+  "captured_at": "2026-06-30T07:20:10+00:00",
+  "params": {
+    "meeting_key": 1240
+  },
+  "item_count": 5,
+  "data_path": "data\\raw\\openf1\\2024_Silverstone_sessions\\2026-06-30\\2024_Silverstone_sessions_2026-06-30T07_20_10_00_00.json"
+}

@@ -1,0 +1,12 @@
+{
+  "source": "f1_official_race_profiles",
+  "dataset": "2026_spain",
+  "captured_at": "2026-06-30T12:10:18+00:00",
+  "params": {
+    "year": 2026,
+    "slug": "spain",
+    "url": "https://www.formula1.com/en/racing/2026/spain"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\f1_official_race_profiles\\2026_spain\\2026-06-30\\2026_spain_2026-06-30T12_10_18_00_00.json"
+}

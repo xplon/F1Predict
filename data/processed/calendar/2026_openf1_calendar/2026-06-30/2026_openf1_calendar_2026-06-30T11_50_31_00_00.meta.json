@@ -1,0 +1,10 @@
+{
+  "source": "calendar",
+  "dataset": "2026_openf1_calendar",
+  "captured_at": "2026-06-30T11:50:31+00:00",
+  "params": {
+    "year": 2026
+  },
+  "item_count": 24,
+  "data_path": "data\\processed\\calendar\\2026_openf1_calendar\\2026-06-30\\2026_openf1_calendar_2026-06-30T11_50_31_00_00.json"
+}

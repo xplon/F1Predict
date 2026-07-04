@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-06-30T16:53:51+00:00",
+  "research_root": "data\\research",
+  "write": false,
+  "source_log_count": 1,
+  "source_count": 1,
+  "candidate_count": 0,
+  "sources_updated": 0,
+  "status_counts": {
+    "no_archive_before_cutoff": 1
+  },
+  "rows": [
+    {
+      "event_id": "canadian_gp",
+      "source_index": 0,
+      "url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+      "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+      "captured_at": "2026-06-30T09:45:56+00:00",
+      "status": "no_archive_before_cutoff",
+      "historical_archive": null,
+      "error": null
+    }
+  ]
+}

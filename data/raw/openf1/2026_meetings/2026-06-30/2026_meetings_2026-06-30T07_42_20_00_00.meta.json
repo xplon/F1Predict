@@ -1,0 +1,10 @@
+{
+  "source": "openf1",
+  "dataset": "2026_meetings",
+  "captured_at": "2026-06-30T07:42:20+00:00",
+  "params": {
+    "year": 2026
+  },
+  "item_count": 26,
+  "data_path": "data\\raw\\openf1\\2026_meetings\\2026-06-30\\2026_meetings_2026-06-30T07_42_20_00_00.json"
+}

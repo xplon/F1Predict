@@ -1,0 +1,144 @@
+{
+  "generated_at": "2026-07-01T11:38:18+00:00",
+  "research_root": "data\\research",
+  "write": true,
+  "source_log_count": 3,
+  "source_count": 3,
+  "candidate_count": 0,
+  "sources_updated": 0,
+  "status_counts": {
+    "no_archive_before_cutoff": 3
+  },
+  "rows": [
+    {
+      "event_id": "barcelona_gp",
+      "event_name": "Barcelona Grand Prix",
+      "source_index": 0,
+      "url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+      "source": "Formula1.com official race-week report",
+      "title": "2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storms to Barcelona-Catalunya Grand Prix pole ahead of Lewis Hamilton and Kimi Antonelli as Charles Leclerc crashes out",
+      "source_class": "f1_official",
+      "published_at": "2026-06-13T15:27:57.860Z",
+      "observed_at": "2026-06-13T15:27:57.860Z",
+      "knowledge_cutoff": "2026-06-14T00:00:00+00:00",
+      "captured_at": "2026-06-30T09:45:59+00:00",
+      "status": "no_archive_before_cutoff",
+      "historical_archive": null,
+      "nearest_archive": {
+        "archive_url": "http://web.archive.org/web/20260626141616/https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+        "archived_at": "2026-06-26T14:16:16+00:00",
+        "original_url": "https://www.formula1.com/en/latest/article/russell-storms-to-barcelona-catalunya-gp-pole-ahead-of-hamilton-and-antonelli-as-leclerc-crashes-out.5TO9HsowvlMjmFJBPVP3qv",
+        "verified_at": "2026-07-01T11:37:31+00:00",
+        "verification_method": "wayback_available_api",
+        "cutoff_relation": "after_cutoff",
+        "notes": "Wayback availability API status=200; timestamp=20260626141616; relation=after_cutoff."
+      },
+      "error": null,
+      "used_in_claim_ids": [
+        "barcelona_gp-f1official-qualifying-hamilton-frontrow-001"
+      ],
+      "top_issue_code": "no_archive_before_cutoff",
+      "review_summary": "Barcelona Grand Prix source was captured locally after the cutoff, and the nearest Wayback hit found at 2026-06-26T14:16:16+00:00 is after the cutoff; this remains retrospective evidence and is not formal replay proof.",
+      "next_action": "Replace or supplement the Barcelona Grand Prix source with evidence verifiably available by 2026-06-14T00:00:00+00:00: FIA classification/timing PDFs, official F1 live timing or session reports with archive proof, credible live-report media snapshots, weather data, and same-time market snapshots.",
+      "replacement_query": "\"Barcelona Grand Prix\" qualifying results pole FIA Formula 1 live report \"2026 Barcelona-Catalunya Grand Prix Qualifying report and highlights: George Russell storm\" published or archived before 2026-06-14",
+      "recommended_source_classes": [
+        "fia",
+        "f1_official",
+        "structured_data",
+        "media",
+        "weather",
+        "market"
+      ],
+      "acceptance_criteria": [
+        "published_at and observed_at are at or before 2026-06-14T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "source URL and archive original_url match the cited source",
+        "claims cite source_url and used_in_claim_ids links back to the claim IDs"
+      ]
+    },
+    {
+      "event_id": "canadian_gp",
+      "event_name": "Canadian Grand Prix",
+      "source_index": 0,
+      "url": "https://www.formula1.com/en/latest/article/russell-denies-mercedes-rival-antonelli-pole-position-for-canadian-grand-prix-with-last-gasp-effort.5b91PZNqJKlwMzExUu9twT",
+      "source": "Formula1.com official race-week report",
+      "title": "2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonelli pole position with last-gasp effort",
+      "source_class": "f1_official",
+      "published_at": "2026-05-23T21:19:02.498Z",
+      "observed_at": "2026-05-23T21:19:02.498Z",
+      "knowledge_cutoff": "2026-05-24T00:00:00+00:00",
+      "captured_at": "2026-06-30T09:45:56+00:00",
+      "status": "no_archive_before_cutoff",
+      "historical_archive": null,
+      "nearest_archive": null,
+      "error": null,
+      "used_in_claim_ids": [
+        "canadian_gp-f1official-qualifying-russell-pole-001"
+      ],
+      "top_issue_code": "no_archive_before_cutoff",
+      "review_summary": "Canadian Grand Prix source was captured locally after the cutoff, and Wayback/CDX did not return an at-or-before-cutoff capture; this remains retrospective evidence.",
+      "next_action": "Replace or supplement the Canadian Grand Prix source with evidence verifiably available by 2026-05-24T00:00:00+00:00: FIA classification/timing PDFs, official F1 live timing or session reports with archive proof, credible live-report media snapshots, weather data, and same-time market snapshots.",
+      "replacement_query": "\"Canadian Grand Prix\" qualifying results pole FIA Formula 1 live report \"2026 Formula 1 Canadian Grand Prix: George Russell denies Mercedes team mate Kimi Antonell\" published or archived before 2026-05-24",
+      "recommended_source_classes": [
+        "fia",
+        "f1_official",
+        "structured_data",
+        "media",
+        "weather",
+        "market"
+      ],
+      "acceptance_criteria": [
+        "published_at and observed_at are at or before 2026-05-24T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "source URL and archive original_url match the cited source",
+        "claims cite source_url and used_in_claim_ids links back to the claim IDs"
+      ]
+    },
+    {
+      "event_id": "miami_gp",
+      "event_name": "Miami Grand Prix",
+      "source_index": 0,
+      "url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+      "source": "Formula1.com official race-week report",
+      "title": "2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole position ahead of Max Verstappen and Charles Leclerc",
+      "source_class": "f1_official",
+      "published_at": "2026-05-02T21:17:38.879Z",
+      "observed_at": "2026-05-02T21:17:38.879Z",
+      "knowledge_cutoff": "2026-05-03T00:00:00+00:00",
+      "captured_at": "2026-06-30T09:45:55+00:00",
+      "status": "no_archive_before_cutoff",
+      "historical_archive": null,
+      "nearest_archive": {
+        "archive_url": "http://web.archive.org/web/20260507120812/https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+        "archived_at": "2026-05-07T12:08:12+00:00",
+        "original_url": "https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5",
+        "verified_at": "2026-07-01T11:38:18+00:00",
+        "verification_method": "wayback_available_api",
+        "cutoff_relation": "after_cutoff",
+        "notes": "Wayback availability API status=200; timestamp=20260507120812; relation=after_cutoff."
+      },
+      "error": null,
+      "used_in_claim_ids": [
+        "miami_gp-f1official-qualifying-antonelli-pole-001"
+      ],
+      "top_issue_code": "no_archive_before_cutoff",
+      "review_summary": "Miami Grand Prix source was captured locally after the cutoff, and the nearest Wayback hit found at 2026-05-07T12:08:12+00:00 is after the cutoff; this remains retrospective evidence and is not formal replay proof.",
+      "next_action": "Replace or supplement the Miami Grand Prix source with evidence verifiably available by 2026-05-03T00:00:00+00:00: FIA classification/timing PDFs, official F1 live timing or session reports with archive proof, credible live-report media snapshots, weather data, and same-time market snapshots.",
+      "replacement_query": "\"Miami Grand Prix\" qualifying results pole FIA Formula 1 live report \"2026 Miami Grand Prix Qualifying report and highlights: Kimi Antonelli storms to pole posi\" published or archived before 2026-05-03",
+      "recommended_source_classes": [
+        "fia",
+        "f1_official",
+        "structured_data",
+        "media",
+        "weather",
+        "market"
+      ],
+      "acceptance_criteria": [
+        "published_at and observed_at are at or before 2026-05-03T00:00:00+00:00",
+        "local snapshot captured before cutoff, or historical_archive.archived_at is at or before cutoff",
+        "source URL and archive original_url match the cited source",
+        "claims cite source_url and used_in_claim_ids links back to the claim IDs"
+      ]
+    }
+  ]
+}
