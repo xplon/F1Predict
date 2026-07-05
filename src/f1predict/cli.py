@@ -11,6 +11,7 @@ from f1predict.backtest import Backtester
 from f1predict.calibration import ReplayCalibrationBuilder
 from f1predict.chronological_replay import ChronologicalReplayBundleBuilder
 from f1predict.domain import parse_dt
+from f1predict.explainability import PredictionExplainer
 from f1predict.features.calendar import CalendarBuilder
 from f1predict.features.openf1_summary import OpenF1SummaryBuilder
 from f1predict.improvement_plan import ImprovementPlanBuilder
@@ -611,6 +612,19 @@ def main() -> None:
     diff_prediction_runs.add_argument("--registry-root", default="reports/prediction_runs")
     diff_prediction_runs.add_argument("--write", action="store_true")
     diff_prediction_runs.add_argument("--output-dir", default="reports/prediction_diffs")
+
+    explain_prediction = sub.add_parser(
+        "explain-prediction",
+        help="Answer a prediction-result question from a registered run and packet",
+    )
+    explain_prediction.add_argument("--question", required=True)
+    explain_prediction.add_argument("--event", default="british_gp")
+    explain_prediction.add_argument("--run-id", default=None)
+    explain_prediction.add_argument("--knowledge-cutoff", default=None)
+    explain_prediction.add_argument("--language", default="zh")
+    explain_prediction.add_argument("--max-evidence", type=int, default=10)
+    explain_prediction.add_argument("--write", action="store_true")
+    explain_prediction.add_argument("--output-dir", default="reports/prediction_explanations")
 
     features = sub.add_parser("features", help="Show processed feature adjustments for an event")
     features.add_argument("--event", required=True)
@@ -1419,6 +1433,30 @@ def main() -> None:
         if args.write:
             paths = differ.write(diff)
             payload["paths"] = {name: str(path) for name, path in paths.items()}
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    elif args.command == "explain-prediction":
+        explainer = PredictionExplainer()
+        if args.write:
+            explanation, paths = explainer.answer_and_write(
+                question=args.question,
+                event_id=args.event,
+                run_id=args.run_id,
+                knowledge_cutoff=args.knowledge_cutoff,
+                language=args.language,
+                max_evidence=args.max_evidence,
+                output_dir=args.output_dir,
+            )
+            payload = explanation.to_dict()
+            payload["paths"] = {name: str(path) for name, path in paths.items()}
+        else:
+            payload = explainer.answer(
+                question=args.question,
+                event_id=args.event,
+                run_id=args.run_id,
+                knowledge_cutoff=args.knowledge_cutoff,
+                language=args.language,
+                max_evidence=args.max_evidence,
+            ).to_dict()
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     elif args.command == "features":
         pipeline = PredictionPipeline(iterations=1)

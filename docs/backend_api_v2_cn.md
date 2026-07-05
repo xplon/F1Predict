@@ -44,6 +44,8 @@ GET /api/v2/prediction-runs/{run_id}
 GET /api/v2/prediction-diffs
 POST /api/v2/prediction-diffs
 GET /api/v2/prediction-diffs/{diff_id}
+GET /api/v2/prediction-explanations
+POST /api/v2/prediction-explanations
 ```
 
 ## 3. 事实和赛季状态接口
@@ -226,7 +228,52 @@ diff 必须回答：
 - 最大变化车手；
 - cutoff、iterations、status 是否匹配。
 
-## 7. 当前首版边界
+## 7. 预测解释接口
+
+### GET /api/v2/prediction-explanations
+
+用途：基于某个已注册 prediction run 回答自然语言解释问题，不写 artifact。
+
+参数：
+
+```text
+event_id=british_gp
+question=为什么预测拉塞尔第一？
+run_id=<可选，默认取 event/cutoff 最新 run>
+knowledge_cutoff=<可选>
+max_evidence=10
+language=zh
+write=false
+```
+
+### POST /api/v2/prediction-explanations
+
+用途：回答解释问题，并可选写入 explanation artifact。
+
+请求体：
+
+```json
+{
+  "event_id": "british_gp",
+  "question": "为什么勒克莱尔的胜率远低于同队的汉密尔顿？",
+  "max_evidence": 8,
+  "write": true
+}
+```
+
+关键返回：
+
+- `answer`：中文解释；
+- `question_type`：问题类型；
+- `detected_entities`：识别到的车手、车队和派生分组；
+- `evidence_context`：从 prediction packet 抽出的概率、特征、证据、赛道和模型分解；
+- `supporting_evidence`：最关键的证据行；
+- `codex_prompt`：给 Codex/LLM 继续回答同一问题的上下文提示；
+- `limitations`：当前解释为什么仍然是 diagnostic-only。
+
+解释接口不会重新预测。它读取已注册 run 的 packet，因此前端可以快速加载，也能保证解释和页面展示的预测结果来自同一个 artifact。
+
+## 8. 当前首版边界
 
 这次 API v2 是架构层改进，不等同于预测精度提升。
 

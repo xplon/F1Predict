@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from f1predict.domain import parse_dt, utc_now
+from f1predict.explainability import PredictionExplainer
 from f1predict.intelligence.codex import CodexEvidenceProvider
 from f1predict.pipeline import PredictionPipeline
 from f1predict.prediction_packet import PredictionPacketBuilder
@@ -45,6 +46,7 @@ class BackendApiV2:
             research_root=self.root / "data" / "research",
             reports_root=self.root / "reports",
         )
+        self.explainer = PredictionExplainer(self.root, registry=self.registry)
 
     def handle_get(self, path: str, query: dict[str, list[str]]) -> ApiResponse | None:
         if not path.startswith("/api/v2/"):
@@ -94,6 +96,27 @@ class BackendApiV2:
             if payload is None:
                 return ApiResponse({"error": "prediction_diff_not_found", "diff_id": diff_id}, status=404)
             return ApiResponse(payload)
+        if route == "/prediction-explanations":
+            question = _first(query, "question", None)
+            if not question:
+                return ApiResponse({"error": "question_required"}, status=400)
+            event_id = str(_first(query, "event_id", "british_gp"))
+            run_id = _first(query, "run_id", None)
+            cutoff = _first(query, "knowledge_cutoff", None)
+            language = str(_first(query, "language", "zh"))
+            max_evidence = int(_first(query, "max_evidence", "10") or "10")
+            write = _bool_query(query, "write", default=False)
+            payload = self._prediction_explanation_payload(
+                question=question,
+                event_id=event_id,
+                run_id=run_id,
+                knowledge_cutoff=cutoff,
+                language=language,
+                max_evidence=max_evidence,
+                write=write,
+                output_dir=self.root / "reports" / "prediction_explanations",
+            )
+            return ApiResponse(payload, status=201 if write else 200)
         return ApiResponse({"error": "unknown_api_v2_route", "path": path}, status=404)
 
     def handle_post(self, path: str, query: dict[str, list[str]], body: dict[str, Any]) -> ApiResponse | None:
@@ -124,6 +147,28 @@ class BackendApiV2:
                 paths = differ.write(diff)
                 result["paths"] = {key: str(_relative_to_root(path, self.root)) for key, path in paths.items()}
             return ApiResponse(result, status=201)
+        if route == "/prediction-explanations":
+            question = str(body.get("question") or _first(query, "question", "") or "")
+            if not question:
+                return ApiResponse({"error": "question_required"}, status=400)
+            event_id = str(body.get("event_id") or _first(query, "event_id", "british_gp"))
+            run_id = body.get("run_id") or _first(query, "run_id", None)
+            cutoff = body.get("knowledge_cutoff") or _first(query, "knowledge_cutoff", None)
+            language = str(body.get("language") or _first(query, "language", "zh"))
+            max_evidence = int(body.get("max_evidence") or _first(query, "max_evidence", "10") or "10")
+            write = bool(body.get("write", False))
+            output_dir = Path(body.get("output_dir") or self.root / "reports" / "prediction_explanations")
+            payload = self._prediction_explanation_payload(
+                question=question,
+                event_id=event_id,
+                run_id=str(run_id) if run_id else None,
+                knowledge_cutoff=str(cutoff) if cutoff else None,
+                language=language,
+                max_evidence=max_evidence,
+                write=write,
+                output_dir=output_dir,
+            )
+            return ApiResponse(payload, status=201 if write else 200)
         return ApiResponse({"error": "unknown_api_v2_route", "path": path}, status=404)
 
     def create_prediction_run(
@@ -198,6 +243,39 @@ class BackendApiV2:
         timestamp = safe_name(utc_now().replace(microsecond=0).isoformat())
         return self.root / "reports" / "prediction_packets_v2" / safe_name(event_id) / timestamp
 
+    def _prediction_explanation_payload(
+        self,
+        question: str,
+        event_id: str,
+        run_id: str | None,
+        knowledge_cutoff: str | None,
+        language: str,
+        max_evidence: int,
+        write: bool,
+        output_dir: Path,
+    ) -> dict[str, Any]:
+        if write:
+            explanation, paths = self.explainer.answer_and_write(
+                question=question,
+                event_id=event_id,
+                run_id=run_id,
+                knowledge_cutoff=knowledge_cutoff,
+                language=language,
+                max_evidence=max_evidence,
+                output_dir=output_dir,
+            )
+            payload = explanation.to_dict()
+            payload["paths"] = {key: str(_relative_to_root(path, self.root)) for key, path in paths.items()}
+            return payload
+        return self.explainer.answer(
+            question=question,
+            event_id=event_id,
+            run_id=run_id,
+            knowledge_cutoff=knowledge_cutoff,
+            language=language,
+            max_evidence=max_evidence,
+        ).to_dict()
+
     def index(self) -> dict[str, Any]:
         return {
             "api": "f1predict_backend",
@@ -208,6 +286,7 @@ class BackendApiV2:
                 "POST /api/v2/information-intake",
                 "POST /api/v2/prediction-runs",
                 "POST /api/v2/prediction-diffs",
+                "POST /api/v2/prediction-explanations",
             ],
         }
 
@@ -317,6 +396,10 @@ class BackendApiV2:
                     "post": {"summary": "Build a matched diff between two registered runs"},
                 },
                 "/api/v2/prediction-diffs/{diff_id}": {"get": {"summary": "Fetch one stored prediction diff"}},
+                "/api/v2/prediction-explanations": {
+                    "get": {"summary": "Answer a prediction-result question from a registered run"},
+                    "post": {"summary": "Answer and optionally persist a prediction explanation artifact"},
+                },
             },
         }
 
@@ -361,6 +444,13 @@ def _first(query: dict[str, list[str]], key: str, default: str | None) -> str | 
     if not values:
         return default
     return values[0]
+
+
+def _bool_query(query: dict[str, list[str]], key: str, default: bool = False) -> bool:
+    value = _first(query, key, None)
+    if value is None:
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
 def _relative_to_root(path: Path | str | None, root: Path) -> Path | str | None:
