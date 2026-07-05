@@ -55,6 +55,7 @@ from f1predict.replay_analysis import ReplayAnalysisBuilder
 from f1predict.replay_artifacts import as_of_from_replay_stem, latest_replay_as_of, replay_stem, stem_time
 from f1predict.reviewed_market import ReviewedMarketSnapshotArchiver, ReviewedMarketSnapshotValidationError
 from f1predict.results import FastF1ResultRepository
+from f1predict.run_tracking import InformationIntakeStore, MatchedPredictionDiff, PredictionRunRegistry
 from f1predict.seed_roster import SeedRosterSyncPlanner
 from f1predict.simulator_calibration import SimulatorCalibrationBuilder
 from f1predict.source_replacements import (
@@ -103,6 +104,107 @@ def main() -> None:
         assert (
             latest_replay_as_of(artifact_root, 2026, suffix=".analysis.json") == as_of_text
         ), "latest replay artifact discovery should choose the newest cutoff"
+    with tempfile.TemporaryDirectory() as directory:
+        tracking_root = Path(directory)
+        evidence_dir = tracking_root / "seed_evidence"
+        evidence_dir.mkdir(parents=True)
+        tracking_claim = EvidenceClaim(
+            claim_id="tracking-smoke-001",
+            event_id="british_gp",
+            source="tracking smoke",
+            source_url="test://tracking-smoke",
+            published_at="2026-06-29T10:00:00+00:00",
+            observed_at="2026-06-29T10:05:00+00:00",
+            target_type="team",
+            target_id="mercedes",
+            claim_type="ers",
+            metric="energy_recovery",
+            direction="positive",
+            magnitude=0.05,
+            confidence=0.8,
+            uncertainty=0.2,
+            evidence_text="Smoke evidence for run tracking.",
+            reasoning="Verifies raw evidence fingerprints stay stable across probability changes.",
+            review_required=False,
+        )
+        (evidence_dir / "british_gp.jsonl").write_text(
+            json.dumps(tracking_claim.__dict__, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        intake_store = InformationIntakeStore(
+            root=tracking_root / "intake",
+            evidence_provider=CodexEvidenceProvider(
+                evidence_dir=evidence_dir,
+                packet_root=tracking_root / "packets",
+            ),
+            research_root=tracking_root / "research",
+            reports_root=tracking_root / "reports",
+        )
+        intake_record, intake_path = intake_store.build_and_write(
+            "british_gp",
+            knowledge_cutoff="2026-06-30T12:00:00+00:00",
+        )
+        assert intake_record.claim_count == 1, "information intake should snapshot cutoff-valid claims"
+        assert intake_record.metric_counts == {"energy_recovery": 1}
+        registry = PredictionRunRegistry(tracking_root / "prediction_runs")
+
+        def tracking_packet(generated_at: str, russell_win: float, antonelli_win: float) -> dict:
+            probabilities = [
+                {
+                    "driver_id": "russell",
+                    "win": russell_win,
+                    "podium": 0.7,
+                    "points": 0.95,
+                    "expected_points": 17.0 + russell_win,
+                    "average_finish": 2.8 - russell_win,
+                },
+                {
+                    "driver_id": "antonelli",
+                    "win": antonelli_win,
+                    "podium": 0.65,
+                    "points": 0.93,
+                    "expected_points": 16.0 + antonelli_win,
+                    "average_finish": 3.1 - antonelli_win,
+                },
+            ]
+            return {
+                "event_id": "british_gp",
+                "event_name": "British Grand Prix",
+                "generated_at": generated_at,
+                "knowledge_cutoff": "2026-06-30T12:00:00+00:00",
+                "iterations": 1000,
+                "status": "diagnostic_only",
+                "formal_edge_ready": False,
+                "blocker_codes": [],
+                "warning_codes": [],
+                "event_input_audit": {"quality": "smoke", "risk_codes": []},
+                "market_context": {"usable_snapshot_count": 0, "market_edge_count": 0},
+                "codex_context": {"evidence_count": 1, "factor_trace_count": 0},
+                "probability_summary": {"top_win_probabilities": probabilities},
+                "top_market_edges": [],
+                "prediction": {
+                    "event": {"event_id": "british_gp", "name": "British Grand Prix"},
+                    "race_probabilities": probabilities,
+                    "evidence": [tracking_claim.__dict__],
+                    "feature_adjustments": [],
+                },
+            }
+
+        base_run = registry.register_payload(
+            tracking_packet("2026-06-30T12:01:00+00:00", 0.40, 0.30),
+            information_intake_path=intake_path,
+        )
+        candidate_run = registry.register_payload(
+            tracking_packet("2026-06-30T12:02:00+00:00", 0.45, 0.25),
+            information_intake_path=intake_path,
+        )
+        diff = MatchedPredictionDiff(registry, tracking_root / "prediction_diffs").build(
+            base_run.run_id,
+            candidate_run.run_id,
+        )
+        assert not diff.evidence_changed, "raw evidence fingerprint should stay stable when only probabilities move"
+        assert diff.probability_changed, "prediction diff should detect probability movement"
+        assert diff.summary["changed_driver_count"] == 2, "prediction diff should count changed driver rows"
     report = pipeline.predict_event("british_gp")
     assert report.race_probabilities, "race probabilities should be produced"
     assert report.representative_lap, "representative lap should be produced"

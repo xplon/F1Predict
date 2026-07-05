@@ -50,6 +50,7 @@ from f1predict.readiness_intake import ReadinessIntakeExporter, ReadinessIntakeV
 from f1predict.replay import ReplayCoverageBuilder
 from f1predict.replay_analysis import ReplayAnalysisBuilder
 from f1predict.reviewed_market import ReviewedMarketSnapshotArchiver, reviewed_market_template
+from f1predict.run_tracking import InformationIntakeStore, MatchedPredictionDiff, PredictionRunRegistry
 from f1predict.seed_roster import SeedRosterSyncPlanner
 from f1predict.simulator_calibration import SimulatorCalibrationBuilder
 from f1predict.source_replacements import SourceReplacementApplier, SourceReplacementCandidateBuilder
@@ -92,6 +93,9 @@ def main() -> None:
     prediction_packet.add_argument("--iterations", type=int, default=1200)
     prediction_packet.add_argument("--write", action="store_true")
     prediction_packet.add_argument("--output-dir", default="reports/prediction_packets")
+    prediction_packet.add_argument("--register-run", action="store_true")
+    prediction_packet.add_argument("--registry-root", default="reports/prediction_runs")
+    prediction_packet.add_argument("--information-intake", default=None)
 
     season_forecast = sub.add_parser("season-forecast", help="Run cutoff-aware season points forecast")
     season_forecast.add_argument("--knowledge-cutoff", default=None)
@@ -572,6 +576,36 @@ def main() -> None:
     prepare_research.add_argument("--output-dir", default="data/research")
     prepare_research.add_argument("--include-existing-evidence", action="store_true")
 
+    information_intake = sub.add_parser(
+        "build-information-intake",
+        help="Build the structured local information snapshot available to a prediction",
+    )
+    information_intake.add_argument("--event", default="british_gp")
+    information_intake.add_argument("--knowledge-cutoff", default=None)
+    information_intake.add_argument("--write", action="store_true")
+    information_intake.add_argument("--intake-root", default="data/intake")
+    information_intake.add_argument("--research-root", default="data/research")
+    information_intake.add_argument("--reports-root", default="reports")
+
+    register_prediction_run = sub.add_parser(
+        "register-prediction-run",
+        help="Register an existing prediction packet as a comparable prediction run",
+    )
+    register_prediction_run.add_argument("--packet", required=True)
+    register_prediction_run.add_argument("--information-intake", default=None)
+    register_prediction_run.add_argument("--registry-root", default="reports/prediction_runs")
+    register_prediction_run.add_argument("--notes", default=None)
+
+    diff_prediction_runs = sub.add_parser(
+        "diff-prediction-runs",
+        help="Compare two registered prediction runs under the same output schema",
+    )
+    diff_prediction_runs.add_argument("--base-run", required=True)
+    diff_prediction_runs.add_argument("--candidate-run", required=True)
+    diff_prediction_runs.add_argument("--registry-root", default="reports/prediction_runs")
+    diff_prediction_runs.add_argument("--write", action="store_true")
+    diff_prediction_runs.add_argument("--output-dir", default="reports/prediction_diffs")
+
     features = sub.add_parser("features", help="Show processed feature adjustments for an event")
     features.add_argument("--event", required=True)
 
@@ -591,8 +625,17 @@ def main() -> None:
                 iterations=args.iterations,
                 output_dir=args.output_dir,
             )
-            print(json.dumps({name: str(path) for name, path in paths.items()}, ensure_ascii=False, indent=2))
+            payload = {name: str(path) for name, path in paths.items()}
+            if args.register_run:
+                record = PredictionRunRegistry(args.registry_root).register_packet(
+                    paths["json"],
+                    information_intake_path=args.information_intake,
+                )
+                payload["prediction_run"] = record.to_dict()
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
         else:
+            if args.register_run:
+                raise ValueError("prediction-packet --register-run requires --write so the run points to a packet file")
             packet = builder.build(args.event, knowledge_cutoff=args.knowledge_cutoff, iterations=args.iterations)
             print(json.dumps(packet.to_dict(), ensure_ascii=False, indent=2))
     elif args.command == "season-forecast":
@@ -1335,6 +1378,36 @@ def main() -> None:
                 output_dir=args.output_dir,
             )
         print(json.dumps({"paths": [str(path) for path in paths]}, ensure_ascii=False, indent=2))
+    elif args.command == "build-information-intake":
+        store = InformationIntakeStore(
+            root=args.intake_root,
+            research_root=args.research_root,
+            reports_root=args.reports_root,
+        )
+        record = store.build(args.event, knowledge_cutoff=args.knowledge_cutoff)
+        payload = record.to_dict()
+        if args.write:
+            path = store.write(record)
+            payload["path"] = str(path)
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    elif args.command == "register-prediction-run":
+        record = PredictionRunRegistry(args.registry_root).register_packet(
+            args.packet,
+            information_intake_path=args.information_intake,
+            notes=args.notes,
+        )
+        print(json.dumps(record.to_dict(), ensure_ascii=False, indent=2))
+    elif args.command == "diff-prediction-runs":
+        differ = MatchedPredictionDiff(
+            registry=PredictionRunRegistry(args.registry_root),
+            output_dir=args.output_dir,
+        )
+        diff = differ.build(args.base_run, args.candidate_run)
+        payload = diff.to_dict()
+        if args.write:
+            paths = differ.write(diff)
+            payload["paths"] = {name: str(path) for name, path in paths.items()}
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
     elif args.command == "features":
         pipeline = PredictionPipeline(iterations=1)
         season = pipeline.data_source.load()
