@@ -1,0 +1,58 @@
+{
+  "intake_id": "british_gp_20260705T000000_0000_c6e0a66a08_5952150b7d",
+  "event_id": "british_gp",
+  "created_at": "2026-07-05T11:58:52+00:00",
+  "knowledge_cutoff": "2026-07-05T00:00:00+00:00",
+  "status": "intake_ready_with_review_risks",
+  "claim_count": 6,
+  "unique_source_count": 6,
+  "claim_fingerprint": "c6e0a66a08bf01d995b1df460d571502fb3bcbc59e485959ff9d8528df49199b",
+  "source_fingerprint": "5952150b7da6e8fa1aae5c83414acd79ce889a95df9577a16344b7441d5f27e7",
+  "metric_counts": {
+    "energy_recovery": 1,
+    "launch_performance": 1,
+    "straight_line_speed": 1,
+    "tyre_deg": 1,
+    "upgrade_effect": 1,
+    "wet_skill": 1
+  },
+  "target_counts": {
+    "event:british_gp": 1,
+    "team:ferrari": 3,
+    "team:mercedes": 1,
+    "team:red_bull": 1
+  },
+  "direction_counts": {
+    "negative": 3,
+    "positive": 3
+  },
+  "source_class_counts": {
+    "weather": 1
+  },
+  "claim_ids": [
+    "british_gp-weather-openmeteo-001",
+    "seed-british-001",
+    "seed-british-002",
+    "seed-british-003",
+    "seed-british-004",
+    "seed-british-005"
+  ],
+  "source_urls": [
+    "https://api.open-meteo.com/v1/forecast?latitude=52.0733&longitude=-1.0147&daily=precipitation_probability_max,precipitation_sum,weather_code&hourly=precipitation_probability,precipitation&timezone=UTC&start_date=2026-07-05&end_date=2026-07-05",
+    "seed://codex/british_gp/energy_deployment",
+    "seed://codex/british_gp/ferrari_launch",
+    "seed://codex/british_gp/ferrari_straightline",
+    "seed://codex/british_gp/ferrari_tyre",
+    "seed://codex/british_gp/redbull_upgrade"
+  ],
+  "evidence_paths": [
+    "data\\evidence\\british_gp\\packets\\2026-06-30\\british_gp_2026-06-30T08_39_43_00_00.jsonl",
+    "data\\seed\\evidence\\british_gp.jsonl"
+  ],
+  "source_log_path": "data\\research\\british_gp\\source_log.json",
+  "source_candidate_report_path": "reports\\research_candidates\\british_gp.json",
+  "research_preflight_report_path": "reports\\research_preflight\\british_gp.json",
+  "warnings": [
+    "claims_require_review"
+  ]
+}

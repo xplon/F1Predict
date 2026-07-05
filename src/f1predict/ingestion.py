@@ -213,6 +213,17 @@ class LiveIngestor:
         record = self._write_fastf1_result_payload(payload, year, event, session)
         return IngestionResult([record])
 
+    def ingest_fastf1_session_laps(
+        self,
+        year: int,
+        event: str | int,
+        session: str = "FP2",
+    ) -> IngestionResult:
+        client = self.fastf1 or FastF1Client()
+        payload = client.session_laps(year=year, event=event, session=session)
+        record = self._write_fastf1_laps_payload(payload, year, event, session)
+        return IngestionResult([record])
+
     def ingest_fastf1_due_results(
         self,
         year: int,
@@ -590,6 +601,30 @@ class LiveIngestor:
         return self.store.write_json(
             "fastf1",
             f"{year}_{event_name}_{session_name}_results",
+            payload,
+            {
+                "year": year,
+                "event": event,
+                "resolved_event": event_name,
+                "session": session,
+                "session_name": session_name,
+            },
+        )
+
+    def _write_fastf1_laps_payload(
+        self,
+        payload: dict[str, Any],
+        year: int,
+        event: str | int,
+        session: str,
+    ) -> SnapshotRecord:
+        resolved_event = payload.get("resolved_event") or {}
+        session_info = payload.get("session") or {}
+        event_name = resolved_event.get("EventName") or str(event)
+        session_name = session_info.get("name") or session
+        return self.store.write_json(
+            "fastf1",
+            f"{year}_{event_name}_{session_name}_laps",
             payload,
             {
                 "year": year,

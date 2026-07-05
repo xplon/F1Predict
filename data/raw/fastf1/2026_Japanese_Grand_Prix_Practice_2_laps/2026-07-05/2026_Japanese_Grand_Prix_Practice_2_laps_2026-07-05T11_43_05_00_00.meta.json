@@ -1,0 +1,14 @@
+{
+  "source": "fastf1",
+  "dataset": "2026_Japanese Grand Prix_Practice 2_laps",
+  "captured_at": "2026-07-05T11:43:05+00:00",
+  "params": {
+    "year": 2026,
+    "event": "Japanese Grand Prix",
+    "resolved_event": "Japanese Grand Prix",
+    "session": "FP2",
+    "session_name": "Practice 2"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\fastf1\\2026_Japanese_Grand_Prix_Practice_2_laps\\2026-07-05\\2026_Japanese_Grand_Prix_Practice_2_laps_2026-07-05T11_43_05_00_00.json"
+}

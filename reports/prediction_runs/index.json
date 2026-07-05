@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-05T11:11:21+00:00",
-  "run_count": 11,
+  "updated_at": "2026-07-05T11:59:35+00:00",
+  "run_count": 13,
   "runs": [
     {
       "run_id": "british_gp_20260630T120000_0000_20260703T143340_0000_aa1826fbf8",
@@ -155,6 +155,34 @@
       "probability_fingerprint": "47829fac9c9b0b5e90c5d281924f21fde75711e8f44c4edde77f31519b589351",
       "information_intake_id": "austrian_gp_20260628T000000_0000_5c42480b76_40b8d30f7b",
       "path": "E:\\1.study\\code\\AI_Projects\\F1Predict\\reports\\prediction_runs\\runs\\austrian_gp\\austrian_gp_20260628T000000_0000_20260705T111121_0000_4e69601269.prediction_run.json"
+    },
+    {
+      "run_id": "austrian_gp_20260628T000000_0000_20260705T115827_0000_469087c96e",
+      "event_id": "austrian_gp",
+      "event_name": "Austrian Grand Prix",
+      "created_at": "2026-07-05T11:58:27+00:00",
+      "generated_at": "2026-07-05T11:58:27+00:00",
+      "knowledge_cutoff": "2026-06-28T00:00:00+00:00",
+      "status": "diagnostic_only",
+      "input_fingerprint": "4ea9a65b5ff4991be634a249b6aed580aeb8bb8acaa9253820983cfead6b9135",
+      "evidence_fingerprint": "a1fc51846e5d6890c84e9915a9522edd37ba35141795326ed3affe5a839cc22d",
+      "probability_fingerprint": "1f28b7ec83a1c1341503d5d58289a27705096c86d57698d1595ab64abf3966a6",
+      "information_intake_id": "austrian_gp_20260628T000000_0000_5c42480b76_40b8d30f7b",
+      "path": "reports\\prediction_runs\\runs\\austrian_gp\\austrian_gp_20260628T000000_0000_20260705T115827_0000_469087c96e.prediction_run.json"
+    },
+    {
+      "run_id": "british_gp_20260705T000000_0000_20260705T115935_0000_9e3dfa22c3",
+      "event_id": "british_gp",
+      "event_name": "British Grand Prix",
+      "created_at": "2026-07-05T11:59:35+00:00",
+      "generated_at": "2026-07-05T11:59:35+00:00",
+      "knowledge_cutoff": "2026-07-05T00:00:00+00:00",
+      "status": "diagnostic_only",
+      "input_fingerprint": "2f85a06eae1d01256d223245ea62df55c3d6cc63821b29144040ed7e133df246",
+      "evidence_fingerprint": "0169ce6bcb874276d4d811458459f004a71763fb3376ab566c3160a0964f7bec",
+      "probability_fingerprint": "9f20b82c1b304b0a84657c1c0e78f448be837ae620f821e37d073d7c12416bba",
+      "information_intake_id": "british_gp_20260705T000000_0000_c6e0a66a08_5952150b7d",
+      "path": "reports\\prediction_runs\\runs\\british_gp\\british_gp_20260705T000000_0000_20260705T115935_0000_9e3dfa22c3.prediction_run.json"
     }
   ]
 }

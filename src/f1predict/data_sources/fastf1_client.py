@@ -53,6 +53,38 @@ class FastF1Client:
     def race_results(self, year: int, event: str | int) -> dict[str, Any]:
         return self.session_results(year=year, event=event, session="R")
 
+    def session_laps(self, year: int, event: str | int, session: str = "FP2") -> dict[str, Any]:
+        """Load session lap timing, driver rows, and weather without telemetry.
+
+        The payload is intentionally raw-ish: normalization and cutoff handling
+        happen in the repository/feature layer so the stored snapshot remains
+        auditable.
+        """
+
+        session_obj = self.fastf1.get_session(year, event, session)
+        self._validate_resolved_event(event, self._jsonable_row(session_obj.event))
+        session_obj.load(laps=True, telemetry=False, weather=True, messages=False)
+        lap_rows = [self._jsonable_row(row) for _, row in session_obj.laps.iterrows()]
+        driver_rows = [self._jsonable_row(row) for _, row in session_obj.results.iterrows()]
+        weather_data = getattr(session_obj, "weather_data", None)
+        weather_rows = []
+        if weather_data is not None:
+            weather_rows = [self._jsonable_row(row) for _, row in weather_data.iterrows()]
+        return {
+            "year": year,
+            "event_query": event,
+            "requested_session": session,
+            "resolved_event": self._jsonable_row(session_obj.event),
+            "session": {
+                "name": getattr(session_obj, "name", session),
+                "date": self._jsonable_value(getattr(session_obj, "date", None)),
+                "api_path": getattr(session_obj, "api_path", None),
+            },
+            "drivers": driver_rows,
+            "laps": lap_rows,
+            "weather": weather_rows,
+        }
+
     @staticmethod
     def _import_fastf1():
         try:

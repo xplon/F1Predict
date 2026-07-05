@@ -5,13 +5,14 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 from pathlib import Path
-from statistics import mean
+from statistics import mean, median
 from typing import Any
 
 from f1predict.domain import FeatureAdjustment, RaceEvent, SeasonState, parse_dt
 from f1predict.features.openf1_summary import OpenF1SummaryBuilder
 from f1predict.official_standings import OfficialStandingsRepository
 from f1predict.results import FastF1ResultRepository, NormalizedRaceResult, normalize_event_name
+from f1predict.session_laps import FastF1SessionLapRepository, NormalizedSessionLapSummary
 
 
 class ProcessedFeatureProvider:
@@ -35,11 +36,13 @@ class ProcessedFeatureProvider:
         processed_root: Path | str = Path("data/processed"),
         raw_root: Path | str = Path("data/raw"),
         result_repository: FastF1ResultRepository | None = None,
+        session_lap_repository: FastF1SessionLapRepository | None = None,
         official_standings_repository: OfficialStandingsRepository | None = None,
     ) -> None:
         self.processed_root = Path(processed_root)
         self.raw_root = Path(raw_root)
         self.result_repository = result_repository or FastF1ResultRepository(raw_root)
+        self.session_lap_repository = session_lap_repository or FastF1SessionLapRepository(raw_root)
         self.official_standings_repository = official_standings_repository or OfficialStandingsRepository(
             raw_root=raw_root,
             processed_root=processed_root,
@@ -60,6 +63,7 @@ class ProcessedFeatureProvider:
             adjustments.extend(self._summary_to_adjustments(season, event, summary))
         adjustments.extend(self._official_standings_adjustments(season, event, knowledge_cutoff))
         adjustments.extend(self._fastf1_form_adjustments(season, event, knowledge_cutoff))
+        adjustments.extend(self._fastf1_session_lap_adjustments(season, event, knowledge_cutoff))
         adjustments.extend(self._fastf1_qualifying_session_adjustments(season, event, knowledge_cutoff))
         if knowledge_cutoff is None:
             return adjustments
@@ -94,9 +98,16 @@ class ProcessedFeatureProvider:
             if not laps:
                 continue
             metric = "qualifying_pace" if "Qualifying" in session_name else "race_pace"
-            fastest = laps.get("fastest_drivers", [])
-            count = max(1, len(fastest))
-            for rank, row in enumerate(fastest, start=1):
+            lap_rows = laps.get("driver_stats") or laps.get("fastest_drivers", [])
+            if metric == "race_pace":
+                lap_rows = sorted(
+                    lap_rows,
+                    key=lambda row: row.get("long_run_proxy") or row.get("fast_10_avg") or row.get("fastest_lap") or 999.0,
+                )
+            else:
+                lap_rows = sorted(lap_rows, key=lambda row: row.get("fastest_lap") or 999.0)
+            count = max(1, len(lap_rows))
+            for rank, row in enumerate(lap_rows, start=1):
                 driver_id = by_number.get(str(row.get("driver_number")))
                 if driver_id is None:
                     continue
@@ -255,6 +266,451 @@ class ProcessedFeatureProvider:
                     )
                 )
         return adjustments
+
+    def _fastf1_session_lap_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        knowledge_cutoff=None,
+    ) -> list[FeatureAdjustment]:
+        """Convert same-event FastF1 lap summaries into cutoff-safe pace inputs."""
+
+        target_cutoff = (
+            parse_dt(str(knowledge_cutoff))
+            if knowledge_cutoff
+            else parse_dt(f"{event.date}T00:00:00+00:00")
+        )
+        if target_cutoff is None:
+            return []
+
+        summaries = self.session_lap_repository.latest_for_event(
+            season.season,
+            event.name,
+            session_names={"FP1", "FP2", "FP3", "Q", "SQ", "S"},
+        )
+        if not summaries:
+            return []
+
+        driver_lookup = self._driver_lookup(season)
+        by_number = self._driver_by_openf1_number(season)
+        adjustments: list[FeatureAdjustment] = []
+        for summary in summaries:
+            observed_at = summary.session_date or summary.captured_at
+            observed_dt = parse_dt(observed_at)
+            if observed_dt is None or observed_dt > target_cutoff:
+                continue
+            if summary.session_key in {"qualifying", "sprintqualifying"}:
+                adjustments.extend(
+                    self._fastf1_qualifying_lap_adjustments(
+                        season,
+                        event,
+                        summary,
+                        observed_at,
+                        driver_lookup,
+                        by_number,
+                    )
+                )
+                continue
+            adjustments.extend(
+                self._fastf1_practice_lap_adjustments(
+                    season,
+                    event,
+                    summary,
+                    observed_at,
+                    driver_lookup,
+                    by_number,
+                )
+            )
+        return adjustments
+
+    def _fastf1_practice_lap_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        summary: NormalizedSessionLapSummary,
+        observed_at: str,
+        driver_lookup: dict[str, str],
+        by_number: dict[str, str],
+    ) -> list[FeatureAdjustment]:
+        rows = self._mapped_session_rows(season, summary, driver_lookup, by_number)
+        long_run_rows = [
+            row for row in rows
+            if row.get("long_run_proxy_seconds") is not None
+            and int(row.get("long_run_lap_count") or 0) >= 3
+        ]
+        long_run_rows = self._session_inlier_rows(long_run_rows, "long_run_proxy_seconds", max_from_median=6.0)
+        if not long_run_rows:
+            return []
+
+        source = self._fastf1_session_source(summary, observed_at)
+        confidence_base = self._session_lap_confidence(summary.session_key, "race_pace")
+        field_long_run, long_run_scale = self._center_scale_values(
+            [float(row["long_run_proxy_seconds"]) for row in long_run_rows],
+            minimum_scale=0.85,
+        )
+        adjustments: list[FeatureAdjustment] = []
+        team_long_runs: defaultdict[str, list[float]] = defaultdict(list)
+        for row in long_run_rows:
+            driver_id = str(row["mapped_driver_id"])
+            driver = season.drivers[driver_id]
+            team_long_runs[driver.team_id].append(float(row["long_run_proxy_seconds"]))
+            clean_laps = int(row.get("clean_lap_count") or 0)
+            session_weight = min(1.0, max(0.45, clean_laps / 10.0))
+            delta = field_long_run - float(row["long_run_proxy_seconds"])
+            value = round(self._clamp(delta / long_run_scale * 0.085, -0.085, 0.085), 4)
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-session-laps:{summary.year}:{event.event_id}:{summary.session_key}:"
+                        f"{driver_id}:race_pace:{observed_at}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="driver",
+                    target_id=driver_id,
+                    metric="race_pace",
+                    value=value,
+                    confidence=round(confidence_base * session_weight, 4),
+                    observed_at=observed_at,
+                    explanation=(
+                        f"{summary.session_name} long-run proxy before {event.name}: "
+                        f"{row['long_run_proxy_seconds']:.3f}s vs field {field_long_run:.3f}s "
+                        f"over {row.get('long_run_lap_count')} clean lap(s); used as a same-weekend race-pace signal."
+                    ),
+                )
+            )
+
+        tyre_deg_rows = [
+            row for row in long_run_rows
+            if row.get("tyre_deg_proxy_seconds_per_lap") is not None
+            and int(row.get("long_run_lap_count") or 0) >= 4
+        ]
+        tyre_deg_rows = self._session_inlier_rows(
+            tyre_deg_rows,
+            "tyre_deg_proxy_seconds_per_lap",
+            max_from_median=4.0,
+        )
+        if tyre_deg_rows:
+            field_deg, deg_scale = self._center_scale_values(
+                [float(row["tyre_deg_proxy_seconds_per_lap"]) for row in tyre_deg_rows],
+                minimum_scale=0.45,
+            )
+            for row in tyre_deg_rows:
+                driver_id = str(row["mapped_driver_id"])
+                deg = float(row["tyre_deg_proxy_seconds_per_lap"])
+                value = round(self._clamp((field_deg - deg) / deg_scale * 0.045, -0.045, 0.045), 4)
+                if not value:
+                    continue
+                adjustments.append(
+                    FeatureAdjustment(
+                        feature_id=(
+                            f"fastf1-session-laps:{summary.year}:{event.event_id}:{summary.session_key}:"
+                            f"{driver_id}:tyre_deg:{observed_at}"
+                        ),
+                        event_id=event.event_id,
+                        source=source,
+                        target_type="driver",
+                        target_id=driver_id,
+                        metric="tyre_deg",
+                        value=value,
+                        confidence=round(self._session_lap_confidence(summary.session_key, "tyre_deg"), 4),
+                        observed_at=observed_at,
+                        explanation=(
+                            f"{summary.session_name} tyre-degradation proxy before {event.name}: "
+                            f"{deg:+.4f}s/lap vs field {field_deg:+.4f}s/lap; lower degradation improves strategy pace."
+                        ),
+                    )
+                )
+
+        speed_rows = [row for row in rows if row.get("speed_st_avg_kph") is not None]
+        if len(speed_rows) >= 3:
+            field_speed, speed_scale = self._center_scale_values(
+                [float(row["speed_st_avg_kph"]) for row in speed_rows],
+                minimum_scale=8.0,
+            )
+            for row in speed_rows:
+                driver_id = str(row["mapped_driver_id"])
+                speed = float(row["speed_st_avg_kph"])
+                value = round(self._clamp((speed - field_speed) / speed_scale * 0.04, -0.035, 0.035), 4)
+                if not value:
+                    continue
+                adjustments.append(
+                    FeatureAdjustment(
+                        feature_id=(
+                            f"fastf1-session-laps:{summary.year}:{event.event_id}:{summary.session_key}:"
+                            f"{driver_id}:straight_line_speed:{observed_at}"
+                        ),
+                        event_id=event.event_id,
+                        source=source,
+                        target_type="driver",
+                        target_id=driver_id,
+                        metric="straight_line_speed",
+                        value=value,
+                        confidence=round(self._session_lap_confidence(summary.session_key, "straight_line_speed"), 4),
+                        observed_at=observed_at,
+                        explanation=(
+                            f"{summary.session_name} speed-trap average before {event.name}: "
+                            f"{speed:.1f} kph vs field {field_speed:.1f} kph; used as a small straight-line signal."
+                        ),
+                    )
+                )
+
+        adjustments.extend(
+            self._session_team_pace_adjustments(
+                season,
+                event,
+                team_long_runs,
+                source,
+                observed_at,
+                summary,
+            )
+        )
+        return adjustments
+
+    def _fastf1_qualifying_lap_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        summary: NormalizedSessionLapSummary,
+        observed_at: str,
+        driver_lookup: dict[str, str],
+        by_number: dict[str, str],
+    ) -> list[FeatureAdjustment]:
+        rows = [
+            row for row in self._mapped_session_rows(season, summary, driver_lookup, by_number)
+            if row.get("fastest_lap_seconds") is not None
+        ]
+        if len(rows) < 3:
+            return []
+        field_fastest, fastest_scale = self._center_scale_values(
+            [float(row["fastest_lap_seconds"]) for row in rows],
+            minimum_scale=0.55,
+        )
+        source = self._fastf1_session_source(summary, observed_at)
+        confidence = self._session_lap_confidence(summary.session_key, "qualifying_pace")
+        adjustments: list[FeatureAdjustment] = []
+        team_fastest: defaultdict[str, list[float]] = defaultdict(list)
+        for row in rows:
+            driver_id = str(row["mapped_driver_id"])
+            driver = season.drivers[driver_id]
+            lap_time = float(row["fastest_lap_seconds"])
+            team_fastest[driver.team_id].append(lap_time)
+            value = round(self._clamp((field_fastest - lap_time) / fastest_scale * 0.105, -0.105, 0.105), 4)
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-session-laps:{summary.year}:{event.event_id}:{summary.session_key}:"
+                        f"{driver_id}:qualifying_pace:{observed_at}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="driver",
+                    target_id=driver_id,
+                    metric="qualifying_pace",
+                    value=value,
+                    confidence=confidence,
+                    observed_at=observed_at,
+                    explanation=(
+                        f"{summary.session_name} best valid lap before {event.name}: "
+                        f"{lap_time:.3f}s vs field {field_fastest:.3f}s; used as gap-aware qualifying pace, "
+                        "separate from the qualifying classification/grid-order feature."
+                    ),
+                )
+            )
+        adjustments.extend(
+            self._session_team_qualifying_adjustments(
+                season,
+                event,
+                team_fastest,
+                source,
+                observed_at,
+                summary,
+            )
+        )
+        return adjustments
+
+    def _session_team_pace_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        team_long_runs: defaultdict[str, list[float]],
+        source: str,
+        observed_at: str,
+        summary: NormalizedSessionLapSummary,
+    ) -> list[FeatureAdjustment]:
+        team_avg = {
+            team_id: mean(values)
+            for team_id, values in team_long_runs.items()
+            if values and team_id in season.teams
+        }
+        if len(team_avg) < 2:
+            return []
+        field_avg, team_scale = self._center_scale_values(list(team_avg.values()), minimum_scale=0.85)
+        confidence = self._session_lap_confidence(summary.session_key, "team_race_pace")
+        adjustments: list[FeatureAdjustment] = []
+        for team_id, lap_time in sorted(team_avg.items()):
+            value = round(self._clamp((field_avg - lap_time) / team_scale * 0.065, -0.065, 0.065), 4)
+            if not value:
+                continue
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-session-laps:{summary.year}:{event.event_id}:{summary.session_key}:"
+                        f"{team_id}:race_pace:{observed_at}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="race_pace",
+                    value=value,
+                    confidence=confidence,
+                    observed_at=observed_at,
+                    explanation=(
+                        f"{summary.session_name} team long-run proxy before {event.name}: "
+                        f"{lap_time:.3f}s vs team field {field_avg:.3f}s; used as same-weekend car race pace."
+                    ),
+                )
+            )
+        return adjustments
+
+    def _session_team_qualifying_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        team_fastest: defaultdict[str, list[float]],
+        source: str,
+        observed_at: str,
+        summary: NormalizedSessionLapSummary,
+    ) -> list[FeatureAdjustment]:
+        team_avg = {
+            team_id: mean(values)
+            for team_id, values in team_fastest.items()
+            if values and team_id in season.teams
+        }
+        if len(team_avg) < 2:
+            return []
+        field_avg, team_scale = self._center_scale_values(list(team_avg.values()), minimum_scale=0.55)
+        confidence = self._session_lap_confidence(summary.session_key, "team_qualifying_pace")
+        adjustments: list[FeatureAdjustment] = []
+        for team_id, lap_time in sorted(team_avg.items()):
+            value = round(self._clamp((field_avg - lap_time) / team_scale * 0.075, -0.075, 0.075), 4)
+            if not value:
+                continue
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-session-laps:{summary.year}:{event.event_id}:{summary.session_key}:"
+                        f"{team_id}:qualifying_pace:{observed_at}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="qualifying_pace",
+                    value=value,
+                    confidence=confidence,
+                    observed_at=observed_at,
+                    explanation=(
+                        f"{summary.session_name} team best-lap proxy before {event.name}: "
+                        f"{lap_time:.3f}s vs team field {field_avg:.3f}s; used as same-weekend car qualifying pace."
+                    ),
+                )
+            )
+        return adjustments
+
+    def _mapped_session_rows(
+        self,
+        season: SeasonState,
+        summary: NormalizedSessionLapSummary,
+        driver_lookup: dict[str, str],
+        by_number: dict[str, str],
+    ) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
+        for row in summary.driver_stats:
+            driver_id = self._session_lap_driver_id(row, driver_lookup, by_number)
+            if driver_id is None or driver_id not in season.drivers:
+                continue
+            rows.append({**row, "mapped_driver_id": driver_id})
+        return rows
+
+    @staticmethod
+    def _session_lap_driver_id(
+        row: dict[str, Any],
+        driver_lookup: dict[str, str],
+        by_number: dict[str, str],
+    ) -> str | None:
+        full_name = str(row.get("full_name") or "")
+        candidates = [
+            str(row.get("driver_id") or ""),
+            full_name,
+            full_name.split()[-1] if full_name.split() else "",
+        ]
+        for candidate in candidates:
+            key = ProcessedFeatureProvider._compact(candidate)
+            if key in driver_lookup:
+                return driver_lookup[key]
+        driver_number = str(row.get("driver_number") or "")
+        if driver_number in by_number:
+            return by_number[driver_number]
+        return None
+
+    @staticmethod
+    def _fastf1_session_source(summary: NormalizedSessionLapSummary, observed_at: str) -> str:
+        quality = "retrospective_snapshot" if summary.captured_at > observed_at else "source_backed"
+        return (
+            f"fastf1_session_laps:{summary.year}:{normalize_event_name(summary.event_name)}:"
+            f"{summary.session_key}:{observed_at}:captured_at={summary.captured_at}:quality={quality}:path={summary.path}"
+        )
+
+    @staticmethod
+    def _session_lap_confidence(session_key: str, metric: str) -> float:
+        session_weights = {
+            "practice1": 0.68,
+            "practice2": 1.00,
+            "practice3": 0.82,
+            "qualifying": 1.00,
+            "sprintqualifying": 0.86,
+            "sprint": 0.88,
+        }
+        metric_base = {
+            "race_pace": 0.42,
+            "team_race_pace": 0.34,
+            "tyre_deg": 0.30,
+            "straight_line_speed": 0.24,
+            "qualifying_pace": 0.44,
+            "team_qualifying_pace": 0.34,
+        }
+        return round(metric_base.get(metric, 0.25) * session_weights.get(session_key, 0.55), 4)
+
+    @classmethod
+    def _session_inlier_rows(
+        cls,
+        rows: list[dict[str, Any]],
+        key: str,
+        max_from_median: float,
+    ) -> list[dict[str, Any]]:
+        values = [float(row[key]) for row in rows if row.get(key) is not None]
+        if len(values) < 4:
+            return rows
+        center = median(values)
+        return [
+            row for row in rows
+            if row.get(key) is not None and abs(float(row[key]) - center) <= max_from_median
+        ]
+
+    @staticmethod
+    def _center_scale_values(values: list[float], minimum_scale: float) -> tuple[float, float]:
+        if not values:
+            return 0.0, minimum_scale
+        ordered = sorted(values)
+        center = median(ordered)
+        if len(ordered) < 4:
+            return center, max(minimum_scale, max(ordered) - min(ordered), minimum_scale)
+        q1 = ordered[max(0, len(ordered) // 4)]
+        q3 = ordered[min(len(ordered) - 1, (len(ordered) * 3) // 4)]
+        iqr = max(0.0, q3 - q1)
+        return center, max(minimum_scale, iqr * 1.35)
 
     def _official_standings_adjustments(
         self,

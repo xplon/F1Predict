@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 import tempfile
 from pathlib import Path
 import json
@@ -58,6 +59,7 @@ from f1predict.reviewed_market import ReviewedMarketSnapshotArchiver, ReviewedMa
 from f1predict.results import FastF1ResultRepository
 from f1predict.run_tracking import InformationIntakeStore, MatchedPredictionDiff, PredictionRunRegistry
 from f1predict.seed_roster import SeedRosterSyncPlanner
+from f1predict.session_laps import FastF1SessionLapRepository
 from f1predict.simulator_calibration import SimulatorCalibrationBuilder
 from f1predict.source_replacements import (
     SourceReplacementApplier,
@@ -259,6 +261,30 @@ def main() -> None:
             for feature in austrian_qualifying_features
         )
     ), "same-event FastF1 qualifying results should become cutoff-safe qualifying/grid features after Q"
+    austrian_fp2_summaries = FastF1SessionLapRepository().latest_for_event(
+        2026,
+        austrian_event.name,
+        session_names={"FP2"},
+    )
+    assert (
+        len(austrian_fp2_summaries) == 1
+        and austrian_fp2_summaries[0].session_key == "practice2"
+        and len(austrian_fp2_summaries[0].driver_stats) >= 20
+    ), "FastF1 FP2 lap snapshots should normalize into full-field session summaries"
+    austrian_session_features = [
+        feature for feature in austrian_race_morning_features
+        if feature.source.startswith("fastf1_session_laps")
+    ]
+    austrian_session_race_pace = [
+        feature for feature in austrian_session_features
+        if feature.target_type == "driver" and feature.metric == "race_pace"
+    ]
+    race_pace_counts = Counter(feature.target_id for feature in austrian_session_race_pace)
+    assert (
+        len(austrian_session_race_pace) >= 20
+        and all(count == 1 for count in race_pace_counts.values())
+        and any(feature.target_id == "norris" and feature.value > 0 for feature in austrian_session_race_pace)
+    ), "FastF1 practice-lap features should map by driver identity, not stale car numbers, and affect full-field race pace"
     austrian_team_strength = {
         feature.target_id: feature
         for feature in austrian_race_morning_features
@@ -281,6 +307,31 @@ def main() -> None:
         austrian_with_qualifying_order.feature_refs["fastf1_qualifying_order"]["row_count"] == 22
         and SingleRaceSimulator._known_qualifying_positions(austrian_with_qualifying_order)["russell"] == 1
     ), "race-morning simulator should expose cutoff-valid known qualifying order before sampling the grid"
+    british_race_morning_features = pipeline.feature_provider.load_event_features(
+        season,
+        british_event,
+        parse_dt("2026-07-05T00:00:00+00:00"),
+    )
+    british_session_features = [
+        feature for feature in british_race_morning_features
+        if feature.source.startswith("fastf1_session_laps")
+    ]
+    british_qualifying_features = [
+        feature for feature in british_race_morning_features
+        if feature.source.startswith("fastf1_qualifying_result")
+        and feature.target_type == "driver"
+    ]
+    british_with_qualifying_order = pipeline._event_with_fastf1_qualifying_order(
+        season,
+        british_event,
+        parse_dt("2026-07-05T00:00:00+00:00"),
+    )
+    assert (
+        len(british_session_features) >= 70
+        and len(british_qualifying_features) == 22
+        and british_with_qualifying_order.feature_refs["fastf1_qualifying_order"]["driver_positions"][0]["driver_id"]
+        == "antonelli"
+    ), "British race-morning prediction should include cutoff-valid FP1/Q lap features and known qualifying order"
     british_track_vector = track_feature_vector(british_event)
     assert (
         british_track_vector.source_status == "source_backed_derived_proxy"
@@ -1263,6 +1314,7 @@ def main() -> None:
         for adjustment in generated_report.feature_adjustments
         if "miami" in adjustment.source
         and not adjustment.source.startswith("fastf1_qualifying_result")
+        and not adjustment.source.startswith("fastf1_session_laps")
     ]
     assert not miami_race_result_sources, "Miami prediction features must not include Miami race results"
     assert all(

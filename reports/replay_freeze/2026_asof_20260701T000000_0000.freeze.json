@@ -1,7 +1,7 @@
 {
   "year": 2026,
   "as_of": "2026-07-01T00:00:00+00:00",
-  "generated_at": "2026-07-01T16:30:17+00:00",
+  "generated_at": "2026-07-05T12:35:12+00:00",
   "status": "diagnostic_freeze_inputs_required",
   "python": {
     "version": "3.12.4",
@@ -38,7 +38,7 @@
         "formal_backtest_ready": false,
         "due_events": 8,
         "replayed_events": 8,
-        "top_pick_hit_rate": 0.375,
+        "top_pick_hit_rate": 0.5,
         "root_cause_count": 5
       }
     },
@@ -49,10 +49,10 @@
         "status": "inputs_required",
         "formal_backtest_ready": false,
         "blocking_action_count": 9,
-        "warning_action_count": 7,
+        "warning_action_count": 6,
         "workstream_count": 4,
         "action_category_counts": {
-          "model_calibration_review": 5,
+          "model_calibration_review": 4,
           "after_cutoff_market_replacement": 2,
           "market_snapshot_required": 6,
           "source_archive_required": 3
@@ -67,8 +67,8 @@
         "formal_probability_claim_ready": false,
         "scored_events": 8,
         "market_scored_events": 1,
-        "top_pick_hit_rate": 0.375,
-        "mean_winner_brier_score": 0.7337
+        "top_pick_hit_rate": 0.5,
+        "mean_winner_brier_score": 0.6807
       }
     },
     "model_error_review": {
@@ -78,14 +78,15 @@
         "status": "diagnostic_only",
         "formal_model_claim_ready": false,
         "reviewed_events": 8,
-        "missed_events": 5,
+        "missed_events": 4,
         "issue_counts": {
-          "actual_winner_underweighted": 4,
+          "actual_winner_underweighted": 3,
           "race_pace_prior_favored_top_pick": 3,
-          "grid_prior_favored_top_pick": 3,
-          "top_pick_matched_actual": 3,
-          "no_market_prior_to_compare": 4,
-          "near_miss_probability_cluster": 1
+          "top_pick_matched_actual": 4,
+          "near_miss_probability_cluster": 1,
+          "no_market_prior_to_compare": 3,
+          "grid_prior_favored_top_pick": 1,
+          "structured_features_favored_top_pick": 1
         }
       }
     },
@@ -135,9 +136,9 @@
         "scripts/**/*.py",
         "pyproject.toml"
       ],
-      "file_count": 59,
-      "total_bytes": 1126056,
-      "content_sha256": "14460f63651b693236dca2a8a854ac78d9477aa33f036592a60acacc00ea4c3b",
+      "file_count": 69,
+      "total_bytes": 1596436,
+      "content_sha256": "a4f62ebb21fa3f38d19f41ab503176224c93fdacb5793c314a62a9ed7c54e1c7",
       "errors": [],
       "files": [
         {
@@ -148,9 +149,9 @@
         },
         {
           "path": "scripts/smoke_test.py",
-          "size_bytes": 133396,
-          "sha256": "00df427ac24ae171e05075b13c50eef9f9aeb0ec5e8bbd154aeb9ee924a1c7dc",
-          "modified_at": "2026-07-01T16:24:46.259286+00:00"
+          "size_bytes": 212711,
+          "sha256": "c74e69aef3ae963e4962766d47e94f69c7678ec3ea20fe11bd1493d4836ba5d1",
+          "modified_at": "2026-07-05T11:46:59.834667+00:00"
         },
         {
           "path": "src/f1predict/__init__.py",
@@ -159,10 +160,16 @@
           "modified_at": "2026-06-30T07:05:38.970025+00:00"
         },
         {
+          "path": "src/f1predict/api_v2.py",
+          "size_bytes": 17498,
+          "sha256": "912e20d5155eee46b9f4500d73605d717bfe371665a24d37bdeb8511dd2243ff",
+          "modified_at": "2026-07-05T10:22:43.876828+00:00"
+        },
+        {
           "path": "src/f1predict/backtest.py",
-          "size_bytes": 3418,
-          "sha256": "bc492f9b72768d5ba6e299a2263439417467812e8d1fecaf09327ceaf8257b76",
-          "modified_at": "2026-07-01T13:16:16.995044+00:00"
+          "size_bytes": 6860,
+          "sha256": "3d511c27567827d8fd45bfe2eda72a5ecb35ae09bb7078855970794c850c4705",
+          "modified_at": "2026-07-05T09:52:49.030816+00:00"
         },
         {
           "path": "src/f1predict/calibration.py",
@@ -172,9 +179,9 @@
         },
         {
           "path": "src/f1predict/chronological_replay.py",
-          "size_bytes": 20273,
-          "sha256": "130dfd3840511d90928e9ce48c04257ac4b90e9899708423199a2340074b1cf8",
-          "modified_at": "2026-07-01T07:03:08.442358+00:00"
+          "size_bytes": 21464,
+          "sha256": "c90875b7a272f42cfdd8744d1afd40c0e75f693d4bafe20b3eb21a4449880d7e",
+          "modified_at": "2026-07-05T09:54:44.478405+00:00"
         },
         {
           "path": "src/f1predict/circuit_profiles.py",
@@ -184,9 +191,9 @@
         },
         {
           "path": "src/f1predict/cli.py",
-          "size_bytes": 66371,
-          "sha256": "a63b21432b396e4e39d2533a85152aaa27a8ad488439864e454f34bc6f3c4e37",
-          "modified_at": "2026-07-01T16:18:14.151057+00:00"
+          "size_bytes": 74823,
+          "sha256": "f18f42d93efd753a510a36463bd4f28590bcad31baef1b34b72b65a3ab08eda8",
+          "modified_at": "2026-07-05T11:34:45.474711+00:00"
         },
         {
           "path": "src/f1predict/data_sources/__init__.py",
@@ -202,9 +209,9 @@
         },
         {
           "path": "src/f1predict/data_sources/fastf1_client.py",
-          "size_bytes": 4770,
-          "sha256": "de75c9aa3f170fdf4130348d8e82c81e6fc09331064743e58e7966217f4cf7c4",
-          "modified_at": "2026-06-30T07:54:36.823344+00:00"
+          "size_bytes": 6328,
+          "sha256": "8c654d34559d752842a12cfa27bd4aef291850eaeba7f866ff87bf8c025a00ac",
+          "modified_at": "2026-07-05T11:34:07.622403+00:00"
         },
         {
           "path": "src/f1predict/data_sources/http_clients.py",
@@ -220,9 +227,9 @@
         },
         {
           "path": "src/f1predict/domain.py",
-          "size_bytes": 7480,
-          "sha256": "d20cf8d39016641646c104b11353b5753469aae76d438fae8f336355350c8482",
-          "modified_at": "2026-07-01T14:00:32.328204+00:00"
+          "size_bytes": 9211,
+          "sha256": "b5c1821afa94eba51c511675c1afdcdbe6ff21aa3d88f56953ad6afdbb7a52d2",
+          "modified_at": "2026-07-05T09:43:59.106004+00:00"
         },
         {
           "path": "src/f1predict/event_inputs.py",
@@ -244,27 +251,27 @@
         },
         {
           "path": "src/f1predict/features/openf1_summary.py",
-          "size_bytes": 6305,
-          "sha256": "b845c9a5e6954605e3409b03ee0953f1800fed2b93b1801967c7c911c065afab",
-          "modified_at": "2026-06-30T07:21:55.211346+00:00"
+          "size_bytes": 6518,
+          "sha256": "bc59d607043a6c537aa93f8a49cb0018f0b9e5ef2d3bdd2c2d9d685339d4863f",
+          "modified_at": "2026-07-05T11:38:28.441876+00:00"
         },
         {
           "path": "src/f1predict/features/provider.py",
-          "size_bytes": 16694,
-          "sha256": "08a1e8a70501f69213ecdee87f12f25e38e478ec7e9b591472e4c576ed641ea3",
-          "modified_at": "2026-06-30T09:08:36.155795+00:00"
+          "size_bytes": 85300,
+          "sha256": "65e8ab85d7e671d15a457d3d271998c256ee0a5f0bc30119ac3e41c3b484d9f5",
+          "modified_at": "2026-07-05T11:41:52.700623+00:00"
         },
         {
           "path": "src/f1predict/improvement_plan.py",
-          "size_bytes": 27774,
-          "sha256": "1c36ff50b6f2902fdb01ab5b79c25e7358fb93a70514049ba974620208a6e370",
-          "modified_at": "2026-07-01T16:23:49.033904+00:00"
+          "size_bytes": 28119,
+          "sha256": "2b81b49dc205129682e8ba1e011a427c4ae1b658e1c5722c246b449d9fd73500",
+          "modified_at": "2026-07-01T16:43:27.856302+00:00"
         },
         {
           "path": "src/f1predict/ingestion.py",
-          "size_bytes": 24954,
-          "sha256": "474f2b1a31c83c25078c6e80a603abad4d7dfd75a8853b1219059b097efedec3",
-          "modified_at": "2026-07-01T04:03:10.492056+00:00"
+          "size_bytes": 26134,
+          "sha256": "6a09f4dc89c6eb29fb5b37d5bec8fb3e80f7e262d3e1d6b6dbdb4bcfc33263e7",
+          "modified_at": "2026-07-05T11:34:21.284875+00:00"
         },
         {
           "path": "src/f1predict/intelligence/__init__.py",
@@ -280,15 +287,27 @@
         },
         {
           "path": "src/f1predict/intelligence/evidence_quality.py",
-          "size_bytes": 17476,
-          "sha256": "7a6f7e17db7ee882930c448af8be56ba7b0cbab30c777d9e5ccf79b432ef4d16",
-          "modified_at": "2026-07-01T14:01:23.302661+00:00"
+          "size_bytes": 24245,
+          "sha256": "2e0b95b5fdea073ec3505936c262470c7ce6808d5ed42aab4e92aaa3fd0ecb18",
+          "modified_at": "2026-07-03T09:16:00.793541+00:00"
         },
         {
           "path": "src/f1predict/intelligence/evidence_workflow.py",
-          "size_bytes": 30987,
-          "sha256": "193f397bd18bea34d4759c09462f86b53ae0b2c6a5aa21c028e1807cee86b530",
-          "modified_at": "2026-07-01T13:16:02.122218+00:00"
+          "size_bytes": 34250,
+          "sha256": "59873f31188286ddb9b05c55f59e91ac4f2e464a55308e2db3c5ffe83924e3f9",
+          "modified_at": "2026-07-05T09:45:23.352706+00:00"
+        },
+        {
+          "path": "src/f1predict/intelligence/factor_contract.py",
+          "size_bytes": 13355,
+          "sha256": "bc4f5a90a80f248b3775b68c5dedc7bdc939867f4d13a4625c90ea61b0863769",
+          "modified_at": "2026-07-05T09:43:59.110343+00:00"
+        },
+        {
+          "path": "src/f1predict/intelligence/factor_trace.py",
+          "size_bytes": 13071,
+          "sha256": "70bc91936e541c4ef20b99d975ac34054c208ac4869a6dc81df5a71f6119ac5c",
+          "modified_at": "2026-07-05T09:43:59.109009+00:00"
         },
         {
           "path": "src/f1predict/intelligence/research_brief.py",
@@ -298,15 +317,21 @@
         },
         {
           "path": "src/f1predict/intelligence/research_packet.py",
-          "size_bytes": 9340,
-          "sha256": "d720ce5346a694d5cd5b6e1f0e8b31b4cea57de319e73386110ffea9d8793f9b",
-          "modified_at": "2026-06-30T11:05:42.706610+00:00"
+          "size_bytes": 57004,
+          "sha256": "fd026390601827a619bc0a0cdcf8bbf3dca57a6f822f280e805b1b64fe30aa60",
+          "modified_at": "2026-07-03T13:46:24.680994+00:00"
         },
         {
           "path": "src/f1predict/intelligence/research_plan.py",
-          "size_bytes": 25059,
-          "sha256": "9acb93b785bf20ebfe5bd8109fd5f9ad418b3a6c9b57a970535c0fc5e7920c89",
-          "modified_at": "2026-07-01T05:39:40.075331+00:00"
+          "size_bytes": 28270,
+          "sha256": "299693a4c0c9d3a1ed6722410b497b09028d2af6c8873ac32dda98a17aab1e17",
+          "modified_at": "2026-07-05T09:47:51.466880+00:00"
+        },
+        {
+          "path": "src/f1predict/intelligence/source_candidates.py",
+          "size_bytes": 25193,
+          "sha256": "e8f24b02a7ba62320b15d9bab30a1eeb402d31684a10ee83b68489bf39c33c5c",
+          "modified_at": "2026-07-03T13:02:37.091022+00:00"
         },
         {
           "path": "src/f1predict/intelligence/source_registry.py",
@@ -327,10 +352,16 @@
           "modified_at": "2026-07-01T09:30:02.298948+00:00"
         },
         {
+          "path": "src/f1predict/market_outcomes.py",
+          "size_bytes": 842,
+          "sha256": "67163625495dd2308e1296843a84a2dc225c2a82ed10e15ae34bb29cf9d46bc6",
+          "modified_at": "2026-07-01T16:41:08.775290+00:00"
+        },
+        {
           "path": "src/f1predict/market_readiness.py",
-          "size_bytes": 50619,
-          "sha256": "4a530f9151cb40e49693b2c521ac541870a8ddb9710b32a936933295f84107d3",
-          "modified_at": "2026-07-01T16:24:04.233264+00:00"
+          "size_bytes": 52396,
+          "sha256": "5fc13dd93d45ca47bca6ae5b07998e43d301d00fc7f936e06312b4b383038c2b",
+          "modified_at": "2026-07-01T16:44:41.348360+00:00"
         },
         {
           "path": "src/f1predict/market_sources/__init__.py",
@@ -340,21 +371,21 @@
         },
         {
           "path": "src/f1predict/market_sources/polymarket.py",
-          "size_bytes": 66465,
-          "sha256": "46b492362971f5205c6314884d0efe8825c136343a0af56a0909abdff3109a23",
-          "modified_at": "2026-07-01T12:28:51.577723+00:00"
+          "size_bytes": 74340,
+          "sha256": "0dca0bcc0728f08384117ed8d203628e10ba680650c396b33784818702be8c6b",
+          "modified_at": "2026-07-01T16:42:59.690650+00:00"
         },
         {
           "path": "src/f1predict/market_store.py",
-          "size_bytes": 8610,
-          "sha256": "215a4ac1998d6ca6401541375c388b50006cf40dcc97d6d5d750c674c9a7a46c",
-          "modified_at": "2026-07-01T12:30:47.686984+00:00"
+          "size_bytes": 8946,
+          "sha256": "3197e5b8b1f160821258bd5ce990745bf6c43504620aac4f119018fc9a60c23c",
+          "modified_at": "2026-07-01T16:48:50.456027+00:00"
         },
         {
           "path": "src/f1predict/model_error_review.py",
-          "size_bytes": 21790,
-          "sha256": "4681ec15436e413ba1c4e6518b3c3a982cc570e39cae8e7c3b7b6791963ee857",
-          "modified_at": "2026-07-01T06:59:40.154149+00:00"
+          "size_bytes": 22070,
+          "sha256": "506ab6e749f23dc9c64a8a208dcee88aab82e3481270c01596c77454ed11f38f",
+          "modified_at": "2026-07-03T09:14:15.125685+00:00"
         },
         {
           "path": "src/f1predict/models/__init__.py",
@@ -364,9 +395,9 @@
         },
         {
           "path": "src/f1predict/models/pace.py",
-          "size_bytes": 4428,
-          "sha256": "c6ed1189f91deefd3c2c1ddf55a198dfe0a780a1a7b66deb4d5803f4c9804e49",
-          "modified_at": "2026-07-01T06:57:21.872026+00:00"
+          "size_bytes": 9276,
+          "sha256": "1b6280ba24b420ebad4dfb6cf31e1e0350df0fe68c86687d11a94801c0d1829e",
+          "modified_at": "2026-07-05T09:43:59.107510+00:00"
         },
         {
           "path": "src/f1predict/models/season.py",
@@ -376,15 +407,27 @@
         },
         {
           "path": "src/f1predict/models/simulator.py",
-          "size_bytes": 23397,
-          "sha256": "53a2203550c9c5979dd94c898e880c9150d2cda489ac65a155b7e2d80ec6d999",
-          "modified_at": "2026-07-01T08:55:45.932405+00:00"
+          "size_bytes": 27384,
+          "sha256": "c2e541d77ca575d3f62f0cd20b49d5e360869ea8c099531c27ddd8e70e820643",
+          "modified_at": "2026-07-05T10:49:43.014925+00:00"
+        },
+        {
+          "path": "src/f1predict/models/technical_factors.py",
+          "size_bytes": 20316,
+          "sha256": "0157a1ddc98ebbbde23e30403392e8cbd5416990a47cd7ec2eef410b17b961ff",
+          "modified_at": "2026-07-05T10:23:01.384132+00:00"
+        },
+        {
+          "path": "src/f1predict/mvp_completion_audit.py",
+          "size_bytes": 31354,
+          "sha256": "6c3fdac9238ea41b52e0b68c2cd7932274d8a10b7ca3192bac0e002ec9ced855",
+          "modified_at": "2026-07-03T14:58:48.833417+00:00"
         },
         {
           "path": "src/f1predict/mvp_gate.py",
-          "size_bytes": 27564,
-          "sha256": "7ae2a6c74f235e6bed9bad8e441f1ac95a366048388bfb83680cb586188d4b0b",
-          "modified_at": "2026-07-01T15:16:31.163542+00:00"
+          "size_bytes": 32835,
+          "sha256": "70a64fe84802482c0b8295f5da66f66b70ea4be41fed925aada1e3dc6c1c8bf7",
+          "modified_at": "2026-07-03T14:39:17.720235+00:00"
         },
         {
           "path": "src/f1predict/official_standings.py",
@@ -394,15 +437,15 @@
         },
         {
           "path": "src/f1predict/pipeline.py",
-          "size_bytes": 27250,
-          "sha256": "d36623023e1560b46278c8170d0a7a38431bc842313f1486794aa11fe20575ef",
-          "modified_at": "2026-07-01T14:01:45.149035+00:00"
+          "size_bytes": 36074,
+          "sha256": "df91078767768645d5ec6d4fd5f17d9da0cb16ae433e7ab175587ecb4daaeb2a",
+          "modified_at": "2026-07-05T10:50:47.362630+00:00"
         },
         {
           "path": "src/f1predict/prediction_packet.py",
-          "size_bytes": 16307,
-          "sha256": "9ffaa5216489b3046a91476717e2c5185844989e9387b44460766b7848226cf7",
-          "modified_at": "2026-07-01T14:01:34.870510+00:00"
+          "size_bytes": 25592,
+          "sha256": "201b93bb6ae6e1a39b8203df066b37999962c664fadffe5e980639350836b8f9",
+          "modified_at": "2026-07-05T10:22:29.587174+00:00"
         },
         {
           "path": "src/f1predict/race_profiles.py",
@@ -412,27 +455,27 @@
         },
         {
           "path": "src/f1predict/readiness.py",
-          "size_bytes": 27415,
-          "sha256": "e665077138a000cf1517358ce6764634fcb6ca4b5b01a0c8539197679d37bf69",
-          "modified_at": "2026-07-01T16:23:12.282648+00:00"
+          "size_bytes": 28084,
+          "sha256": "29ef385fa8ad431ac63dfb8d535c87a228739797a84c3d457a11cc5b9fc30be5",
+          "modified_at": "2026-07-03T09:44:25.950830+00:00"
         },
         {
           "path": "src/f1predict/readiness_intake.py",
-          "size_bytes": 35614,
-          "sha256": "90795386778cbaf5542dd40fed7c791beda26066e040181be8abf6a53060ddde",
-          "modified_at": "2026-07-01T16:24:09.006930+00:00"
+          "size_bytes": 36349,
+          "sha256": "7de4162fff8005248810332732d3779f3fbf66efc0532f8419d83a5a80cfbf14",
+          "modified_at": "2026-07-01T16:43:56.549156+00:00"
         },
         {
           "path": "src/f1predict/replay.py",
-          "size_bytes": 12743,
-          "sha256": "e4f3e06bba9825fbc0bd340503e0594b35449f7897f72da888a25c151ddb8781",
-          "modified_at": "2026-06-30T13:33:09.082359+00:00"
+          "size_bytes": 13539,
+          "sha256": "7e5e415fc495024ebecaefd87fab5354eba873c18b717346a7bd155ac39685ec",
+          "modified_at": "2026-07-05T09:53:19.581613+00:00"
         },
         {
           "path": "src/f1predict/replay_analysis.py",
-          "size_bytes": 45357,
-          "sha256": "15545fed920131533faf340ee34bb03e48db65706d04b8efe706b0bcbb7bee87",
-          "modified_at": "2026-07-01T13:17:07.536685+00:00"
+          "size_bytes": 47626,
+          "sha256": "56b731b62956f4870e8ef8e03e7bda0e75d179b02bfc0630169176841c0a659c",
+          "modified_at": "2026-07-05T11:19:12.000633+00:00"
         },
         {
           "path": "src/f1predict/replay_artifacts.py",
@@ -442,15 +485,21 @@
         },
         {
           "path": "src/f1predict/results.py",
-          "size_bytes": 7973,
-          "sha256": "8480bef2671dc0679d15a33b397301ded2f8177b1bef89f82f79071e2e1f4ab3",
-          "modified_at": "2026-06-30T13:26:08.482001+00:00"
+          "size_bytes": 8454,
+          "sha256": "18fc197c3f28a9634f3da68eff9fda18c894a6b640791b65b59041f5425bf2dd",
+          "modified_at": "2026-07-05T10:42:22.529617+00:00"
         },
         {
           "path": "src/f1predict/reviewed_market.py",
-          "size_bytes": 11808,
-          "sha256": "4772e7221476a08e460c5904a0cbde0f4aae245dd7e31c918b708168edb97c61",
-          "modified_at": "2026-07-01T16:17:19.223509+00:00"
+          "size_bytes": 12270,
+          "sha256": "3aec28c3d4a3a90c49674b516e13711ce57057b89c58ed9e6336526ddfcc2481",
+          "modified_at": "2026-07-01T16:42:02.081758+00:00"
+        },
+        {
+          "path": "src/f1predict/run_tracking.py",
+          "size_bytes": 33865,
+          "sha256": "02e36fd95a44ce087f786425ea65cb864ff77915e9922f51bd7b2764dafd3187",
+          "modified_at": "2026-07-05T09:26:25.620858+00:00"
         },
         {
           "path": "src/f1predict/seed_roster.py",
@@ -460,15 +509,21 @@
         },
         {
           "path": "src/f1predict/server.py",
-          "size_bytes": 25865,
-          "sha256": "191a449a4c6ff1feb5135c48e25dc8f6d51f70243a3e9fb1532497963de580ac",
-          "modified_at": "2026-07-01T14:59:47.798851+00:00"
+          "size_bytes": 34185,
+          "sha256": "863cf097df4597b8c0abcc240424fb58b1f2301f23b371cd66f6e759a2426e56",
+          "modified_at": "2026-07-05T08:36:07.179296+00:00"
+        },
+        {
+          "path": "src/f1predict/session_laps.py",
+          "size_bytes": 15361,
+          "sha256": "3b44d55a8091dd07a5936d60e5e4ab63b5b83ec7b4521f5e22dc17194bcb63b4",
+          "modified_at": "2026-07-05T11:39:39.002676+00:00"
         },
         {
           "path": "src/f1predict/simulator_calibration.py",
-          "size_bytes": 16497,
-          "sha256": "049dae35767444456e9704dbee5e628668e370af601ae7824d5e0ded2f959cd8",
-          "modified_at": "2026-07-01T04:48:26.096318+00:00"
+          "size_bytes": 16565,
+          "sha256": "5fe33c2e26810a61882d5308706f92eb2f9aadba3ccc4963ed47aa9941370c54",
+          "modified_at": "2026-07-05T09:21:56.684007+00:00"
         },
         {
           "path": "src/f1predict/source_replacements.py",
@@ -489,10 +544,16 @@
           "modified_at": "2026-07-01T14:48:49.314641+00:00"
         },
         {
+          "path": "src/f1predict/track_features.py",
+          "size_bytes": 15978,
+          "sha256": "f4c7b6e1cdb821ca2c57f64a6c989698bdfa650180d1135eb338a0289ff9a5f1",
+          "modified_at": "2026-07-05T10:24:10.136045+00:00"
+        },
+        {
           "path": "src/f1predict/weather_profiles.py",
-          "size_bytes": 22275,
-          "sha256": "85a67581693b7dc7d7084dde903de4b49fd1757aa93fcbdb071407a606e019dc",
-          "modified_at": "2026-07-01T04:02:18.356487+00:00"
+          "size_bytes": 22599,
+          "sha256": "04bf019bcb6e946c131bc9e43999b398c9c8943475b1e03ca415fdbdd9a2c39f",
+          "modified_at": "2026-07-03T12:25:21.527941+00:00"
         }
       ]
     },
@@ -503,15 +564,15 @@
         "web/**/*"
       ],
       "file_count": 27,
-      "total_bytes": 1927298,
-      "content_sha256": "792b1bbfbac0f019d1e4fc48a95327d25e46ecccbf93241fb90703f0852f6a69",
+      "total_bytes": 1957721,
+      "content_sha256": "504e1e2434bbe99bd901d9ad36355aba1b71ef21fcca59f054b61990d3b99d0a",
       "errors": [],
       "files": [
         {
           "path": "web/app.js",
-          "size_bytes": 100884,
-          "sha256": "dd9a73fe809c021e576950182af5ea3f206d254a2b13a80703aef57ac4b33553",
-          "modified_at": "2026-07-01T15:28:33.754249+00:00"
+          "size_bytes": 126629,
+          "sha256": "542e20a2ad05346077cf4b3155e33f3e539d4d8eff4e209c9bb15f67ea0e54e5",
+          "modified_at": "2026-07-03T14:05:20.500972+00:00"
         },
         {
           "path": "web/assets/tracks/abu_dhabi_gp.webp",
@@ -659,15 +720,15 @@
         },
         {
           "path": "web/index.html",
-          "size_bytes": 8491,
-          "sha256": "40f49e51b1c2bc977151c57f4d44cd6f2ac0c4bda85b9060c21ca09e84285523",
-          "modified_at": "2026-07-01T07:17:11.481484+00:00"
+          "size_bytes": 9989,
+          "sha256": "0533954642484d8c1396b7b8775c941c2a48fd80b12faa8dc8fe4cb4963e7948",
+          "modified_at": "2026-07-03T12:04:02.160654+00:00"
         },
         {
           "path": "web/styles.css",
-          "size_bytes": 21109,
-          "sha256": "d2620b26eef3e4112a07f4214198648a64b62db4f85b9b7c651d7d627ed01e52",
-          "modified_at": "2026-07-01T13:47:59.542343+00:00"
+          "size_bytes": 24289,
+          "sha256": "f6ffc4cc5dd3d6bf63d9d075f351c012d23d81a44fc7f5102ff22df277b2032e",
+          "modified_at": "2026-07-03T12:04:19.824221+00:00"
         }
       ]
     },
@@ -677,11 +738,65 @@
       "patterns": [
         "data/**/*"
       ],
-      "file_count": 374,
-      "total_bytes": 34840182,
-      "content_sha256": "29450e0583dc556222d0fd46b90716cf159685b6c2462e6b4b89c4386f529819",
+      "file_count": 521,
+      "total_bytes": 64867564,
+      "content_sha256": "e2d9517f92535b37602539c224900d38f2a7c1cfa53a46408a74f295ffa0fc37",
       "errors": [],
       "files": [
+        {
+          "path": "data/cache/fastf1/2026/2026-03-08_Australian_Grand_Prix/2026-03-06_Practice_2/_extended_timing_data.ff1pkl",
+          "size_bytes": 92064,
+          "sha256": "22dddd9f7e13eab6f56a1530861f1f998d038f2f612e4c13a18675e711f6a271",
+          "modified_at": "2026-07-05T11:42:38.096785+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-08_Australian_Grand_Prix/2026-03-06_Practice_2/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "9dd67c851f0b028d45c06f4025da01daef9924a1caa8f0a7a1fc3017ecb1ddcb",
+          "modified_at": "2026-07-05T11:42:31.105813+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-08_Australian_Grand_Prix/2026-03-06_Practice_2/session_info.ff1pkl",
+          "size_bytes": 583,
+          "sha256": "0b0de4af7a73ee1090c8304d0999b5c29fb665fd51af315f40f4279b0fd05f2e",
+          "modified_at": "2026-07-05T11:42:29.876671+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-08_Australian_Grand_Prix/2026-03-06_Practice_2/session_status_data.ff1pkl",
+          "size_bytes": 216,
+          "sha256": "20ae753391413ce1ece164985fb7d44f372237a8b39ca893e36bcf6ba69fd4fd",
+          "modified_at": "2026-07-05T11:42:33.711565+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-08_Australian_Grand_Prix/2026-03-06_Practice_2/timing_app_data.ff1pkl",
+          "size_bytes": 56645,
+          "sha256": "0e7760df4495abec8ba2353ca4756f0e26dc4f0ce8211c5876c183d1c0f981c2",
+          "modified_at": "2026-07-05T11:42:39.616071+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-08_Australian_Grand_Prix/2026-03-06_Practice_2/track_status_data.ff1pkl",
+          "size_bytes": 334,
+          "sha256": "04b1c096fdd74908533cc64f441624d18a8d576cee828a739eee8923c94c0e4d",
+          "modified_at": "2026-07-05T11:42:34.938242+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-08_Australian_Grand_Prix/2026-03-06_Practice_2/weather_data.ff1pkl",
+          "size_bytes": 5236,
+          "sha256": "1ce392fcf7737945ac9b76b2e685ab388a7f7bc59d4b05b318d0584f5e42fa6d",
+          "modified_at": "2026-07-05T11:42:41.753261+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-08_Australian_Grand_Prix/2026-03-07_Qualifying/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "4fbb3288d14f78a3bc3cd2962d3623ec82d4cd8d190651a3de7de44a15fff508",
+          "modified_at": "2026-07-05T10:41:03.418954+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-08_Australian_Grand_Prix/2026-03-07_Qualifying/session_info.ff1pkl",
+          "size_bytes": 581,
+          "sha256": "5f96173098db9bee89cfd7bca645b691899cabdd8dc066520dc01417c94f536a",
+          "modified_at": "2026-07-05T10:41:01.969253+00:00"
+        },
         {
           "path": "data/cache/fastf1/2026/2026-03-08_Australian_Grand_Prix/2026-03-08_Race/driver_info.ff1pkl",
           "size_bytes": 6196,
@@ -693,6 +808,60 @@
           "size_bytes": 563,
           "sha256": "6a609ee79ab20ee69825a0dcf58ab114538d9a574d3ca5cf7201bbbdb2525647",
           "modified_at": "2026-06-30T07:53:03.809626+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-15_Chinese_Grand_Prix/2026-03-13_Practice_1/_extended_timing_data.ff1pkl",
+          "size_bytes": 99326,
+          "sha256": "5fb2d407e173e36f0aa20ac76d5797df232497baea1a63c175f92027e925e2a5",
+          "modified_at": "2026-07-05T11:42:49.988043+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-15_Chinese_Grand_Prix/2026-03-13_Practice_1/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "60569ff24522c89bfacbb763be34db0347d81d4a86ec7ccc396d72917f784a78",
+          "modified_at": "2026-07-05T11:42:44.279271+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-15_Chinese_Grand_Prix/2026-03-13_Practice_1/session_info.ff1pkl",
+          "size_bytes": 563,
+          "sha256": "84461192ff25a1a0d46ba789d032512ae341f4f7a567954a6394733367fa2f29",
+          "modified_at": "2026-07-05T11:42:43.068126+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-15_Chinese_Grand_Prix/2026-03-13_Practice_1/session_status_data.ff1pkl",
+          "size_bytes": 214,
+          "sha256": "0b980aafa56448827dc21f311d9cfc762d32fbdb091924f99d248dd7c01ac306",
+          "modified_at": "2026-07-05T11:42:46.649393+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-15_Chinese_Grand_Prix/2026-03-13_Practice_1/timing_app_data.ff1pkl",
+          "size_bytes": 57035,
+          "sha256": "9544bb3c1f70de40c44b4a9c45ecfbf0a3d06c13af06ec1337aac4b22e7c5be7",
+          "modified_at": "2026-07-05T11:42:51.241219+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-15_Chinese_Grand_Prix/2026-03-13_Practice_1/track_status_data.ff1pkl",
+          "size_bytes": 454,
+          "sha256": "cd0f6aded819ec78177a7a30de01576bf790cd9ddd10da6aae5eb6af36fba28b",
+          "modified_at": "2026-07-05T11:42:47.837027+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-15_Chinese_Grand_Prix/2026-03-13_Practice_1/weather_data.ff1pkl",
+          "size_bytes": 5540,
+          "sha256": "2710dde59427a02b774066a3081405c46538449f963ae1efe853cda47edbe06f",
+          "modified_at": "2026-07-05T11:42:53.327817+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-15_Chinese_Grand_Prix/2026-03-14_Qualifying/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "a956608bdfc499f3b4ae528dcf57b2b9540497bc2fe3b209780bc05a0ed62a8e",
+          "modified_at": "2026-07-05T10:41:19.448771+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-15_Chinese_Grand_Prix/2026-03-14_Qualifying/session_info.ff1pkl",
+          "size_bytes": 561,
+          "sha256": "67a2249b293a89dbf8a330d904d9fb79f7dae8013f36ffec0584d7e9d15fa42c",
+          "modified_at": "2026-07-05T10:41:17.988616+00:00"
         },
         {
           "path": "data/cache/fastf1/2026/2026-03-15_Chinese_Grand_Prix/2026-03-15_Race/driver_info.ff1pkl",
@@ -707,6 +876,60 @@
           "modified_at": "2026-06-30T07:57:32.941717+00:00"
         },
         {
+          "path": "data/cache/fastf1/2026/2026-03-29_Japanese_Grand_Prix/2026-03-27_Practice_2/_extended_timing_data.ff1pkl",
+          "size_bytes": 93341,
+          "sha256": "74c8a7e189cc0c04edc2b1f3c42bb4aac0ffebbcd46d9f290264419ac1726b7e",
+          "modified_at": "2026-07-05T11:43:01.516865+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-29_Japanese_Grand_Prix/2026-03-27_Practice_2/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "0dad02723e8682c6d3c55dd17834fa2e7518b3a015e1f6a3bf1ca11910fc74da",
+          "modified_at": "2026-07-05T11:42:55.823124+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-29_Japanese_Grand_Prix/2026-03-27_Practice_2/session_info.ff1pkl",
+          "size_bytes": 560,
+          "sha256": "cc69858c03147f39a9afd3ea8c295aff6c9c88d142426dc20501b2c5c894ac6f",
+          "modified_at": "2026-07-05T11:42:54.651078+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-29_Japanese_Grand_Prix/2026-03-27_Practice_2/session_status_data.ff1pkl",
+          "size_bytes": 216,
+          "sha256": "1753e9993cd07aeaf8fa90332fc34220181a8fb548487f0239d7fa1af214c441",
+          "modified_at": "2026-07-05T11:42:58.115099+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-29_Japanese_Grand_Prix/2026-03-27_Practice_2/timing_app_data.ff1pkl",
+          "size_bytes": 58032,
+          "sha256": "bd3e50768c4015218364c4e6a9117de8a98769e5631d8e65068cc4ecdfcf1e54",
+          "modified_at": "2026-07-05T11:43:02.759485+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-29_Japanese_Grand_Prix/2026-03-27_Practice_2/track_status_data.ff1pkl",
+          "size_bytes": 361,
+          "sha256": "87a91be8a6040ea1545e0206ea8a0f3aace93974836514d14ba0bf002e0df2be",
+          "modified_at": "2026-07-05T11:42:59.314047+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-29_Japanese_Grand_Prix/2026-03-27_Practice_2/weather_data.ff1pkl",
+          "size_bytes": 5604,
+          "sha256": "a458af65e2be24929eac973987d8ed9d08d7fa2cf39df9bb6c6fb1607006eb1c",
+          "modified_at": "2026-07-05T11:43:05.064554+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-29_Japanese_Grand_Prix/2026-03-28_Qualifying/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "182664873ead1ea0f940ebff1efbc2ecfe208f7cea4b7eec48978fb1e93360f8",
+          "modified_at": "2026-07-05T10:41:23.221701+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-03-29_Japanese_Grand_Prix/2026-03-28_Qualifying/session_info.ff1pkl",
+          "size_bytes": 558,
+          "sha256": "44c1b6f1b913aad835272679f480bf00798da9d7a5ad27142d5f328f2cb90515",
+          "modified_at": "2026-07-05T10:41:21.782852+00:00"
+        },
+        {
           "path": "data/cache/fastf1/2026/2026-03-29_Japanese_Grand_Prix/2026-03-29_Race/driver_info.ff1pkl",
           "size_bytes": 6196,
           "sha256": "f0ea0fc57c7077d3f9a327459f42525d54912791ef65df0444d1c3ddbace2bd9",
@@ -717,6 +940,60 @@
           "size_bytes": 540,
           "sha256": "3f1ed8bf13fde40e0453f87176a677202d6a7547c522a8ba7dfda4fd961e4f51",
           "modified_at": "2026-06-30T07:57:36.669332+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-03_Miami_Grand_Prix/2026-05-01_Practice_1/_extended_timing_data.ff1pkl",
+          "size_bytes": 122381,
+          "sha256": "05fab84ac36c07cb0300e9d7e6307009cd7f682821a7adcabe0fcd31c7054936",
+          "modified_at": "2026-07-05T11:43:13.770531+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-03_Miami_Grand_Prix/2026-05-01_Practice_1/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "3f8bce0d8102df9a130bd1ba6418623ac9470609944db0cf8fe8cfc72daf3c62",
+          "modified_at": "2026-07-05T11:43:07.526903+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-03_Miami_Grand_Prix/2026-05-01_Practice_1/session_info.ff1pkl",
+          "size_bytes": 574,
+          "sha256": "d9280e5e1f477649996ff88bf8ab8cda5a9890dc4183cf585f498b3257045020",
+          "modified_at": "2026-07-05T11:43:06.341209+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-03_Miami_Grand_Prix/2026-05-01_Practice_1/session_status_data.ff1pkl",
+          "size_bytes": 187,
+          "sha256": "019e9f182e7ddbc38d92079513b905f3b7a289cd3e0e3c1fb8d25f4a59a8692e",
+          "modified_at": "2026-07-05T11:43:10.083154+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-03_Miami_Grand_Prix/2026-05-01_Practice_1/timing_app_data.ff1pkl",
+          "size_bytes": 80100,
+          "sha256": "a489f266995567ebe7a57edda3ec825ec2090130390aeedc9da75c0ec6967650",
+          "modified_at": "2026-07-05T11:43:15.026032+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-03_Miami_Grand_Prix/2026-05-01_Practice_1/track_status_data.ff1pkl",
+          "size_bytes": 241,
+          "sha256": "f4451ca686adddb8088f493febcf3039b8c6e9f549d890f305fc31d6f4c40c8d",
+          "modified_at": "2026-07-05T11:43:11.338011+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-03_Miami_Grand_Prix/2026-05-01_Practice_1/weather_data.ff1pkl",
+          "size_bytes": 6674,
+          "sha256": "01bf89e1f1af48221d76e6e198c059cd01c17eb79cfbd244d029051e404fcea0",
+          "modified_at": "2026-07-05T11:43:17.286384+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-03_Miami_Grand_Prix/2026-05-02_Qualifying/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "440fc5d848574bf758d40ea525a542abdc25b88b115c204a5ebbe0b11b2eb1d3",
+          "modified_at": "2026-07-05T10:41:26.051357+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-03_Miami_Grand_Prix/2026-05-02_Qualifying/session_info.ff1pkl",
+          "size_bytes": 572,
+          "sha256": "b9058cf9f4204bfa1047dd4b0f599df95b36773bd1e6dc962b8df026aecc0b9b",
+          "modified_at": "2026-07-05T10:41:24.837971+00:00"
         },
         {
           "path": "data/cache/fastf1/2026/2026-05-03_Miami_Grand_Prix/2026-05-03_Race/driver_info.ff1pkl",
@@ -731,6 +1008,60 @@
           "modified_at": "2026-06-30T07:57:39.815665+00:00"
         },
         {
+          "path": "data/cache/fastf1/2026/2026-05-24_Canadian_Grand_Prix/2026-05-22_Practice_1/_extended_timing_data.ff1pkl",
+          "size_bytes": 111720,
+          "sha256": "222be3a31a29ca55f0f69dcab9a8fd8c6eab9b8217605245560d68aa8c8a7fac",
+          "modified_at": "2026-07-05T11:44:03.836418+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-24_Canadian_Grand_Prix/2026-05-22_Practice_1/driver_info.ff1pkl",
+          "size_bytes": 1399,
+          "sha256": "5f742349bf8a6b5ba49a98cf2e7fa17cd463f7c8297c5edde06ff4dfe151853b",
+          "modified_at": "2026-07-05T11:43:58.322989+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-24_Canadian_Grand_Prix/2026-05-22_Practice_1/session_info.ff1pkl",
+          "size_bytes": 572,
+          "sha256": "702f3c9d70744469080a1c42e5aff4f6a7c1979667bcdaa3c4746c533a0bb824",
+          "modified_at": "2026-07-05T11:43:57.091772+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-24_Canadian_Grand_Prix/2026-05-22_Practice_1/session_status_data.ff1pkl",
+          "size_bytes": 449,
+          "sha256": "a4ef602706d15838a908d90aef4f60d5581d5e5e3692ce675eb13f788cd7ea00",
+          "modified_at": "2026-07-05T11:44:00.519324+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-24_Canadian_Grand_Prix/2026-05-22_Practice_1/timing_app_data.ff1pkl",
+          "size_bytes": 66828,
+          "sha256": "a3270e6618ba28e82c016b67e747b09e78493fd60f7a253dfdea29bb885cc4a1",
+          "modified_at": "2026-07-05T11:44:05.111069+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-24_Canadian_Grand_Prix/2026-05-22_Practice_1/track_status_data.ff1pkl",
+          "size_bytes": 766,
+          "sha256": "78ef6fa04e8a427d6c551537e0eed818569374cea6760547b12f5082508f4bed",
+          "modified_at": "2026-07-05T11:44:01.675141+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-24_Canadian_Grand_Prix/2026-05-22_Practice_1/weather_data.ff1pkl",
+          "size_bytes": 6684,
+          "sha256": "0027bfe3c11d72080c7e72c1781da5ca39d25c5c2167bd17629dbc142c577714",
+          "modified_at": "2026-07-05T11:44:07.262556+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-24_Canadian_Grand_Prix/2026-05-23_Qualifying/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "36d71b8c1b29235ea089ef54d2438c080b5f49dfef34b742e165e7cd5b697c0d",
+          "modified_at": "2026-07-05T10:41:28.951710+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-05-24_Canadian_Grand_Prix/2026-05-23_Qualifying/session_info.ff1pkl",
+          "size_bytes": 570,
+          "sha256": "28f4a5421d4ce5396514a1134f0f6e973aa2e733a5c22b78bac37f736934b2b7",
+          "modified_at": "2026-07-05T10:41:27.712704+00:00"
+        },
+        {
           "path": "data/cache/fastf1/2026/2026-05-24_Canadian_Grand_Prix/2026-05-24_Race/driver_info.ff1pkl",
           "size_bytes": 6196,
           "sha256": "2ec14db00a589ca7f61d6cd6b97d400df37e6d4cf76a6e9007e8701c8941f34d",
@@ -741,6 +1072,60 @@
           "size_bytes": 552,
           "sha256": "4ebe80c67b50584e412a78806d27e85c0ad5c2e12de48f0b1da637b314f948eb",
           "modified_at": "2026-06-30T07:57:42.915832+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-07_Monaco_Grand_Prix/2026-06-05_Practice_2/_extended_timing_data.ff1pkl",
+          "size_bytes": 122723,
+          "sha256": "08e5be17781fc59e51e45c017d5dbd93896564463ec76cfbb30fe1dd8588b427",
+          "modified_at": "2026-07-05T11:43:25.638998+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-07_Monaco_Grand_Prix/2026-06-05_Practice_2/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "e98cb3553ac7de755580e34070af1c8c9cc605538acb7ed6d1904c417ab39846",
+          "modified_at": "2026-07-05T11:43:19.883543+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-07_Monaco_Grand_Prix/2026-06-05_Practice_2/session_info.ff1pkl",
+          "size_bytes": 575,
+          "sha256": "24897720ab02394156900ff5047eb211886d192181f492fd62b36cfd237195ea",
+          "modified_at": "2026-07-05T11:43:18.686184+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-07_Monaco_Grand_Prix/2026-06-05_Practice_2/session_status_data.ff1pkl",
+          "size_bytes": 291,
+          "sha256": "034e1c603481ae19601810853b09554e6e163921664e1e98e7d9231b3196267d",
+          "modified_at": "2026-07-05T11:43:22.151585+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-07_Monaco_Grand_Prix/2026-06-05_Practice_2/timing_app_data.ff1pkl",
+          "size_bytes": 72243,
+          "sha256": "a6a370df8833088600cd3a6ea4b54e1a9200671a27f9190248d3df9e6f4328a2",
+          "modified_at": "2026-07-05T11:43:27.085690+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-07_Monaco_Grand_Prix/2026-06-05_Practice_2/track_status_data.ff1pkl",
+          "size_bytes": 333,
+          "sha256": "6c67da51300bef4d8d1f6a07891385aaaadc75a658582f37abbb481e9debde77",
+          "modified_at": "2026-07-05T11:43:23.316664+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-07_Monaco_Grand_Prix/2026-06-05_Practice_2/weather_data.ff1pkl",
+          "size_bytes": 5309,
+          "sha256": "27e207d46639b4f45474f6a8986cb755bbf68b6c5b4d93878e3ca3752003ac2d",
+          "modified_at": "2026-07-05T11:43:29.349976+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-07_Monaco_Grand_Prix/2026-06-06_Qualifying/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "e50dfc1bfd83e6ca4daeb9e2e0b2746c0aa89c3911f1d60cc5394cc0911d3231",
+          "modified_at": "2026-07-05T10:41:31.849669+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-07_Monaco_Grand_Prix/2026-06-06_Qualifying/session_info.ff1pkl",
+          "size_bytes": 573,
+          "sha256": "038ef7cd63b5233e36e9d829f4ed3c0c6a6918d350712f764532c14cc147dd30",
+          "modified_at": "2026-07-05T10:41:30.595138+00:00"
         },
         {
           "path": "data/cache/fastf1/2026/2026-06-07_Monaco_Grand_Prix/2026-06-07_Race/driver_info.ff1pkl",
@@ -755,6 +1140,60 @@
           "modified_at": "2026-06-30T07:57:46.112067+00:00"
         },
         {
+          "path": "data/cache/fastf1/2026/2026-06-14_Barcelona_Grand_Prix/2026-06-12_Practice_2/_extended_timing_data.ff1pkl",
+          "size_bytes": 93282,
+          "sha256": "b194b1a8f828434712ab65136cfad05cc0374dfc9fc28d3b6abf26970a07ea2c",
+          "modified_at": "2026-07-05T11:43:37.506660+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-14_Barcelona_Grand_Prix/2026-06-12_Practice_2/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "feda484498d48db131a39f58aed73296af5cb29156003755707e159c32308154",
+          "modified_at": "2026-07-05T11:43:31.911954+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-14_Barcelona_Grand_Prix/2026-06-12_Practice_2/session_info.ff1pkl",
+          "size_bytes": 588,
+          "sha256": "f08d7e709b0ff3cab94a1a1c1c3a3c9c8da2f7cc0ce1fef00c598a016e9d3069",
+          "modified_at": "2026-07-05T11:43:30.708647+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-14_Barcelona_Grand_Prix/2026-06-12_Practice_2/session_status_data.ff1pkl",
+          "size_bytes": 208,
+          "sha256": "892043512bd5c61103839a8c941604f878332dd94d76d061e486df7b0fd216ae",
+          "modified_at": "2026-07-05T11:43:34.206464+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-14_Barcelona_Grand_Prix/2026-06-12_Practice_2/timing_app_data.ff1pkl",
+          "size_bytes": 62225,
+          "sha256": "2484b7955e29e882956700722861d8c026478149184fbacc66479da434fd5e76",
+          "modified_at": "2026-07-05T11:43:38.763178+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-14_Barcelona_Grand_Prix/2026-06-12_Practice_2/track_status_data.ff1pkl",
+          "size_bytes": 359,
+          "sha256": "e7ca535f90eb10df0afb082e1b5b322296774dd7f13f249696a1adf6eee793be",
+          "modified_at": "2026-07-05T11:43:35.381707+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-14_Barcelona_Grand_Prix/2026-06-12_Practice_2/weather_data.ff1pkl",
+          "size_bytes": 5598,
+          "sha256": "5ecba4e1584a721770cfcee3ce1d410c437a564d88d7117a7ca4da2911263c9a",
+          "modified_at": "2026-07-05T11:43:40.901576+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-14_Barcelona_Grand_Prix/2026-06-13_Qualifying/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "8e62a96a401a65d752f0525b810984f753eae1f0bd6898ae2213915d55b5579a",
+          "modified_at": "2026-07-05T10:41:34.582182+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-14_Barcelona_Grand_Prix/2026-06-13_Qualifying/session_info.ff1pkl",
+          "size_bytes": 586,
+          "sha256": "a244f583c36034df27ef64034c8d3e7b4d66d549d2f7cb44c45f4c9244d70119",
+          "modified_at": "2026-07-05T10:41:33.105562+00:00"
+        },
+        {
           "path": "data/cache/fastf1/2026/2026-06-14_Barcelona_Grand_Prix/2026-06-14_Race/driver_info.ff1pkl",
           "size_bytes": 6196,
           "sha256": "fe26b0816459510e1ce3aa52269b64439be5a5fad5a7a9a0fcad4917715fd4b2",
@@ -765,6 +1204,60 @@
           "size_bytes": 568,
           "sha256": "fb3301e1e86758e0bfbe409e08e6fb4694ecea72f13665c7bc5209b57b288f83",
           "modified_at": "2026-06-30T07:57:48.751073+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-28_Austrian_Grand_Prix/2026-06-26_Practice_2/_extended_timing_data.ff1pkl",
+          "size_bytes": 102067,
+          "sha256": "b0671def5a2d942eeff66af8cc0987ca4cd247f5b5c00bae9691712700b9d015",
+          "modified_at": "2026-07-05T11:31:52.773942+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-28_Austrian_Grand_Prix/2026-06-26_Practice_2/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "b363782b36d96a417fbc3aae693a6f869e5dc94bff77d09214dee868185d444a",
+          "modified_at": "2026-07-05T11:31:27.260993+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-28_Austrian_Grand_Prix/2026-06-26_Practice_2/session_info.ff1pkl",
+          "size_bytes": 568,
+          "sha256": "3d8d2efcbd870d46f9321a4ef87249b00daa8c7318b8cfd46c983f97e9c67124",
+          "modified_at": "2026-07-05T11:31:26.046981+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-28_Austrian_Grand_Prix/2026-06-26_Practice_2/session_status_data.ff1pkl",
+          "size_bytes": 216,
+          "sha256": "4b78a334aa0fe03b8bd5b68e03d52b9dbf4e9543f79b22359a82883ac78c4a8c",
+          "modified_at": "2026-07-05T11:31:49.217338+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-28_Austrian_Grand_Prix/2026-06-26_Practice_2/timing_app_data.ff1pkl",
+          "size_bytes": 67024,
+          "sha256": "b33abe15bb4b3d3c43e9e272bf77da52e99bd1b0dd6a63fc5ee0ab8295d0455d",
+          "modified_at": "2026-07-05T11:31:54.461881+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-28_Austrian_Grand_Prix/2026-06-26_Practice_2/track_status_data.ff1pkl",
+          "size_bytes": 416,
+          "sha256": "4a225217abeb33a559f141eeec955c0da9a9e3dc2d5e6c382d10a7f1b36dbafb",
+          "modified_at": "2026-07-05T11:31:50.418817+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-28_Austrian_Grand_Prix/2026-06-26_Practice_2/weather_data.ff1pkl",
+          "size_bytes": 5387,
+          "sha256": "ec9291912d338aa55cbcac626bf9a25f933703a0579015bbe71be7aa5d6c9be8",
+          "modified_at": "2026-07-05T11:32:39.745838+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-28_Austrian_Grand_Prix/2026-06-27_Qualifying/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "3a51132e7ba7691bbd0a627f07a22c32f540f0e8fed39e3d30a05f313d85fae1",
+          "modified_at": "2026-07-05T10:41:36.257957+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-06-28_Austrian_Grand_Prix/2026-06-27_Qualifying/session_info.ff1pkl",
+          "size_bytes": 566,
+          "sha256": "4a907feb93aed2e27b9f36227a1c7c2956c8a1549874237127fbdd2a7ffad84c",
+          "modified_at": "2026-07-05T10:41:35.628283+00:00"
         },
         {
           "path": "data/cache/fastf1/2026/2026-06-28_Austrian_Grand_Prix/2026-06-28_Race/driver_info.ff1pkl",
@@ -779,10 +1272,94 @@
           "modified_at": "2026-06-30T07:57:51.239180+00:00"
         },
         {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-03_Practice_1/_extended_timing_data.ff1pkl",
+          "size_bytes": 109195,
+          "sha256": "a5851ed3094bb84888104f9fa8427a75b81ce58cc44d1d3a6743cb7adf20d57f",
+          "modified_at": "2026-07-05T11:45:00.667781+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-03_Practice_1/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "d229adfed899861d308012f0f1b3072d3170a7e5c1b48e79cd12774a9fe46ece",
+          "modified_at": "2026-07-05T11:44:53.396987+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-03_Practice_1/session_info.ff1pkl",
+          "size_bytes": 577,
+          "sha256": "156b07716b1a92e1fac4e95aad4e0b99b3e2dc1914bf4d90dfd82a2074a09a2d",
+          "modified_at": "2026-07-05T11:44:51.917618+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-03_Practice_1/session_status_data.ff1pkl",
+          "size_bytes": 214,
+          "sha256": "d8ec4c24d5f112b11ae8a5f3be341edea5f052d19f8e9f389757b421bb3cfe1d",
+          "modified_at": "2026-07-05T11:44:56.092835+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-03_Practice_1/timing_app_data.ff1pkl",
+          "size_bytes": 64233,
+          "sha256": "8a6cd281d519cc761c273b6ae39e2e493842a47d9d132e543c5231ef39960836",
+          "modified_at": "2026-07-05T11:45:02.400557+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-03_Practice_1/track_status_data.ff1pkl",
+          "size_bytes": 212,
+          "sha256": "303213cf3491a078902a7887a205c35d52987016951e1895a2864ae967eb89a4",
+          "modified_at": "2026-07-05T11:44:57.320755+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-03_Practice_1/weather_data.ff1pkl",
+          "size_bytes": 5591,
+          "sha256": "b90838230634955511f04d8f1417daf9ab82d6b3af3a1ad990ae3ac0198a0442",
+          "modified_at": "2026-07-05T11:45:04.848299+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-04_Qualifying/_extended_timing_data.ff1pkl",
+          "size_bytes": 75507,
+          "sha256": "8fc4a0ace6b50d69a53f775bd4bd49b32a197b76436b2553078ef654783870df",
+          "modified_at": "2026-07-05T11:44:36.102889+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-04_Qualifying/driver_info.ff1pkl",
+          "size_bytes": 6196,
+          "sha256": "d4174e6ca9ff33a5d98a9bb3f24b9d6bda68099f08bb184588ad8c1b23e41e49",
+          "modified_at": "2026-07-05T11:44:31.669544+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-04_Qualifying/session_info.ff1pkl",
+          "size_bytes": 575,
+          "sha256": "2e8be36c8f502b1c1bf89cea4345845480680e0b6a35eb1e03659cdd5c73193a",
+          "modified_at": "2026-07-05T11:44:30.916592+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-04_Qualifying/session_status_data.ff1pkl",
+          "size_bytes": 376,
+          "sha256": "78a120dd564d887e92a3c1b71a394f15c57fda01be5d13d687b731d49aa55988",
+          "modified_at": "2026-07-05T11:44:33.912938+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-04_Qualifying/timing_app_data.ff1pkl",
+          "size_bytes": 41897,
+          "sha256": "2f63938e6b4a0a52827d935936b18e56223a238a9b0d78c8dc50668f16ba0faf",
+          "modified_at": "2026-07-05T11:44:36.839840+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-04_Qualifying/track_status_data.ff1pkl",
+          "size_bytes": 324,
+          "sha256": "a86f85210f80cd1904287c2308f4adadea98ece71ad366ab93dfb2f6970f281e",
+          "modified_at": "2026-07-05T11:44:34.513073+00:00"
+        },
+        {
+          "path": "data/cache/fastf1/2026/2026-07-05_British_Grand_Prix/2026-07-04_Qualifying/weather_data.ff1pkl",
+          "size_bytes": 5583,
+          "sha256": "815000b92b5679e4d41f89881a253144525f7aceba946e5c5b77c7d14ead1b58",
+          "modified_at": "2026-07-05T11:44:38.399595+00:00"
+        },
+        {
           "path": "data/cache/fastf1/fastf1_http_cache.sqlite",
-          "size_bytes": 360448,
-          "sha256": "fe90f099e9f3594b1f1b8abbe707de3cf14af2242f8f3100045b015df7b99423",
-          "modified_at": "2026-06-30T07:57:52.597731+00:00"
+          "size_bytes": 21385216,
+          "sha256": "f849dc7f70094eb9c3e504b94820685e38eb9310839b28beb9b04c4f0ed95f2c",
+          "modified_at": "2026-07-05T11:45:04.841758+00:00"
         },
         {
           "path": "data/evidence/australian_gp/packets/2026-06-30/australian_gp_2026-06-30T09_45_51_00_00.jsonl",
@@ -891,6 +1468,30 @@
           "size_bytes": 957,
           "sha256": "1018db3a90853b42ecd03b18d6dcd9f034cc7119b13fa44e49d12d894725376d",
           "modified_at": "2026-06-30T09:45:58.423259+00:00"
+        },
+        {
+          "path": "data/intake/austrian_gp/austrian_gp_20260628T000000_0000_5c42480b76_40b8d30f7b.information_intake.json",
+          "size_bytes": 1396,
+          "sha256": "a44e49843e9ce52840e6642b8cb55d13138bec04fca3e23b24a50b7d45428b35",
+          "modified_at": "2026-07-05T11:58:07.291299+00:00"
+        },
+        {
+          "path": "data/intake/british_gp/british_gp_20260630T120000_0000_c6e0a66a08_5952150b7d.information_intake.json",
+          "size_bytes": 2305,
+          "sha256": "3a2a23616cfd9a0b8eae3b51a3e81e7e492022afd06df29fc40afab5ec2ead00",
+          "modified_at": "2026-07-05T10:36:05.163129+00:00"
+        },
+        {
+          "path": "data/intake/british_gp/british_gp_20260705T000000_0000_c6e0a66a08_5952150b7d.information_intake.json",
+          "size_bytes": 2091,
+          "sha256": "f9b5efc3353419c7c32efa762c963bb02d7d886fc86a84efda793f9700b656ec",
+          "modified_at": "2026-07-05T11:58:52.086957+00:00"
+        },
+        {
+          "path": "data/intake/index.json",
+          "size_bytes": 2106,
+          "sha256": "eb7b4483870486fdc276345c589dcc540d3bae3f7e959eff45a38e37494b8535",
+          "modified_at": "2026-07-05T11:58:52.099633+00:00"
         },
         {
           "path": "data/market_snapshots/chinese_gp/snapshots/2026-07-01/chinese_gp_2026-07-01T09_06_55_00_00.jsonl",
@@ -1847,6 +2448,30 @@
           "modified_at": "2026-06-30T12:10:22.194703+00:00"
         },
         {
+          "path": "data/raw/fastf1/2026_Australian_Grand_Prix_Practice_2_laps/2026-07-05/2026_Australian_Grand_Prix_Practice_2_laps_2026-07-05T11_42_41_00_00.json",
+          "size_bytes": 568588,
+          "sha256": "9bc3f4348baa6822c11488da474c81cf99acbc86651812a41e1fc86cfcaefa8b",
+          "modified_at": "2026-07-05T11:42:41.867314+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Australian_Grand_Prix_Practice_2_laps/2026-07-05/2026_Australian_Grand_Prix_Practice_2_laps_2026-07-05T11_42_41_00_00.meta.json",
+          "size_bytes": 505,
+          "sha256": "9e750168be399bb76a0d0ea2f5ff4f1f48ce4340255205d862c1442c69081be3",
+          "modified_at": "2026-07-05T11:42:41.868815+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Australian_Grand_Prix_Qualifying_results/2026-07-05/2026_Australian_Grand_Prix_Qualifying_results_2026-07-05T10_41_16_00_00.json",
+          "size_bytes": 18425,
+          "sha256": "2a831e9120ee6c0a74ed70b35e5da438bcf5a8cb363ddf1eda9b3c417ef30bcf",
+          "modified_at": "2026-07-05T10:41:16.720285+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Australian_Grand_Prix_Qualifying_results/2026-07-05/2026_Australian_Grand_Prix_Qualifying_results_2026-07-05T10_41_16_00_00.meta.json",
+          "size_bytes": 490,
+          "sha256": "01b25669a3478c1a7e469789bb06b1c4fc48ea9040e2d2dacd62857e61f46539",
+          "modified_at": "2026-07-05T10:41:16.721286+00:00"
+        },
+        {
           "path": "data/raw/fastf1/2026_Australian_Grand_Prix_Race_results/2026-06-30/2026_Australian_Grand_Prix_Race_results_2026-06-30T07_57_32_00_00.json",
           "size_bytes": 18246,
           "sha256": "f1be27267fb95df09212f953b7dea0d0d85237c6b7d892cdc3c5bb9b3c51eb5a",
@@ -1857,6 +2482,42 @@
           "size_bytes": 466,
           "sha256": "4bb2eacea397fac2bdb941b196cb7b91eba999180b07c74dcd38ea9a7d6118be",
           "modified_at": "2026-06-30T07:57:32.091882+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Austrian_Grand_Prix_Practice_2_laps/2026-07-05/2026_Austrian_Grand_Prix_Practice_2_laps_2026-07-05T11_38_52_00_00.json",
+          "size_bytes": 654990,
+          "sha256": "928a2a8090ff961b99cc09a6bce226362a4ff81f6534d5a3af737c25e47b4922",
+          "modified_at": "2026-07-05T11:38:52.411062+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Austrian_Grand_Prix_Practice_2_laps/2026-07-05/2026_Austrian_Grand_Prix_Practice_2_laps_2026-07-05T11_38_52_00_00.meta.json",
+          "size_bytes": 495,
+          "sha256": "d30c4f31a4e95afcead9197b7bad4e668cb6b97b9679ac9cfa01d4f6ce17a6ab",
+          "modified_at": "2026-07-05T11:38:52.412067+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Austrian_Grand_Prix_Practice_2_laps/2026-07-05/2026_Austrian_Grand_Prix_Practice_2_laps_2026-07-05T11_43_42_00_00.json",
+          "size_bytes": 654990,
+          "sha256": "928a2a8090ff961b99cc09a6bce226362a4ff81f6534d5a3af737c25e47b4922",
+          "modified_at": "2026-07-05T11:43:42.170594+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Austrian_Grand_Prix_Practice_2_laps/2026-07-05/2026_Austrian_Grand_Prix_Practice_2_laps_2026-07-05T11_43_42_00_00.meta.json",
+          "size_bytes": 495,
+          "sha256": "4ca51dbb5b274ec41e340ff48ba53850c1855590e921b53571e11623a3d50231",
+          "modified_at": "2026-07-05T11:43:42.172099+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Austrian_Grand_Prix_Qualifying_results/2026-07-05/2026_Austrian_Grand_Prix_Qualifying_results_2026-07-05T10_41_36_00_00.json",
+          "size_bytes": 18452,
+          "sha256": "a1886b1804445969cd9eeffe10f8b6e70c02a29a5974b32d5a702ab6f3f691ba",
+          "modified_at": "2026-07-05T10:41:36.676284+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Austrian_Grand_Prix_Qualifying_results/2026-07-05/2026_Austrian_Grand_Prix_Qualifying_results_2026-07-05T10_41_36_00_00.meta.json",
+          "size_bytes": 482,
+          "sha256": "fff74b8c25b304339f944e244f2a7189a9b0ae5660173465b9872401e594a25b",
+          "modified_at": "2026-07-05T10:41:36.677787+00:00"
         },
         {
           "path": "data/raw/fastf1/2026_Austrian_Grand_Prix_Race_results/2026-06-30/2026_Austrian_Grand_Prix_Race_results_2026-06-30T07_57_52_00_00.json",
@@ -1871,6 +2532,30 @@
           "modified_at": "2026-06-30T07:57:52.638018+00:00"
         },
         {
+          "path": "data/raw/fastf1/2026_Barcelona_Grand_Prix_Practice_2_laps/2026-07-05/2026_Barcelona_Grand_Prix_Practice_2_laps_2026-07-05T11_43_40_00_00.json",
+          "size_bytes": 612075,
+          "sha256": "3299f60d0dce5035ee51d931179ca93acf8c5cb54bae9aa5db585664dce1b9a4",
+          "modified_at": "2026-07-05T11:43:41.020470+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Barcelona_Grand_Prix_Practice_2_laps/2026-07-05/2026_Barcelona_Grand_Prix_Practice_2_laps_2026-07-05T11_43_40_00_00.meta.json",
+          "size_bytes": 500,
+          "sha256": "148b03006acc2205532b08e7a5641e729e6020c460aa2aea4fb0ed4ca5dbbf7c",
+          "modified_at": "2026-07-05T11:43:41.022481+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Barcelona_Grand_Prix_Qualifying_results/2026-07-05/2026_Barcelona_Grand_Prix_Qualifying_results_2026-07-05T10_41_34_00_00.json",
+          "size_bytes": 18507,
+          "sha256": "6cf10b315e4b2b5f654d31fddbce3e7d2f9f92b7f95dc1392d30758eaca0303f",
+          "modified_at": "2026-07-05T10:41:34.988974+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Barcelona_Grand_Prix_Qualifying_results/2026-07-05/2026_Barcelona_Grand_Prix_Qualifying_results_2026-07-05T10_41_34_00_00.meta.json",
+          "size_bytes": 486,
+          "sha256": "2de6a4cc4ef79c41255176a8ec94048ad5889747942b5ab79d218b4e30245e7c",
+          "modified_at": "2026-07-05T10:41:34.989974+00:00"
+        },
+        {
           "path": "data/raw/fastf1/2026_Barcelona_Grand_Prix_Race_results/2026-06-30/2026_Barcelona_Grand_Prix_Race_results_2026-06-30T07_57_50_00_00.json",
           "size_bytes": 18221,
           "sha256": "c74419f5806612ae88115f20ccfe47ad20ad0b8ac59dbf4c7e6fddcacffbdd58",
@@ -1881,6 +2566,66 @@
           "size_bytes": 462,
           "sha256": "cbe193ab1c21d7d64cea2e66a7d10ac3d601e8fadef981cf3dce620295825ce0",
           "modified_at": "2026-06-30T07:57:50.278052+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_British_Grand_Prix_Practice_1_laps/2026-07-05/2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.json",
+          "size_bytes": 636877,
+          "sha256": "8d91b08a92a330501e7d17a3add297f2b786adab0bb6109388fb9ae5f05dd841",
+          "modified_at": "2026-07-05T11:45:04.968711+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_British_Grand_Prix_Practice_1_laps/2026-07-05/2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.meta.json",
+          "size_bytes": 490,
+          "sha256": "cb0729db1e84f5ca957d9ffeb619b2a728f5a3173aefc68cb13a4bbf526646f7",
+          "modified_at": "2026-07-05T11:45:04.969723+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_British_Grand_Prix_Qualifying_laps/2026-07-05/2026_British_Grand_Prix_Qualifying_laps_2026-07-05T11_44_38_00_00.json",
+          "size_bytes": 338952,
+          "sha256": "c4d252f306b068775dec8b79f7f94576a6532b61a949aff154d7a083d7fc5655",
+          "modified_at": "2026-07-05T11:44:38.531596+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_British_Grand_Prix_Qualifying_laps/2026-07-05/2026_British_Grand_Prix_Qualifying_laps_2026-07-05T11_44_38_00_00.meta.json",
+          "size_bytes": 488,
+          "sha256": "e282496ed15226f05e6eb0e0c8d1742da246a6a7d216916e5894caa37d963592",
+          "modified_at": "2026-07-05T11:44:38.532602+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_British_Grand_Prix_Qualifying_results/2026-07-05/2026_British_Grand_Prix_Qualifying_results_2026-07-05T11_44_33_00_00.json",
+          "size_bytes": 18532,
+          "sha256": "84ef7c1e868619e7efe4e589e11e747ba3f59988dcb65f4dc3f7895736b8f867",
+          "modified_at": "2026-07-05T11:44:33.275353+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_British_Grand_Prix_Qualifying_results/2026-07-05/2026_British_Grand_Prix_Qualifying_results_2026-07-05T11_44_33_00_00.meta.json",
+          "size_bytes": 497,
+          "sha256": "f0b6c0ca983fad3bb7c1a555f3d7df6f27ed3032f10445982240785e731da9b0",
+          "modified_at": "2026-07-05T11:44:33.275853+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Canadian_Grand_Prix_Practice_1_laps/2026-07-05/2026_Canadian_Grand_Prix_Practice_1_laps_2026-07-05T11_44_07_00_00.json",
+          "size_bytes": 635775,
+          "sha256": "ad1ba4444c47a827b785e9e31c6e2c446a1c8339bd1c75b10ffdc18181ade65a",
+          "modified_at": "2026-07-05T11:44:07.391782+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Canadian_Grand_Prix_Practice_1_laps/2026-07-05/2026_Canadian_Grand_Prix_Practice_1_laps_2026-07-05T11_44_07_00_00.meta.json",
+          "size_bytes": 495,
+          "sha256": "baa446262fa13b9fcc45ae705f9097ae5267c4e03de6fbdc5338f0ee3f4fdda6",
+          "modified_at": "2026-07-05T11:44:07.392786+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Canadian_Grand_Prix_Qualifying_results/2026-07-05/2026_Canadian_Grand_Prix_Qualifying_results_2026-07-05T10_41_29_00_00.json",
+          "size_bytes": 18509,
+          "sha256": "6766e675f17f4854402d607db3adab3c9228b6debdb99a914635d946bbde5063",
+          "modified_at": "2026-07-05T10:41:29.382843+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Canadian_Grand_Prix_Qualifying_results/2026-07-05/2026_Canadian_Grand_Prix_Qualifying_results_2026-07-05T10_41_29_00_00.meta.json",
+          "size_bytes": 482,
+          "sha256": "1126aee7d897615df25683db93eed69612e3cd9b37e8564d304ad8519aa121f3",
+          "modified_at": "2026-07-05T10:41:29.383354+00:00"
         },
         {
           "path": "data/raw/fastf1/2026_Canadian_Grand_Prix_Race_results/2026-06-30/2026_Canadian_Grand_Prix_Race_results_2026-06-30T07_57_44_00_00.json",
@@ -1895,6 +2640,30 @@
           "modified_at": "2026-06-30T07:57:44.746323+00:00"
         },
         {
+          "path": "data/raw/fastf1/2026_Chinese_Grand_Prix_Practice_1_laps/2026-07-05/2026_Chinese_Grand_Prix_Practice_1_laps_2026-07-05T11_42_53_00_00.json",
+          "size_bytes": 565920,
+          "sha256": "3e2257c799c7d72b36836759a969aa68f56da857166340bce23430a710d6af32",
+          "modified_at": "2026-07-05T11:42:53.439981+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Chinese_Grand_Prix_Practice_1_laps/2026-07-05/2026_Chinese_Grand_Prix_Practice_1_laps_2026-07-05T11_42_53_00_00.meta.json",
+          "size_bytes": 490,
+          "sha256": "f506859112634c9f9aff16cac463468492ef1de557c5a50c808e3c3212c53945",
+          "modified_at": "2026-07-05T11:42:53.441519+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Chinese_Grand_Prix_Qualifying_results/2026-07-05/2026_Chinese_Grand_Prix_Qualifying_results_2026-07-05T10_41_20_00_00.json",
+          "size_bytes": 18503,
+          "sha256": "5aeb2aeec7d3ad371bfd5fd5eaecc0bd92a391c9b96a7107845161ae7b35183f",
+          "modified_at": "2026-07-05T10:41:20.541578+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Chinese_Grand_Prix_Qualifying_results/2026-07-05/2026_Chinese_Grand_Prix_Qualifying_results_2026-07-05T10_41_20_00_00.meta.json",
+          "size_bytes": 478,
+          "sha256": "63daf97b3236524a1d0e6afdda8c236b542104767c0e96aa9850d56243f2b147",
+          "modified_at": "2026-07-05T10:41:20.543160+00:00"
+        },
+        {
           "path": "data/raw/fastf1/2026_Chinese_Grand_Prix_Race_results/2026-06-30/2026_Chinese_Grand_Prix_Race_results_2026-06-30T07_57_35_00_00.json",
           "size_bytes": 18241,
           "sha256": "21e366831ab47c291782b2dd31a573b93338be759c89ccd6852a0d055eb76f49",
@@ -1905,6 +2674,30 @@
           "size_bytes": 454,
           "sha256": "e770de7e18a7e018c160fb959e4e94c1b34fb90c015f6b3bdde2d7c2f5ed7510",
           "modified_at": "2026-06-30T07:57:35.279281+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Japanese_Grand_Prix_Practice_2_laps/2026-07-05/2026_Japanese_Grand_Prix_Practice_2_laps_2026-07-05T11_43_05_00_00.json",
+          "size_bytes": 572902,
+          "sha256": "be9d1c0bc6ab34744c229d7b202ed662a1ec554cd0ab65f4fdfcf5712aaf0c45",
+          "modified_at": "2026-07-05T11:43:05.159678+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Japanese_Grand_Prix_Practice_2_laps/2026-07-05/2026_Japanese_Grand_Prix_Practice_2_laps_2026-07-05T11_43_05_00_00.meta.json",
+          "size_bytes": 495,
+          "sha256": "85891f04188771c4bd3e1e097f64a244b9d1ca4bd7025e86b140c88c71b3696f",
+          "modified_at": "2026-07-05T11:43:05.160686+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Japanese_Grand_Prix_Qualifying_results/2026-07-05/2026_Japanese_Grand_Prix_Qualifying_results_2026-07-05T10_41_23_00_00.json",
+          "size_bytes": 18492,
+          "sha256": "d001beed0ec9aad04a4fd73791f86d70df055fb04936fe863edb90f4fd5ee80f",
+          "modified_at": "2026-07-05T10:41:23.615480+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Japanese_Grand_Prix_Qualifying_results/2026-07-05/2026_Japanese_Grand_Prix_Qualifying_results_2026-07-05T10_41_23_00_00.meta.json",
+          "size_bytes": 482,
+          "sha256": "1940e0b8a1829bba3afea46d3d07667f997e171df4cce0be31786068da9d1358",
+          "modified_at": "2026-07-05T10:41:23.615981+00:00"
         },
         {
           "path": "data/raw/fastf1/2026_Japanese_Grand_Prix_Race_results/2026-06-30/2026_Japanese_Grand_Prix_Race_results_2026-06-30T07_57_38_00_00.json",
@@ -1919,6 +2712,30 @@
           "modified_at": "2026-06-30T07:57:38.425904+00:00"
         },
         {
+          "path": "data/raw/fastf1/2026_Miami_Grand_Prix_Practice_1_laps/2026-07-05/2026_Miami_Grand_Prix_Practice_1_laps_2026-07-05T11_43_17_00_00.json",
+          "size_bytes": 781793,
+          "sha256": "b4f035c23399ff80e9c70df2d218e9327683b6522a7e0d3524910fbd7cc02869",
+          "modified_at": "2026-07-05T11:43:17.442300+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Miami_Grand_Prix_Practice_1_laps/2026-07-05/2026_Miami_Grand_Prix_Practice_1_laps_2026-07-05T11_43_17_00_00.meta.json",
+          "size_bytes": 480,
+          "sha256": "e3f562d7e17726653e78cc5a46589b3796075cb88b3ae52c59d313e15aac4f0d",
+          "modified_at": "2026-07-05T11:43:17.443813+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Miami_Grand_Prix_Qualifying_results/2026-07-05/2026_Miami_Grand_Prix_Qualifying_results_2026-07-05T10_41_26_00_00.json",
+          "size_bytes": 18494,
+          "sha256": "20f432d935661277af648a49ecff3750720fe08c7acb6be455b9038fa6993647",
+          "modified_at": "2026-07-05T10:41:26.470374+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Miami_Grand_Prix_Qualifying_results/2026-07-05/2026_Miami_Grand_Prix_Qualifying_results_2026-07-05T10_41_26_00_00.meta.json",
+          "size_bytes": 470,
+          "sha256": "0d630387ba73f407aa1fa6b7e76f1c3ca442a5fa7a2abb9a6d3031deea8faedd",
+          "modified_at": "2026-07-05T10:41:26.470374+00:00"
+        },
+        {
           "path": "data/raw/fastf1/2026_Miami_Grand_Prix_Race_results/2026-06-30/2026_Miami_Grand_Prix_Race_results_2026-06-30T07_57_41_00_00.json",
           "size_bytes": 18264,
           "sha256": "41cd2e7782ad129df46c09da4715265b7d54377e83d6e73533d865b2cc32f802",
@@ -1929,6 +2746,30 @@
           "size_bytes": 446,
           "sha256": "572f1781b64c1db7677521a0aaa5ab7282bcbda5319b3948617de13d752bf383",
           "modified_at": "2026-06-30T07:57:41.550295+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Monaco_Grand_Prix_Practice_2_laps/2026-07-05/2026_Monaco_Grand_Prix_Practice_2_laps_2026-07-05T11_43_29_00_00.json",
+          "size_bytes": 732090,
+          "sha256": "06cf69403066da9ff45117ccde97ea2344dd13cf369ab1a24ef7724b3081ba90",
+          "modified_at": "2026-07-05T11:43:29.495516+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Monaco_Grand_Prix_Practice_2_laps/2026-07-05/2026_Monaco_Grand_Prix_Practice_2_laps_2026-07-05T11_43_29_00_00.meta.json",
+          "size_bytes": 485,
+          "sha256": "20cd619814d106584ef900a419740d6ccddb976bbf507acea72ecdd569f0c89b",
+          "modified_at": "2026-07-05T11:43:29.496517+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Monaco_Grand_Prix_Qualifying_results/2026-07-05/2026_Monaco_Grand_Prix_Qualifying_results_2026-07-05T10_41_32_00_00.json",
+          "size_bytes": 18493,
+          "sha256": "adb85e0e1f153e12c537c3fd16b6ff88b43d9e6642f79846e2c795e6e9e342ba",
+          "modified_at": "2026-07-05T10:41:32.273256+00:00"
+        },
+        {
+          "path": "data/raw/fastf1/2026_Monaco_Grand_Prix_Qualifying_results/2026-07-05/2026_Monaco_Grand_Prix_Qualifying_results_2026-07-05T10_41_32_00_00.meta.json",
+          "size_bytes": 474,
+          "sha256": "aca9d7f6c64b56dd42523f2456142b642945e7f34eb7ba5557c2095cf1154f14",
+          "modified_at": "2026-07-05T10:41:32.274263+00:00"
         },
         {
           "path": "data/raw/fastf1/2026_Monaco_Grand_Prix_Race_results/2026-06-30/2026_Monaco_Grand_Prix_Race_results_2026-06-30T07_57_47_00_00.json",
@@ -2627,6 +3468,18 @@
           "modified_at": "2026-06-30T12:30:22.992124+00:00"
         },
         {
+          "path": "data/research/australian_gp/codex_research_plan.json",
+          "size_bytes": 18199,
+          "sha256": "1ea7b9fc9b51fc15f3d7cfa04d591aa1737664b516d0f40b25b16eb8104234ba",
+          "modified_at": "2026-07-03T08:32:34.498022+00:00"
+        },
+        {
+          "path": "data/research/australian_gp/codex_research_plan.md",
+          "size_bytes": 9149,
+          "sha256": "f287c79b52995dae26cb850d4e59a5d81ea473d11afe4375d6ed26c030c992c7",
+          "modified_at": "2026-07-03T08:32:34.498022+00:00"
+        },
+        {
           "path": "data/research/australian_gp/draft_evidence.jsonl",
           "size_bytes": 892,
           "sha256": "c2e1940573edc9ed88c84d9f10cbdc6fb5649301f990d3cdb370189b94427f92",
@@ -2634,27 +3487,39 @@
         },
         {
           "path": "data/research/australian_gp/evidence_template.json",
-          "size_bytes": 934,
-          "sha256": "88dd56c755b390287573f2d76c729a7f5a0aa2d36a070689b5d392a1cb46b2e3",
-          "modified_at": "2026-06-30T09:45:50.306014+00:00"
+          "size_bytes": 1161,
+          "sha256": "928caf1c6b6f591678a5e519ed644525f5e61241aa85a09ae7ef48f0a49c4649",
+          "modified_at": "2026-07-03T08:32:34.499021+00:00"
         },
         {
           "path": "data/research/australian_gp/research_packet_template.json",
-          "size_bytes": 1319,
-          "sha256": "51ca1eae6022129d39ed8d76abebbe4a651cb7e4fef560c501293a7bbe993627",
-          "modified_at": "2026-06-30T09:45:50.307014+00:00"
+          "size_bytes": 1546,
+          "sha256": "00cc63b825e180a96f69dd343635c236cd3bc2fd29f442365654db0e13a26c7a",
+          "modified_at": "2026-07-03T08:32:34.500020+00:00"
         },
         {
           "path": "data/research/australian_gp/research_task.md",
-          "size_bytes": 3954,
-          "sha256": "7338e64ea216ce376e1fc59626470f9502dc9226a62f2375300e41ba1f57e56f",
-          "modified_at": "2026-06-30T09:45:50.306014+00:00"
+          "size_bytes": 4195,
+          "sha256": "49cf976a6024bd4634cde80dbdbbdba5a1469819d7447609b4ec831d3025af4f",
+          "modified_at": "2026-07-03T08:32:34.496021+00:00"
         },
         {
           "path": "data/research/australian_gp/source_log.json",
-          "size_bytes": 2730,
-          "sha256": "010c79ce916ad7e720595ba0cc9688b94b28c013e88451a1c863292314926cf6",
-          "modified_at": "2026-06-30T11:19:26.793269+00:00"
+          "size_bytes": 3133,
+          "sha256": "f9b710a212fdd5960a2b2487610bd62bbb230c95778a20aa54d5bcc6e8a8e0c3",
+          "modified_at": "2026-07-03T08:32:34.500020+00:00"
+        },
+        {
+          "path": "data/research/austrian_gp/codex_research_plan.json",
+          "size_bytes": 18175,
+          "sha256": "c0375dbeb5a9e44c03229002e6b8221a98a9b5233c275b8529e80fd828423e08",
+          "modified_at": "2026-07-03T08:32:35.492041+00:00"
+        },
+        {
+          "path": "data/research/austrian_gp/codex_research_plan.md",
+          "size_bytes": 9109,
+          "sha256": "7ce57368fe240bbdad3878c72a890d13bf12e6cef32a07b582ee5356e366a01d",
+          "modified_at": "2026-07-03T08:32:35.493043+00:00"
         },
         {
           "path": "data/research/austrian_gp/draft_evidence.jsonl",
@@ -2664,27 +3529,39 @@
         },
         {
           "path": "data/research/austrian_gp/evidence_template.json",
-          "size_bytes": 930,
-          "sha256": "ef38dd8b4e65ef379cfdbb66a97a7c0d65ccf0ef7db2fa8e552ab58d11b073bc",
-          "modified_at": "2026-06-30T09:45:59.856025+00:00"
+          "size_bytes": 1157,
+          "sha256": "d185d83222a2f30a9a834e7a2071be0e207365327df381fced98d4ae30618e30",
+          "modified_at": "2026-07-03T08:32:35.493043+00:00"
         },
         {
           "path": "data/research/austrian_gp/research_packet_template.json",
-          "size_bytes": 1309,
-          "sha256": "e76690df1be070ffb87df7503caaff7e36be8090da695580b002b23737a41708",
-          "modified_at": "2026-06-30T09:45:59.856025+00:00"
+          "size_bytes": 1536,
+          "sha256": "2d0de95ca8f50794edf752598083b5fdd63a4182fdd37acda96782f7539d199e",
+          "modified_at": "2026-07-03T08:32:35.493043+00:00"
         },
         {
           "path": "data/research/austrian_gp/research_task.md",
-          "size_bytes": 3936,
-          "sha256": "bf416a22e7691e392af8a5926364f0726b67fae594f48945af7a7c191afb13da",
-          "modified_at": "2026-06-30T09:45:59.855026+00:00"
+          "size_bytes": 4175,
+          "sha256": "070f3734623c79ae9062ec95617c40613c5a04000647b0cef9c5f3bc125eaf63",
+          "modified_at": "2026-07-03T08:32:35.489974+00:00"
         },
         {
           "path": "data/research/austrian_gp/source_log.json",
-          "size_bytes": 2788,
-          "sha256": "41fe752a712ea9881d34e946717d9a06f62301c89086e154bab552ed2360957f",
-          "modified_at": "2026-06-30T11:19:27.317803+00:00"
+          "size_bytes": 3191,
+          "sha256": "fed2a1ed178e87a459039a36263533ac7018f9673aa6e0e79670b1dcbcac5075",
+          "modified_at": "2026-07-03T08:32:35.494484+00:00"
+        },
+        {
+          "path": "data/research/barcelona_gp/codex_research_plan.json",
+          "size_bytes": 18222,
+          "sha256": "0bd99b3dc9647d742f3c4a4b52c6510d655656942626206d74053d97acc9332a",
+          "modified_at": "2026-07-03T08:32:36.463131+00:00"
+        },
+        {
+          "path": "data/research/barcelona_gp/codex_research_plan.md",
+          "size_bytes": 9138,
+          "sha256": "6c9aad69b66a0ca92a4de8db1516be35a0b1281863127798ad7179c9b4acc3f8",
+          "modified_at": "2026-07-03T08:32:36.464131+00:00"
         },
         {
           "path": "data/research/barcelona_gp/draft_evidence.jsonl",
@@ -2694,39 +3571,39 @@
         },
         {
           "path": "data/research/barcelona_gp/evidence_template.json",
-          "size_bytes": 932,
-          "sha256": "cdf4dbe03c500f7e9e79ec701494da801b6b96c9c8214e3c3557eda4c5b8857a",
-          "modified_at": "2026-06-30T09:45:58.447179+00:00"
+          "size_bytes": 1159,
+          "sha256": "3111b0d4ac60a0d1e5f92cc4099490b3657deb28929aa77c4b18eece939e0358",
+          "modified_at": "2026-07-03T08:32:36.465130+00:00"
         },
         {
           "path": "data/research/barcelona_gp/research_packet_template.json",
-          "size_bytes": 1314,
-          "sha256": "80eb7c378d321a7b797eed53d9029d89992773253b5d24b2c4d8f9035e2f3a39",
-          "modified_at": "2026-06-30T09:45:58.447179+00:00"
+          "size_bytes": 1541,
+          "sha256": "5785b25c564e19bc641b15e9e1c20d5733343d02242ffc9a6c63a16b7594a3f6",
+          "modified_at": "2026-07-03T08:32:36.465130+00:00"
         },
         {
           "path": "data/research/barcelona_gp/research_task.md",
-          "size_bytes": 3956,
-          "sha256": "1170259023fa543680b6929a4397e4c3bd32672e814586f9138ac42cadeb41cf",
-          "modified_at": "2026-06-30T09:45:58.445785+00:00"
+          "size_bytes": 4199,
+          "sha256": "b1580c2d9772170c70dde70a36dd3c12c5c2f051ff72e2838fa254b11f5fe5a8",
+          "modified_at": "2026-07-03T08:32:36.462131+00:00"
         },
         {
           "path": "data/research/barcelona_gp/source_log.json",
-          "size_bytes": 2141,
-          "sha256": "3270a958dd25326fc0bf5f7b6074ee8708bfb600ded170b52dcd89e5c4e8cb04",
-          "modified_at": "2026-06-30T09:45:59.814711+00:00"
+          "size_bytes": 2544,
+          "sha256": "2124694a8572d3977a2bbad658c0ea4808910e458573217076b9a8a2e7479692",
+          "modified_at": "2026-07-03T08:32:36.466130+00:00"
         },
         {
           "path": "data/research/british_gp/codex_research_plan.json",
-          "size_bytes": 15870,
-          "sha256": "67bf158b38fde44c5cab3aa0f8e2322afb4356ea46cc38a2c9cad2265e5e2aa9",
-          "modified_at": "2026-07-01T06:07:37.454106+00:00"
+          "size_bytes": 19600,
+          "sha256": "fb77b7be5b1eb9c7712d5ff3f7ab81d70a9532fd28971dab70efe00bd6413115",
+          "modified_at": "2026-07-03T08:32:37.446517+00:00"
         },
         {
           "path": "data/research/british_gp/codex_research_plan.md",
-          "size_bytes": 8508,
-          "sha256": "01660eb9bd25aee1d6f3b75284d4a5583c1d1bb39a836e659778ef8e75c8f76d",
-          "modified_at": "2026-07-01T06:07:37.454106+00:00"
+          "size_bytes": 9054,
+          "sha256": "03efa13772107b885ebb72bb93abf6878c8c785cea19f30f3a1fe82911a5f407",
+          "modified_at": "2026-07-03T08:32:37.447518+00:00"
         },
         {
           "path": "data/research/british_gp/draft_evidence.jsonl",
@@ -2736,27 +3613,45 @@
         },
         {
           "path": "data/research/british_gp/evidence_template.json",
-          "size_bytes": 928,
-          "sha256": "b62996492c45bab7940b96d11d9b38bd4c30021ee1f3b7c65bc6d4e2ed6490a1",
-          "modified_at": "2026-07-01T06:07:37.454106+00:00"
+          "size_bytes": 1155,
+          "sha256": "a93233a735c031f0d809a29d6aa9e103c623e2be225f5f74c71a95d3c3221680",
+          "modified_at": "2026-07-03T08:32:37.447518+00:00"
         },
         {
           "path": "data/research/british_gp/research_packet_template.json",
-          "size_bytes": 1304,
-          "sha256": "da6e5b54e1c29a7782da1641e2d0dab788b2e7501fd449baad82bdc3da2e4241",
-          "modified_at": "2026-07-01T06:07:37.455111+00:00"
+          "size_bytes": 1971,
+          "sha256": "523cdc9ad832a7006ef69b0dc2175d2ef8e9ad8df00ac8fe3ddf6ba48f3e31dd",
+          "modified_at": "2026-07-03T13:45:02.447458+00:00"
         },
         {
           "path": "data/research/british_gp/research_task.md",
-          "size_bytes": 4354,
-          "sha256": "205593b370a1de7acd96403d09ec883826047854d2c6d9d7479d144ed87f3af2",
-          "modified_at": "2026-07-01T06:07:37.452595+00:00"
+          "size_bytes": 4455,
+          "sha256": "1e6212c5a952bcc942aec70e82b36b75b63fb1a88f2484fa0d9adad89e70c255",
+          "modified_at": "2026-07-03T08:32:37.445518+00:00"
+        },
+        {
+          "path": "data/research/british_gp/source_candidates.json",
+          "size_bytes": 1434,
+          "sha256": "91767f05af0af105b5a7cf0a0c2c0a805cfb9a1c22eef8c6b2c1b58b950cd114",
+          "modified_at": "2026-07-03T13:44:44.246181+00:00"
         },
         {
           "path": "data/research/british_gp/source_log.json",
           "size_bytes": 2315,
           "sha256": "2fd3e257d851eeedf1f03359c9699c710f09d9c21b6fa052eada2c77ddd75f55",
-          "modified_at": "2026-07-01T06:07:37.455111+00:00"
+          "modified_at": "2026-07-03T08:32:37.449518+00:00"
+        },
+        {
+          "path": "data/research/canadian_gp/codex_research_plan.json",
+          "size_bytes": 18172,
+          "sha256": "cdca8b208a15f01f77eb775c5cba83ecb3d7744af421803827ef064d8175da77",
+          "modified_at": "2026-07-03T08:32:38.436850+00:00"
+        },
+        {
+          "path": "data/research/canadian_gp/codex_research_plan.md",
+          "size_bytes": 9098,
+          "sha256": "2129667fb9bed12a84a234243a37bd794323e7b781257f08816b41501d092d35",
+          "modified_at": "2026-07-03T08:32:38.437945+00:00"
         },
         {
           "path": "data/research/canadian_gp/draft_evidence.jsonl",
@@ -2766,27 +3661,39 @@
         },
         {
           "path": "data/research/canadian_gp/evidence_template.json",
-          "size_bytes": 930,
-          "sha256": "95d81b16c9a9e7df65706acdd803d1a134d537dfdc6014cb24c02e1235d7f821",
-          "modified_at": "2026-06-30T09:45:55.306284+00:00"
+          "size_bytes": 1157,
+          "sha256": "d9c8d0cd0a2d0b86c20c28512855e7b1865d8acf5bb89a79ee3b91ef5796b87a",
+          "modified_at": "2026-07-03T08:32:38.437945+00:00"
         },
         {
           "path": "data/research/canadian_gp/research_packet_template.json",
-          "size_bytes": 1309,
-          "sha256": "0ac797073fd6ea071025e5c8946fa54dd4ee563e9d8be69f1865413ef9b244e5",
-          "modified_at": "2026-06-30T09:45:55.306284+00:00"
+          "size_bytes": 1536,
+          "sha256": "43cd402d56f42a310fef720b53f540dd356afe1176e40a114625a2c4f46a4d1c",
+          "modified_at": "2026-07-03T08:32:38.438884+00:00"
         },
         {
           "path": "data/research/canadian_gp/research_task.md",
-          "size_bytes": 3930,
-          "sha256": "2902159264422f616cc4c4d130450e6b659d82ce1faa8c33bc03b4dc00ac6c60",
-          "modified_at": "2026-06-30T09:45:55.305285+00:00"
+          "size_bytes": 4169,
+          "sha256": "3101ec55fa6afed7b8392e44f602c260c4931d005791afeecd694b6cb00d59d8",
+          "modified_at": "2026-07-03T08:32:38.435170+00:00"
         },
         {
           "path": "data/research/canadian_gp/source_log.json",
-          "size_bytes": 2053,
-          "sha256": "0103f5439dc74d1100028fa8dd9b9cf887a3e2bb08b61f0e6beb3a43f3c220cc",
-          "modified_at": "2026-06-30T09:45:56.522768+00:00"
+          "size_bytes": 2456,
+          "sha256": "c4f189361f321c34479246d8e6edf294414ceb449498c94e552d1caefe61c2d8",
+          "modified_at": "2026-07-03T08:32:38.439397+00:00"
+        },
+        {
+          "path": "data/research/chinese_gp/codex_research_plan.json",
+          "size_bytes": 18074,
+          "sha256": "67c4a3713a53a1fcaf33a5b5c8ac87b386fa2b2b80ac34aa05a38d481d0e66ba",
+          "modified_at": "2026-07-03T08:32:39.378128+00:00"
+        },
+        {
+          "path": "data/research/chinese_gp/codex_research_plan.md",
+          "size_bytes": 9042,
+          "sha256": "d422160367c4adb5e87d70748f650c5257cf6f2b16b47d856c49436c7e47100e",
+          "modified_at": "2026-07-03T08:32:39.379128+00:00"
         },
         {
           "path": "data/research/chinese_gp/draft_evidence.jsonl",
@@ -2796,27 +3703,39 @@
         },
         {
           "path": "data/research/chinese_gp/evidence_template.json",
-          "size_bytes": 928,
-          "sha256": "8422601534d98eae4cb46c519bbb66a752c4b82dac67199bc3874a775e954714",
-          "modified_at": "2026-06-30T09:45:51.775136+00:00"
+          "size_bytes": 1155,
+          "sha256": "e93d12d4c46a7c4b0c2b054eb707c336f67d32b03cf55fc0ab0880efe9c091cc",
+          "modified_at": "2026-07-03T08:32:39.380128+00:00"
         },
         {
           "path": "data/research/chinese_gp/research_packet_template.json",
-          "size_bytes": 1304,
-          "sha256": "a64593596e1aac4f2cd49c15fd5e3cbb36c0cf9d00352dec5e8266e4ddea48a6",
-          "modified_at": "2026-06-30T09:45:51.776135+00:00"
+          "size_bytes": 1531,
+          "sha256": "1d79b13dfaed7e63fcf889ad0e4297f3456bb29cb270eaf6ddee0edbcbe4cbf0",
+          "modified_at": "2026-07-03T08:32:39.380128+00:00"
         },
         {
           "path": "data/research/chinese_gp/research_task.md",
-          "size_bytes": 3886,
-          "sha256": "f76bba668202c96257fc6ce74c1c2bd3a4d09aac6d498931dcdd6cb96066d789",
-          "modified_at": "2026-06-30T09:45:51.775136+00:00"
+          "size_bytes": 4112,
+          "sha256": "b7ffc703ff35aaf2fc4d74e19f601360f817b31f44382f7dd6eb861ec739a1ec",
+          "modified_at": "2026-07-03T08:32:39.376128+00:00"
         },
         {
           "path": "data/research/chinese_gp/source_log.json",
-          "size_bytes": 2710,
-          "sha256": "a3db13c6813176f66b3c92f38701d01ec0037aebf9e2582db0112b314c2bbf1e",
-          "modified_at": "2026-06-30T11:19:28.889949+00:00"
+          "size_bytes": 3113,
+          "sha256": "873f96e75f9f74402ce23bf0d35e17d73ab6a6f20c63db5c89232eaa968cb031",
+          "modified_at": "2026-07-03T08:32:39.381128+00:00"
+        },
+        {
+          "path": "data/research/japanese_gp/codex_research_plan.json",
+          "size_bytes": 18138,
+          "sha256": "69c2e692bfeab8fb960a14f35d8317f7e0d725a1359c4a71efd812b77e4436cd",
+          "modified_at": "2026-07-03T08:32:40.351335+00:00"
+        },
+        {
+          "path": "data/research/japanese_gp/codex_research_plan.md",
+          "size_bytes": 9085,
+          "sha256": "acfc2e55ad9055d3621501fb7e0617b274c6b79d373234cc23107be49aa94070",
+          "modified_at": "2026-07-03T08:32:40.352335+00:00"
         },
         {
           "path": "data/research/japanese_gp/draft_evidence.jsonl",
@@ -2826,27 +3745,39 @@
         },
         {
           "path": "data/research/japanese_gp/evidence_template.json",
-          "size_bytes": 930,
-          "sha256": "fdb85a768627f9a41f11400e834f72b3c3ba9e47bbcd5a5174bc97ccddebf387",
-          "modified_at": "2026-06-30T09:45:52.928217+00:00"
+          "size_bytes": 1157,
+          "sha256": "34bcf0a1df4ab538fcae06e5f5e460f7356a650195ed465801c447bd4c86f69f",
+          "modified_at": "2026-07-03T08:32:40.352335+00:00"
         },
         {
           "path": "data/research/japanese_gp/research_packet_template.json",
-          "size_bytes": 1309,
-          "sha256": "e2a265f7c11e30717a0474b7d50d08950baf66bbf16251ca235f3d79c1e36032",
-          "modified_at": "2026-06-30T09:45:52.928217+00:00"
+          "size_bytes": 1536,
+          "sha256": "e198070b1154cbd098d2e4d88ef4c3050f03c04d0ac161c843ba8dd9ff9093d5",
+          "modified_at": "2026-07-03T08:32:40.353336+00:00"
         },
         {
           "path": "data/research/japanese_gp/research_task.md",
-          "size_bytes": 3913,
-          "sha256": "db18563cb4da05a383660f02dc54851bcb2fd510608d0c33ccab999fcf508373",
-          "modified_at": "2026-06-30T09:45:52.928217+00:00"
+          "size_bytes": 4156,
+          "sha256": "66a7abb8a23c6da71b7558a76ac3c8481ba94a830f94b6af6918251b8cdea522",
+          "modified_at": "2026-07-03T08:32:40.347334+00:00"
         },
         {
           "path": "data/research/japanese_gp/source_log.json",
-          "size_bytes": 2704,
-          "sha256": "dd7cfd3e98fc87f10701f68284c1384e0603183775443e06ef7440d607b8c045",
-          "modified_at": "2026-06-30T11:19:29.522471+00:00"
+          "size_bytes": 3107,
+          "sha256": "f381a6cfdfadf2c8f784519fbc3a71f6c7a642a2ee271822b565fbb4008fe0a8",
+          "modified_at": "2026-07-03T08:32:40.354335+00:00"
+        },
+        {
+          "path": "data/research/miami_gp/codex_research_plan.json",
+          "size_bytes": 18040,
+          "sha256": "e58258077d46ad2e10ef3cf27cf15e7073a7ff7b2c02c7e721ef15217c34ad3d",
+          "modified_at": "2026-07-03T08:32:41.298533+00:00"
+        },
+        {
+          "path": "data/research/miami_gp/codex_research_plan.md",
+          "size_bytes": 8995,
+          "sha256": "cd4ea82eada1c43c21184bf110d7908845473b4056bd4e65926a999fb8ec0d26",
+          "modified_at": "2026-07-03T08:32:41.298533+00:00"
         },
         {
           "path": "data/research/miami_gp/draft_evidence.jsonl",
@@ -2856,27 +3787,39 @@
         },
         {
           "path": "data/research/miami_gp/evidence_template.json",
-          "size_bytes": 924,
-          "sha256": "dcaa52306ef69a83ff3dc51f7b505ad45d4341eeeb6915ac28dde9d1f21c0e43",
-          "modified_at": "2026-06-30T09:45:53.997622+00:00"
+          "size_bytes": 1151,
+          "sha256": "d020187ab98ef76cac8eff2da5cbc8bbc458073e94c0393b43a14ee1162dd7fe",
+          "modified_at": "2026-07-03T08:32:41.299543+00:00"
         },
         {
           "path": "data/research/miami_gp/research_packet_template.json",
-          "size_bytes": 1294,
-          "sha256": "b8f9a8ccda55863f1d5d45865825ddf967babe231f55d123c62f77797c282f40",
-          "modified_at": "2026-06-30T09:45:53.997622+00:00"
+          "size_bytes": 1521,
+          "sha256": "18be1ff45ab15517cbe0884b8002cef9ddf9c566d2ba0ad0ab922b1114c98bc5",
+          "modified_at": "2026-07-03T08:32:41.299543+00:00"
         },
         {
           "path": "data/research/miami_gp/research_task.md",
-          "size_bytes": 3864,
-          "sha256": "0728f4acf31bed78ae50e76929d7afbab81a106767cdc28a1462a2436a5e250f",
-          "modified_at": "2026-06-30T09:45:53.997622+00:00"
+          "size_bytes": 4105,
+          "sha256": "7c8651648b562ceb0a9079dd99a62a862ccecaecff50ce5c0df9b80ddcb2f3ad",
+          "modified_at": "2026-07-03T08:32:41.296023+00:00"
         },
         {
           "path": "data/research/miami_gp/source_log.json",
-          "size_bytes": 2024,
-          "sha256": "3a78b45d9db50fa45da80a433d05fbbf49667adfc74ba8b1cd552448a5d58f3f",
-          "modified_at": "2026-06-30T09:45:55.267359+00:00"
+          "size_bytes": 2427,
+          "sha256": "0da073de94863e679952b5fce495f7ce73382b059a72729e468eaa826f2c71fa",
+          "modified_at": "2026-07-03T08:32:41.300543+00:00"
+        },
+        {
+          "path": "data/research/monaco_gp/codex_research_plan.json",
+          "size_bytes": 18101,
+          "sha256": "0a09668ff6c81657a04d84e84c07ec8d818effa99f0df6c50492ff311a90586d",
+          "modified_at": "2026-07-03T08:32:42.301558+00:00"
+        },
+        {
+          "path": "data/research/monaco_gp/codex_research_plan.md",
+          "size_bytes": 9030,
+          "sha256": "bd85a083c9ee8260d4961e52cf601ce49ae9e3b17d56425ac28d0e2982fb3160",
+          "modified_at": "2026-07-03T08:32:42.302674+00:00"
         },
         {
           "path": "data/research/monaco_gp/draft_evidence.jsonl",
@@ -2886,27 +3829,27 @@
         },
         {
           "path": "data/research/monaco_gp/evidence_template.json",
-          "size_bytes": 926,
-          "sha256": "cf8215adbb25bf8ab0bb0d351bb2a85026b1310b8066ba585ba1b926fbcd710f",
-          "modified_at": "2026-06-30T09:45:56.568723+00:00"
+          "size_bytes": 1153,
+          "sha256": "061dfcb95a342403cb5c1f2346dc4369a9ee3db2b0daa7675153608c44e20339",
+          "modified_at": "2026-07-03T08:32:42.303978+00:00"
         },
         {
           "path": "data/research/monaco_gp/research_packet_template.json",
-          "size_bytes": 1299,
-          "sha256": "ac0e92fed5cb2dc398c6797ffcc01746b992d51c082bce6e2af03ac2a565759f",
-          "modified_at": "2026-06-30T09:45:56.568723+00:00"
+          "size_bytes": 1526,
+          "sha256": "bf0d1652186368d3a51e765962f4956ba76947b24195600b42bdd65cf38597b0",
+          "modified_at": "2026-07-03T08:32:42.303978+00:00"
         },
         {
           "path": "data/research/monaco_gp/research_task.md",
-          "size_bytes": 3887,
-          "sha256": "dba94d69a2095df77ccdb263df9b836ba357e175d44be388dec28fb83eeba31b",
-          "modified_at": "2026-06-30T09:45:56.567532+00:00"
+          "size_bytes": 4128,
+          "sha256": "a9c732409736fbeed40a201574d7af27c6c02ccd12f0c6708241f0a107090a6f",
+          "modified_at": "2026-07-03T08:32:42.298958+00:00"
         },
         {
           "path": "data/research/monaco_gp/source_log.json",
-          "size_bytes": 2788,
-          "sha256": "98122e72cb0541f15640ebd119d9b8982de54853b767648fbf984ae15a9c27b2",
-          "modified_at": "2026-06-30T11:19:30.461014+00:00"
+          "size_bytes": 3191,
+          "sha256": "5b47c615c3bcd197af3ee2cca9405f90a43f7b699cf7b338eafc27ae4d716d26",
+          "modified_at": "2026-07-03T08:32:42.304977+00:00"
         },
         {
           "path": "data/research/source_replacements/tool_content_overrides.json",
@@ -2922,9 +3865,9 @@
         },
         {
           "path": "data/seed/evidence/british_gp.jsonl",
-          "size_bytes": 1864,
-          "sha256": "14407eaaeb6bc23260d93501b474ebb2cecf45e77e40be0b1be8eea3388db365",
-          "modified_at": "2026-06-30T07:08:18.379306+00:00"
+          "size_bytes": 3727,
+          "sha256": "4bca5bfa96686a2bfb9dc6a824fd610cda0b5350eabcc218c14425c3eed815d1",
+          "modified_at": "2026-07-03T13:03:24.531245+00:00"
         }
       ]
     },
@@ -2935,9 +3878,9 @@
         "reports/**/*.json",
         "reports/**/*.md"
       ],
-      "file_count": 74,
-      "total_bytes": 11839802,
-      "content_sha256": "da0925b17753cb89b864bf7f798115f4aa88e3f3057e30f1bb48ee6114bd981e",
+      "file_count": 169,
+      "total_bytes": 20747715,
+      "content_sha256": "956443563fa7ff88bc6c7aaae80b215a0aecad010c9915db5385b5c157976862",
       "errors": [],
       "files": [
         {
@@ -2954,15 +3897,15 @@
         },
         {
           "path": "reports/calibration/2026_asof_20260701T000000_0000.calibration.json",
-          "size_bytes": 6801,
-          "sha256": "31a45c7c24b5f516adbc18e69e219791ca4b79791ac55ddf2bf4e9010026b643",
-          "modified_at": "2026-07-01T13:36:38.325247+00:00"
+          "size_bytes": 6798,
+          "sha256": "06cc882d5005f321168137cc9109e36beabbed0da12fddc0e318c15a7f995601",
+          "modified_at": "2026-07-05T12:18:20.018296+00:00"
         },
         {
           "path": "reports/calibration/2026_asof_20260701T000000_0000.calibration.md",
-          "size_bytes": 2044,
-          "sha256": "d7234efc4f75d4e6cb2064d0dd646332dd0c878182e4a31c8f948cbb4b4be195",
-          "modified_at": "2026-07-01T13:36:38.327082+00:00"
+          "size_bytes": 2048,
+          "sha256": "fef0ec71962107563ae3c8d074ab5ea4b90638f4e73c5fad898ff676db0dd307",
+          "modified_at": "2026-07-05T12:18:20.018800+00:00"
         },
         {
           "path": "reports/chronological_replay/2026_asof_20260630T000000_0000.chronological_replay.json",
@@ -2989,6 +3932,138 @@
           "modified_at": "2026-07-01T14:06:10.117845+00:00"
         },
         {
+          "path": "reports/chronological_replay_v2/2026_asof_20260701T000000_0000.chronological_replay.json",
+          "size_bytes": 31625,
+          "sha256": "a70167873f6c3ed65234f715305e28b7098056dd25ad4ee2d1e422fb0f0b8e2d",
+          "modified_at": "2026-07-05T08:42:26.860740+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2/2026_asof_20260701T000000_0000.chronological_replay.md",
+          "size_bytes": 7461,
+          "sha256": "ff2876a385aea87e1e766aee684af02138da8fa5f8aff9696a5338e9bd36dbd0",
+          "modified_at": "2026-07-05T08:42:26.860740+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_fastf1_momentum/2026_asof_20260701T000000_0000.chronological_replay.json",
+          "size_bytes": 31552,
+          "sha256": "facb08da8b786eec63bc446b807f76ac6dfda0f883d237f1f7f212d3dd977982",
+          "modified_at": "2026-07-05T09:16:20.509683+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_fastf1_momentum/2026_asof_20260701T000000_0000.chronological_replay.md",
+          "size_bytes": 7473,
+          "sha256": "89f9af1150bfe95260a3999753b0d4500f9029025a10534166677b4207ce2ef0",
+          "modified_at": "2026-07-05T09:16:20.510693+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_known_qualifying/2026_asof_20260701T000000_0000.chronological_replay.json",
+          "size_bytes": 34625,
+          "sha256": "4e19a3b1aaceb29594b4b35444fee69b74b3841acc7eb7703b8b46b8feda4257",
+          "modified_at": "2026-07-05T10:58:48.176891+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_known_qualifying/2026_asof_20260701T000000_0000.chronological_replay.md",
+          "size_bytes": 7556,
+          "sha256": "a85f2b42e947c8d48868f68f9a3a6f84f2a1a6d472799def5a9172ea6395dd71",
+          "modified_at": "2026-07-05T10:58:48.177896+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_official_standings/2026_asof_20260701T000000_0000.chronological_replay.json",
+          "size_bytes": 31663,
+          "sha256": "0b64337216834d741b78ff1b65e0533e5835fb608c052a71f06017be320ecedc",
+          "modified_at": "2026-07-05T09:00:12.056046+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_official_standings/2026_asof_20260701T000000_0000.chronological_replay.md",
+          "size_bytes": 7499,
+          "sha256": "dfab6d4f9c1e7ad67d9c9d87fc2313f41a1a056ba0677ae72749cfd7ffabdda1",
+          "modified_at": "2026-07-05T09:00:12.056046+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_pace_separation/2026_asof_20260701T000000_0000.chronological_replay.json",
+          "size_bytes": 31555,
+          "sha256": "931cc5a3a0fddc6ca907137aece5a0ae5ebe72efe978d9580466c778a6e74ad1",
+          "modified_at": "2026-07-05T09:38:22.205447+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_pace_separation/2026_asof_20260701T000000_0000.chronological_replay.md",
+          "size_bytes": 7474,
+          "sha256": "ee10f3fa0a4f5abb30a20d9b300bb0edf371818bfa479b4d877c41bf08a1d582",
+          "modified_at": "2026-07-05T09:38:22.205946+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_qualifying_features/2026_asof_20260701T000000_0000.chronological_replay.json",
+          "size_bytes": 34635,
+          "sha256": "83e77f72b004cf2e72f975eda2f46b3fee0de053802114150ab70f36569e46b7",
+          "modified_at": "2026-07-05T10:48:48.303259+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_qualifying_features/2026_asof_20260701T000000_0000.chronological_replay.md",
+          "size_bytes": 7564,
+          "sha256": "d2c22a35b6c876bf5fe0af1c3e38d3b415bc686318e1b71eb5c27097743ce5d7",
+          "modified_at": "2026-07-05T10:48:48.305260+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_race_execution/2026_asof_20260701T000000_0000.chronological_replay.json",
+          "size_bytes": 35248,
+          "sha256": "07b93d2cec62c7e9287d2e834af9eea3006c4d8ef5a90d0df3bf67ea87bc67ca",
+          "modified_at": "2026-07-05T10:03:33.678841+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_race_execution/2026_asof_20260701T000000_0000.chronological_replay.md",
+          "size_bytes": 7967,
+          "sha256": "976072887744128b1b69bb30736cbc00720bee23ca4b000be4ac660b484a5a10",
+          "modified_at": "2026-07-05T10:03:33.680350+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_session_lap_features/2026_asof_20260701T000000_0000.chronological_replay.json",
+          "size_bytes": 36440,
+          "sha256": "f0b098130f9ecf822635a6df1a21c53880468d4969494847419d5892b6bb6c80",
+          "modified_at": "2026-07-05T12:35:09.646731+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_session_lap_features/2026_asof_20260701T000000_0000.chronological_replay.md",
+          "size_bytes": 9072,
+          "sha256": "6b6487117c69ad4130af1239204868551a1a1aca102596f4a8d7bfd3ec3d75fa",
+          "modified_at": "2026-07-05T12:35:09.648015+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_team_strength_reestimate/2026_asof_20260701T000000_0000.chronological_replay.json",
+          "size_bytes": 34557,
+          "sha256": "2238b76a09715014ff8de869a157ed49fcddafb0feb4a5d620d3de2ff2cc99ee",
+          "modified_at": "2026-07-05T11:15:35.814233+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_team_strength_reestimate/2026_asof_20260701T000000_0000.chronological_replay.md",
+          "size_bytes": 7562,
+          "sha256": "0a007cba68e89eb0a4b4fef99a16a51c7fc8b20867678149cf22ae216f7a88ed",
+          "modified_at": "2026-07-05T11:15:35.815232+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_track_features/2026_asof_20260701T000000_0000.chronological_replay.json",
+          "size_bytes": 35251,
+          "sha256": "343b57289d5f09c75c09d9b25e30937637685be247f07b2c4dde435e7661edca",
+          "modified_at": "2026-07-05T10:34:10.381731+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_track_features/2026_asof_20260701T000000_0000.chronological_replay.md",
+          "size_bytes": 7970,
+          "sha256": "19cade73f74272cec44d8c331c621d3d9be2918ebf3927df3312a674cfd588c1",
+          "modified_at": "2026-07-05T10:34:10.382767+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_without_race_execution/2026_asof_20260701T000000_0000.chronological_replay.json",
+          "size_bytes": 35266,
+          "sha256": "6feee8d9efeab005c2a248649031c8790409bff4a43db88b44c18f5eaaf77470",
+          "modified_at": "2026-07-05T09:57:39.903116+00:00"
+        },
+        {
+          "path": "reports/chronological_replay_v2_without_race_execution/2026_asof_20260701T000000_0000.chronological_replay.md",
+          "size_bytes": 7983,
+          "sha256": "ab37494864bd61afc8c28f2ceaf2e7984229304b4f28939e74f70bdaa073f110",
+          "modified_at": "2026-07-05T09:57:39.904744+00:00"
+        },
+        {
           "path": "reports/evidence_coverage_20260630.json",
           "size_bytes": 27494,
           "sha256": "2618d31bd50aed72283d81186deefbb311b7a6f6b8e91150f8a6213c60c385fa",
@@ -3008,15 +4083,57 @@
         },
         {
           "path": "reports/formal_readiness/2026_asof_20260701T000000_0000.readiness.json",
-          "size_bytes": 83956,
-          "sha256": "d14e5b6b2adb02a0c460825afe89d3466f7c4316be53ca545263e1079d1acd57",
-          "modified_at": "2026-07-01T16:26:48.813675+00:00"
+          "size_bytes": 86544,
+          "sha256": "31ec20b4592a8d36274a820ecfc3f0a43a7ce6de46e44d4a2bb6e33cc8a002c0",
+          "modified_at": "2026-07-05T12:15:58.286204+00:00"
         },
         {
           "path": "reports/formal_readiness/2026_asof_20260701T000000_0000.readiness.md",
-          "size_bytes": 26979,
-          "sha256": "982c0e3410c165ca73f287b40242722276c6e42f62f6fea430ddd9c1c086b1e0",
-          "modified_at": "2026-07-01T16:26:48.813675+00:00"
+          "size_bytes": 28754,
+          "sha256": "39bf5c31169c6fb3a7883fe9fbade450db6baff84da697d0a0014cf33cd8c212",
+          "modified_at": "2026-07-05T12:15:58.287711+00:00"
+        },
+        {
+          "path": "reports/implementation_reports/2026-07-05_api_v2_backend.md",
+          "size_bytes": 6078,
+          "sha256": "06929908cb092ad829e50afc10b8cccf82916e4dc121e0c53a94e067516f2639",
+          "modified_at": "2026-07-05T08:43:53.132085+00:00"
+        },
+        {
+          "path": "reports/implementation_reports/2026-07-05_fastf1_qualifying_team_strength.md",
+          "size_bytes": 6575,
+          "sha256": "fdceba78029e0f08de64610404e4145de32f919650601e4d6baeae801540827b",
+          "modified_at": "2026-07-05T11:25:26.828730+00:00"
+        },
+        {
+          "path": "reports/implementation_reports/2026-07-05_fastf1_season_momentum_features.md",
+          "size_bytes": 5768,
+          "sha256": "05a4ccaa88206ca958b544ed67bb8b2948552d45ca1dffeb8b52b1665dbf8dd4",
+          "modified_at": "2026-07-05T09:17:51.729043+00:00"
+        },
+        {
+          "path": "reports/implementation_reports/2026-07-05_official_standings_features.md",
+          "size_bytes": 5967,
+          "sha256": "ec0b2ba8969ca834483b8e28b9a13416317df3a7411a46995a5360e32c48aa9c",
+          "modified_at": "2026-07-05T09:03:00.694692+00:00"
+        },
+        {
+          "path": "reports/implementation_reports/2026-07-05_pace_separation_simulator_config.md",
+          "size_bytes": 6942,
+          "sha256": "c74230b4d48337a407a4f60e585200fbe5dcbedf8ee1234caace0f672314a32a",
+          "modified_at": "2026-07-05T09:40:13.723073+00:00"
+        },
+        {
+          "path": "reports/implementation_reports/2026-07-05_race_execution_features.md",
+          "size_bytes": 7280,
+          "sha256": "f7cbbb58d2564b7a5b06455b493432a4f4efe9a6563cfff2fb0628b3bbf6e22a",
+          "modified_at": "2026-07-05T10:09:24.477596+00:00"
+        },
+        {
+          "path": "reports/implementation_reports/2026-07-05_track_feature_vector_simulator.md",
+          "size_bytes": 7751,
+          "sha256": "0982c6a8dc32551aaa91c9addcf6cdaabb61aec67cd9b7ebe72616361c53c43e",
+          "modified_at": "2026-07-05T10:37:04.929562+00:00"
         },
         {
           "path": "reports/improvement_plan/2026_asof_20260630T000000_0000.improvement_plan.json",
@@ -3032,15 +4149,15 @@
         },
         {
           "path": "reports/improvement_plan/2026_asof_20260701T000000_0000.improvement_plan.json",
-          "size_bytes": 16273,
-          "sha256": "341ec706184744f1fb7ae41c2f487318072ba5f4bfe2b6b2345e0b9b1ccdfa8b",
-          "modified_at": "2026-07-01T16:30:03.465289+00:00"
+          "size_bytes": 16657,
+          "sha256": "4cfbf5339d99ba86d7ce8a427d623da39827a80e238f1d0ad5cd671f187aab50",
+          "modified_at": "2026-07-05T12:25:26.912276+00:00"
         },
         {
           "path": "reports/improvement_plan/2026_asof_20260701T000000_0000.improvement_plan.md",
-          "size_bytes": 6837,
-          "sha256": "0a902237d34ff8400ab87b9740b5231f082d087bf46fb2cb0ad52cf227a5e60a",
-          "modified_at": "2026-07-01T16:30:03.465289+00:00"
+          "size_bytes": 6835,
+          "sha256": "b16b2821b0d376e5ad87f4839f2cd7c723e8564bb854854589259d2891511529",
+          "modified_at": "2026-07-05T12:25:26.913274+00:00"
         },
         {
           "path": "reports/market_normalization/austrian_gp_price_history.json",
@@ -3200,27 +4317,39 @@
         },
         {
           "path": "reports/model_error_review/2026_asof_20260701T000000_0000.model_error_review.json",
-          "size_bytes": 79155,
-          "sha256": "cb81e8191a658fdaad5cb108b917b8dcda6697db6f198b1fd844e342c6d0d9b7",
-          "modified_at": "2026-07-01T14:06:56.811956+00:00"
+          "size_bytes": 136372,
+          "sha256": "0bcdf24e895a13c79a4cd635c8ec6e425e41948499b9cf07c32a1dd935e07e27",
+          "modified_at": "2026-07-05T12:20:41.461828+00:00"
         },
         {
           "path": "reports/model_error_review/2026_asof_20260701T000000_0000.model_error_review.md",
-          "size_bytes": 4773,
-          "sha256": "443aaff6cd34cc256543dc3eb4ab4d990af94acdb3234b381ef7c0498e3153c7",
-          "modified_at": "2026-07-01T14:06:56.812959+00:00"
+          "size_bytes": 4607,
+          "sha256": "7c1e696a6a96eba2cf27c569fe1b4f6384a400d133cb30d024c0374e861c552f",
+          "modified_at": "2026-07-05T12:20:41.462834+00:00"
+        },
+        {
+          "path": "reports/mvp_completion_audit/2026_asof_20260701T000000_0000.mvp_completion_audit.json",
+          "size_bytes": 13504,
+          "sha256": "06a2c4acfb3b973d0bac9a0a6cff3bba21aaecbeeb45e94cbde292398eec3751",
+          "modified_at": "2026-07-03T14:58:57.264879+00:00"
+        },
+        {
+          "path": "reports/mvp_completion_audit/2026_asof_20260701T000000_0000.mvp_completion_audit.md",
+          "size_bytes": 6039,
+          "sha256": "8c16d06f8e298f225b93723638b1f3b1ba09ddba5b9e0074cdc74f5a740834c9",
+          "modified_at": "2026-07-03T14:58:57.265388+00:00"
         },
         {
           "path": "reports/mvp_gate/2026_asof_20260701T000000_0000.mvp_gate.json",
-          "size_bytes": 10430,
-          "sha256": "dab42b2b56cb5114ecfbbec714f118c0667822857435e92ebb23ea3d0ae4fac8",
-          "modified_at": "2026-07-01T16:29:27.670711+00:00"
+          "size_bytes": 10875,
+          "sha256": "b59ff35f3f902089e46e45a023c2457ee8c817f7bfaea74ac303489357af4bae",
+          "modified_at": "2026-07-03T14:46:15.530033+00:00"
         },
         {
           "path": "reports/mvp_gate/2026_asof_20260701T000000_0000.mvp_gate.md",
-          "size_bytes": 3825,
-          "sha256": "b387cf7239476f62ec57631c52d1cd23fc6b8c50248d728e97e484433c7ee3ca",
-          "modified_at": "2026-07-01T16:29:27.670711+00:00"
+          "size_bytes": 3787,
+          "sha256": "20f4fd4915aa8e7c54d8aa5ea33f8300ee109ca450d2155c5181f3babdf2dcf4",
+          "modified_at": "2026-07-03T14:46:15.531034+00:00"
         },
         {
           "path": "reports/official_roster_sync/2026_latest.json",
@@ -3229,16 +4358,352 @@
           "modified_at": "2026-06-30T18:16:24.131658+00:00"
         },
         {
+          "path": "reports/prediction_diffs/austrian_gp/austrian_gp_20260628T000000_0000_3a11bbd7b979.prediction_diff.json",
+          "size_bytes": 18940,
+          "sha256": "e7163245259541c71ecdd8332cdcaeb0873db888e94187d72bed77ec96ea22fc",
+          "modified_at": "2026-07-05T10:53:49.520847+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/austrian_gp/austrian_gp_20260628T000000_0000_3a11bbd7b979.prediction_diff.md",
+          "size_bytes": 1367,
+          "sha256": "07f008c22d8362fe7293ff8e2c01eabe766e771dfd0312ce9b497a5f940ac56f",
+          "modified_at": "2026-07-05T10:53:49.521348+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/austrian_gp/austrian_gp_20260628T000000_0000_8b9d974a2f66.prediction_diff.json",
+          "size_bytes": 18943,
+          "sha256": "a13586e92b6d26c2ff8008d1f27a5fdfc7b5749d79a39b4ed2088430afb1a9fa",
+          "modified_at": "2026-07-05T11:58:39.487949+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/austrian_gp/austrian_gp_20260628T000000_0000_8b9d974a2f66.prediction_diff.md",
+          "size_bytes": 1369,
+          "sha256": "fa67e0fb500b74fde42f8687fc3c805b73539cd7daeedc909ff8977b8dad43b4",
+          "modified_at": "2026-07-05T11:58:39.488449+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/austrian_gp/austrian_gp_20260628T000000_0000_9d3db7970fda.prediction_diff.json",
+          "size_bytes": 18991,
+          "sha256": "8ba5c3297d23a696efefa48d015f46cf5d99d01978109bdde36cdb0f00a54ac0",
+          "modified_at": "2026-07-05T11:11:21.487441+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/austrian_gp/austrian_gp_20260628T000000_0000_9d3db7970fda.prediction_diff.md",
+          "size_bytes": 1372,
+          "sha256": "714728403baa2fa6f8ddf804fb7289ef8b9942bdac345e3d8a07e69824a9647f",
+          "modified_at": "2026-07-05T11:11:21.488446+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_5d4ca03979ce.prediction_diff.json",
+          "size_bytes": 18932,
+          "sha256": "28095bc4eaf887be5640d84e7af4588227c7b57d352c36d2a93e673d35b51e6e",
+          "modified_at": "2026-07-05T08:41:27.203917+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_5d4ca03979ce.prediction_diff.md",
+          "size_bytes": 1419,
+          "sha256": "92000907620f34c29135bd0a1048180081297093c5665fd0909d8bcb901abc78",
+          "modified_at": "2026-07-05T08:41:27.203917+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_7c675202e4a1.prediction_diff.json",
+          "size_bytes": 18889,
+          "sha256": "ff508d6be693476ef1edd06e56cc2f10182e76d4ea5968b55700ee592ef9707c",
+          "modified_at": "2026-07-05T09:14:45.341286+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_7c675202e4a1.prediction_diff.md",
+          "size_bytes": 1369,
+          "sha256": "a54efc396e0b49e5134403c6778b5a7ac13c7855b7b8d83344d8ce0eb515d1d7",
+          "modified_at": "2026-07-05T09:14:45.341787+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_8504e4465b1c.prediction_diff.json",
+          "size_bytes": 18785,
+          "sha256": "4acb05336072a98f6b7aa5796de1eb08e08c885585fe4e39646ea9a6db312451",
+          "modified_at": "2026-07-05T10:04:50.330101+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_8504e4465b1c.prediction_diff.md",
+          "size_bytes": 1365,
+          "sha256": "b0fd78eb64e6cdf38d730d998cdb5ce08a36646a39f144cf7c1675bd77ceaa6d",
+          "modified_at": "2026-07-05T10:04:50.331167+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_a0bf26eec318.prediction_diff.json",
+          "size_bytes": 18927,
+          "sha256": "211a0d58f1342ddbc17e8fb025ed657f4a4ba003067010a4a4a6560a73d13644",
+          "modified_at": "2026-07-05T09:28:17.444691+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_a0bf26eec318.prediction_diff.md",
+          "size_bytes": 1367,
+          "sha256": "cd797984f8fb4c217dec1e71feb39693b9bb9cbef2968c08c874e2c301cafb9f",
+          "modified_at": "2026-07-05T09:28:17.445190+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_af27a96c1210.prediction_diff.json",
+          "size_bytes": 18854,
+          "sha256": "4c8021225cc7f8b17c40ad8c16748a428b99fc5e92a0bfc2c0a6aac9d6c84aaf",
+          "modified_at": "2026-07-05T08:57:42.290893+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_af27a96c1210.prediction_diff.md",
+          "size_bytes": 1363,
+          "sha256": "c76f9bff9d25a791a305b18b13d6ac30943f46cf461e5e2e525e3bfb713fc69e",
+          "modified_at": "2026-07-05T08:57:42.291399+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_b2abfe5497eb.prediction_diff.json",
+          "size_bytes": 19009,
+          "sha256": "3dc84b28be1651aae0d7bb8c27aa41403ff5f972f3dca24124319771bdd0d610",
+          "modified_at": "2026-07-05T05:10:28.803794+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_b2abfe5497eb.prediction_diff.md",
+          "size_bytes": 1422,
+          "sha256": "0e89d0feb58a278f7618cd8b6e34058efece2e8eaeee3d334e6b4475c7a19b6b",
+          "modified_at": "2026-07-05T05:10:28.803794+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_f9dda72f3ed8.prediction_diff.json",
+          "size_bytes": 19023,
+          "sha256": "5f114e512e01e43ff7c615c5289cccc3b83ff69b7232708145789118778087d0",
+          "modified_at": "2026-07-05T10:29:08.005370+00:00"
+        },
+        {
+          "path": "reports/prediction_diffs/british_gp/british_gp_20260630T120000_0000_f9dda72f3ed8.prediction_diff.md",
+          "size_bytes": 1422,
+          "sha256": "665ee4fb58a87937dd0d4b38931911474cea6621843e5b61d6460fa9a461e341",
+          "modified_at": "2026-07-05T10:29:08.005875+00:00"
+        },
+        {
           "path": "reports/prediction_packets/british_gp/british_gp_20260630T120000_0000.prediction_packet.json",
-          "size_bytes": 488214,
-          "sha256": "ebf127ea15fb1cc833910dbc5f7dfd3789d453bcafab746793526c1ddfa25fe8",
-          "modified_at": "2026-07-01T14:04:35.687608+00:00"
+          "size_bytes": 541361,
+          "sha256": "b2b3ffa9fd8c0e5a93e5bcc2ff52eecb37bd6a207b79a17e3c160dc27ed453fb",
+          "modified_at": "2026-07-03T14:33:40.617455+00:00"
         },
         {
           "path": "reports/prediction_packets/british_gp/british_gp_20260630T120000_0000.prediction_packet.md",
-          "size_bytes": 1901,
-          "sha256": "2fb08dc5d9b0b3dadb976a43948fd50bc34163e46518c2ea55a0152fdefb344d",
-          "modified_at": "2026-07-01T14:04:35.688720+00:00"
+          "size_bytes": 3628,
+          "sha256": "0732224de5d6482bfc9e07877d45b287e671dfe5e5c698c4038e8c0fd7a62484",
+          "modified_at": "2026-07-03T14:33:40.618470+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/austrian_gp/2026-07-05T10_44_03_00_00/austrian_gp/austrian_gp_20260628T000000_0000.prediction_packet.json",
+          "size_bytes": 749784,
+          "sha256": "17ee1390d0029cbd3e97e7a3529e17688e05ca0e5c1cb3a289340adad8ec7dcb",
+          "modified_at": "2026-07-05T10:44:07.278172+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/austrian_gp/2026-07-05T10_44_03_00_00/austrian_gp/austrian_gp_20260628T000000_0000.prediction_packet.md",
+          "size_bytes": 2278,
+          "sha256": "8f0b9ee5405490b79b0880049b171695f57d4346ecebee44a7eb6392ce3ac382",
+          "modified_at": "2026-07-05T10:44:07.279685+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/austrian_gp/2026-07-05T10_53_45_00_00/austrian_gp/austrian_gp_20260628T000000_0000.prediction_packet.json",
+          "size_bytes": 755113,
+          "sha256": "9fdd886a8aaa93a885238c9e098860d87fc4a5a8be723200450f89aaa77abe62",
+          "modified_at": "2026-07-05T10:53:49.448442+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/austrian_gp/2026-07-05T10_53_45_00_00/austrian_gp/austrian_gp_20260628T000000_0000.prediction_packet.md",
+          "size_bytes": 2278,
+          "sha256": "a422f6fb25aa4533f04e6c120549fa3a9d255c9e0d8276f3b43b7e9450ac8525",
+          "modified_at": "2026-07-05T10:53:49.448949+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/austrian_gp/2026-07-05T11_11_17_00_00/austrian_gp/austrian_gp_20260628T000000_0000.prediction_packet.json",
+          "size_bytes": 763681,
+          "sha256": "87cf545bc44a0ed11d99a7c825dbc553bc7cd497ed6819b9921c28812fbbe489",
+          "modified_at": "2026-07-05T11:11:21.426872+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/austrian_gp/2026-07-05T11_11_17_00_00/austrian_gp/austrian_gp_20260628T000000_0000.prediction_packet.md",
+          "size_bytes": 2276,
+          "sha256": "47ece36a31a09f39007b4488d70e64717f11090576bc48ddce96cf10dea90846",
+          "modified_at": "2026-07-05T11:11:21.427879+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/austrian_gp/austrian_gp_20260628T000000_0000.prediction_packet.json",
+          "size_bytes": 823510,
+          "sha256": "b219d48e7bc18fa0fdd5412fb754a9a0642e1ca8412f8b0ebaa4926c755e2799",
+          "modified_at": "2026-07-05T11:58:27.472749+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/austrian_gp/austrian_gp_20260628T000000_0000.prediction_packet.md",
+          "size_bytes": 2277,
+          "sha256": "0261c7b76872ae6cc96dba6b9a0be3769e252ae2d0b5a4c2e7c4cea144c73ad1",
+          "modified_at": "2026-07-05T11:58:27.474763+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/2026-07-05T08_41_22_00_00/british_gp/british_gp_20260630T120000_0000.prediction_packet.json",
+          "size_bytes": 541457,
+          "sha256": "ad182e0949f8870feb2b1d0d74937ae867d2749122b61bb77a22d018ebf77afc",
+          "modified_at": "2026-07-05T08:41:27.159546+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/2026-07-05T08_41_22_00_00/british_gp/british_gp_20260630T120000_0000.prediction_packet.md",
+          "size_bytes": 3626,
+          "sha256": "9a9bdcf3eded289e5e6b450bb315d45a471489dc08d363ecf80303474fd04462",
+          "modified_at": "2026-07-05T08:41:27.160874+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/2026-07-05T08_57_36_00_00/british_gp/british_gp_20260630T120000_0000.prediction_packet.json",
+          "size_bytes": 583506,
+          "sha256": "7f35e4b2dbb629e72f3c022741a133f8c6f738ac07fe6d412c53ed4101158d7e",
+          "modified_at": "2026-07-05T08:57:42.233010+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/2026-07-05T08_57_36_00_00/british_gp/british_gp_20260630T120000_0000.prediction_packet.md",
+          "size_bytes": 3622,
+          "sha256": "07c85f96beb0670beafd729d4b5168aa5ffe838b723978505b21934122b86e2e",
+          "modified_at": "2026-07-05T08:57:42.234011+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/2026-07-05T09_14_37_00_00/british_gp/british_gp_20260630T120000_0000.prediction_packet.json",
+          "size_bytes": 663079,
+          "sha256": "a9e2a0579462d5d5f0540226f30c58abfe6900ef0b13756140a5f83bb448819e",
+          "modified_at": "2026-07-05T09:14:45.279330+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/2026-07-05T09_14_37_00_00/british_gp/british_gp_20260630T120000_0000.prediction_packet.md",
+          "size_bytes": 3623,
+          "sha256": "ea3dbcf08746f9e538c5eef82d444a0b139dbd7faa299000f94ee4fa71dff5d8",
+          "modified_at": "2026-07-05T09:14:45.281348+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/2026-07-05T09_28_11_00_00/british_gp/british_gp_20260630T120000_0000.prediction_packet.json",
+          "size_bytes": 664018,
+          "sha256": "4c0a6c1e29b49662245037c4055bc57fabced234ff7b8549c11c1dbad7c60437",
+          "modified_at": "2026-07-05T09:28:17.393372+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/2026-07-05T09_28_11_00_00/british_gp/british_gp_20260630T120000_0000.prediction_packet.md",
+          "size_bytes": 3979,
+          "sha256": "5d414cb20347722089fb4d805f71bd47c83a409f6ff829d393e47457b3c74d2f",
+          "modified_at": "2026-07-05T09:28:17.393877+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/2026-07-05T10_04_41_00_00/british_gp/british_gp_20260630T120000_0000.prediction_packet.json",
+          "size_bytes": 717692,
+          "sha256": "7bea4020ccae1eca2999a799ddd7a7f55867436c5536a73efcc77a0406e3f07c",
+          "modified_at": "2026-07-05T10:04:50.260422+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/2026-07-05T10_04_41_00_00/british_gp/british_gp_20260630T120000_0000.prediction_packet.md",
+          "size_bytes": 3977,
+          "sha256": "4a8be00e88a54eabc4e9d67372ae521a377870459b84c89d54948c12ddddcac0",
+          "modified_at": "2026-07-05T10:04:50.261939+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/2026-07-05T10_28_51_00_00/british_gp/british_gp_20260630T120000_0000.prediction_packet.json",
+          "size_bytes": 719399,
+          "sha256": "308ecec2720325f01aae54cd07ee3e7b306b6ae86e226171aa71c78adbb38f27",
+          "modified_at": "2026-07-05T10:29:07.942705+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/2026-07-05T10_28_51_00_00/british_gp/british_gp_20260630T120000_0000.prediction_packet.md",
+          "size_bytes": 3979,
+          "sha256": "684f4aa38e118d4c924de17ab14136c41e6b561ba6d093b27254c08f6193e5cf",
+          "modified_at": "2026-07-05T10:29:07.943209+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/british_gp_20260705T000000_0000.prediction_packet.json",
+          "size_bytes": 839205,
+          "sha256": "952f32493d8413616848709cf7ee36aac4a1ad63f9ff91556074f68e4a1cb722",
+          "modified_at": "2026-07-05T11:59:35.863720+00:00"
+        },
+        {
+          "path": "reports/prediction_packets_v2/british_gp/british_gp_20260705T000000_0000.prediction_packet.md",
+          "size_bytes": 3980,
+          "sha256": "51d40be78e19ffc9fd159ef53a8483c87f14abb9185426593d4ab050f80ce7dd",
+          "modified_at": "2026-07-05T11:59:35.864735+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/index.json",
+          "size_bytes": 12198,
+          "sha256": "37f0565beffd0f23f9561a5abb0e84eaee8f00a46c48f3c11532b68eb20e75eb",
+          "modified_at": "2026-07-05T11:59:35.917952+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/austrian_gp/austrian_gp_20260628T000000_0000_20260705T104407_0000_7bd89680e9.prediction_run.json",
+          "size_bytes": 7603,
+          "sha256": "7b9e178c50c372fbc70a24679ff19acb2c6c2ab3de58a733e54da21b4d506cb8",
+          "modified_at": "2026-07-05T10:44:07.322223+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/austrian_gp/austrian_gp_20260628T000000_0000_20260705T105349_0000_417f06244d.prediction_run.json",
+          "size_bytes": 7623,
+          "sha256": "c9aaf70a3046e7e03280c5d58f2fb2b99e372de78643e4e8b0e3471ead0c00f1",
+          "modified_at": "2026-07-05T10:53:49.490463+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/austrian_gp/austrian_gp_20260628T000000_0000_20260705T111121_0000_4e69601269.prediction_run.json",
+          "size_bytes": 7624,
+          "sha256": "eab6ea299f0cad549c16cbd54733810a8d35bbaa9c88f5f1953170fc55b82c59",
+          "modified_at": "2026-07-05T11:11:21.463763+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/austrian_gp/austrian_gp_20260628T000000_0000_20260705T115827_0000_469087c96e.prediction_run.json",
+          "size_bytes": 7471,
+          "sha256": "6006ae044d04798ff8b5d525fff6048418cf712e3509f488570fe96ac8f84caf",
+          "modified_at": "2026-07-05T11:58:27.522600+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/british_gp/british_gp_20260630T120000_0000_20260703T143340_0000_aa1826fbf8.prediction_run.json",
+          "size_bytes": 7627,
+          "sha256": "effe62688b5c70f98f046ddb765a15b79d62b33255bd4beaf0e50eca6593dcb8",
+          "modified_at": "2026-07-05T05:10:16.027128+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/british_gp/british_gp_20260630T120000_0000_20260705T050928_0000_9b94e9e87a.prediction_run.json",
+          "size_bytes": 7606,
+          "sha256": "1a735a861184e71ad869d375a9eb89245ef2d5c8d9a537ff0b5948bd42082ccc",
+          "modified_at": "2026-07-05T05:10:16.041367+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/british_gp/british_gp_20260630T120000_0000_20260705T084127_0000_c3e0679d18.prediction_run.json",
+          "size_bytes": 7711,
+          "sha256": "688470c4ce1caa8365731a0250a42a19a8651aa7bd61238a5f75777bdc371e2c",
+          "modified_at": "2026-07-05T08:41:27.186665+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/british_gp/british_gp_20260630T120000_0000_20260705T085742_0000_18340da940.prediction_run.json",
+          "size_bytes": 7670,
+          "sha256": "f0e31a16b1491272632c26af403dede2cf86c4e657d45d0accac148b329be2e7",
+          "modified_at": "2026-07-05T08:57:42.268292+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/british_gp/british_gp_20260630T120000_0000_20260705T091445_0000_d3dc4862b3.prediction_run.json",
+          "size_bytes": 7693,
+          "sha256": "3557409ec155c6b7ef8a2e7dd8f46a7b31cc68fc04852796d774d907fd08db21",
+          "modified_at": "2026-07-05T09:14:45.317679+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/british_gp/british_gp_20260630T120000_0000_20260705T092817_0000_a3e42a5ba0.prediction_run.json",
+          "size_bytes": 7693,
+          "sha256": "d2f3fd9dd9f8281648ecd2fbcfe9cbcd4b325fb8837421f96aab40f603caeb73",
+          "modified_at": "2026-07-05T09:28:17.424071+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/british_gp/british_gp_20260630T120000_0000_20260705T100450_0000_0e7a405cb7.prediction_run.json",
+          "size_bytes": 7694,
+          "sha256": "7235a68c0397ddb9bdfc4f45ec3819925e0082256e7d77a03025aae9baf786e4",
+          "modified_at": "2026-07-05T10:04:50.302868+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/british_gp/british_gp_20260630T120000_0000_20260705T102907_0000_fbbf086270.prediction_run.json",
+          "size_bytes": 7749,
+          "sha256": "a12fce8aca12373b5a1e86e555c6fc7ca02a1825c81a82d207473edf51cc928c",
+          "modified_at": "2026-07-05T10:29:07.977739+00:00"
+        },
+        {
+          "path": "reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260705T115935_0000_9e3dfa22c3.prediction_run.json",
+          "size_bytes": 7593,
+          "sha256": "2133b8cf0338adae7027f9082a5e44dd4a665b942a4a719d63ebd02c81a98aa7",
+          "modified_at": "2026-07-05T11:59:35.916448+00:00"
         },
         {
           "path": "reports/readiness_intake/2026_asof_20260630T000000_0000/README.md",
@@ -3260,15 +4725,15 @@
         },
         {
           "path": "reports/readiness_intake/2026_asof_20260701T000000_0000/README.md",
-          "size_bytes": 3412,
-          "sha256": "f79954b41290b222ff68eec15637a4596dd7adbe29372fa350589c9df8fc1212",
-          "modified_at": "2026-07-01T16:27:14.344459+00:00"
+          "size_bytes": 4103,
+          "sha256": "4f040ff34065c68ac7fdaf38652a10137abb8cf2fdfb046fabc683a3172ab465",
+          "modified_at": "2026-07-01T16:51:28.185724+00:00"
         },
         {
           "path": "reports/readiness_intake/2026_asof_20260701T000000_0000/intake_manifest.json",
           "size_bytes": 4587,
-          "sha256": "2eec435ee1b6f34b2ff17fd7447787d7134107ec7e279fdb5ba0d876b3bc7ae1",
-          "modified_at": "2026-07-01T16:27:14.344459+00:00"
+          "sha256": "b2cd7d0c940ab1ac465f3f7bfd85909f26e0766e70517d0583b1b577adef3ebc",
+          "modified_at": "2026-07-01T16:51:28.184532+00:00"
         },
         {
           "path": "reports/readiness_intake/2026_asof_20260701T000000_0000/verification.json",
@@ -3284,9 +4749,9 @@
         },
         {
           "path": "reports/replay/2026_asof_20260701T000000_0000.json",
-          "size_bytes": 33472,
-          "sha256": "5b238f28eba52ad6c432e0c32f88d5c47d2a0327593c534ecf1f79f6eeee9c05",
-          "modified_at": "2026-07-01T13:33:15.920980+00:00"
+          "size_bytes": 38730,
+          "sha256": "4db2b65d1a54cb098ed73d2a11b2fc2b07ed0261407101ec068decef147ad55b",
+          "modified_at": "2026-07-05T12:11:16.607098+00:00"
         },
         {
           "path": "reports/replay_analysis/2026_asof_20260630T000000_0000.analysis.json",
@@ -3302,15 +4767,39 @@
         },
         {
           "path": "reports/replay_analysis/2026_asof_20260701T000000_0000.analysis.json",
-          "size_bytes": 79602,
-          "sha256": "19e9a17efe91b2d929fd2e133b87891a3446cc5da99b94a4f140a55acc0fc145",
-          "modified_at": "2026-07-01T14:06:32.523334+00:00"
+          "size_bytes": 84123,
+          "sha256": "9a4104c8f00be30969ad4b0add6c656ce87455d4f481b6bf6ae91dfd2b482caa",
+          "modified_at": "2026-07-05T12:13:38.115027+00:00"
         },
         {
           "path": "reports/replay_analysis/2026_asof_20260701T000000_0000.analysis.md",
-          "size_bytes": 16173,
-          "sha256": "0831dd74a5155a4dc220219e527bc70938b47d4596630a595a058084d5692679",
-          "modified_at": "2026-07-01T14:06:32.524334+00:00"
+          "size_bytes": 16647,
+          "sha256": "7a68f237e2e7dab1385e54c7a6e2074cf81fb5b11e5c60eedb3f29812750e406",
+          "modified_at": "2026-07-05T12:13:38.116032+00:00"
+        },
+        {
+          "path": "reports/research_candidates/british_gp.json",
+          "size_bytes": 6180,
+          "sha256": "a8724384ae63ded9f077d186b8cf31d60b7e708c6dcebd4fb56f99435face8b2",
+          "modified_at": "2026-07-03T13:45:14.190247+00:00"
+        },
+        {
+          "path": "reports/research_candidates/british_gp.md",
+          "size_bytes": 817,
+          "sha256": "89e71a464d52ddd8ad7e7e96177ddb8424b8023d1817c71e8453aea5d7fcf51d",
+          "modified_at": "2026-07-03T13:45:14.192253+00:00"
+        },
+        {
+          "path": "reports/research_preflight/british_gp.json",
+          "size_bytes": 3210,
+          "sha256": "b816f88d11a74c43958ae8f3a97a38f0e44494f6611f044de07346caa29f23e8",
+          "modified_at": "2026-07-03T13:46:37.950199+00:00"
+        },
+        {
+          "path": "reports/research_preflight/british_gp.md",
+          "size_bytes": 1108,
+          "sha256": "823cda090687f8fd33c3e5408b5052c3d138738ea03a9568e517abda03c05184",
+          "modified_at": "2026-07-03T13:46:37.951235+00:00"
         },
         {
           "path": "reports/season_forecast/2026_asof_20260630T000000_0000.json",
@@ -3329,6 +4818,30 @@
           "size_bytes": 2247,
           "sha256": "6c7ea3bcaa184f6950c4cc7b5dcc60317bb0b144c4568242c8ecd9f391a77ffc",
           "modified_at": "2026-07-01T05:09:28.988489+00:00"
+        },
+        {
+          "path": "reports/simulator_calibration/2026_asof_20260701T000000_0000.simulator_calibration.json",
+          "size_bytes": 34534,
+          "sha256": "e6cca1eb9fcdf64558318d00eb8e55c7f4b82c75411ae9257cf32c894c4c9013",
+          "modified_at": "2026-07-03T12:11:34.734596+00:00"
+        },
+        {
+          "path": "reports/simulator_calibration/2026_asof_20260701T000000_0000.simulator_calibration.md",
+          "size_bytes": 2247,
+          "sha256": "6aee2ff0cb69d6050b67fcbfcf808559079ab2e74ad73fc5d6af4c40000df420",
+          "modified_at": "2026-07-03T12:11:34.737595+00:00"
+        },
+        {
+          "path": "reports/simulator_calibration_v2_fastf1_momentum/2026_asof_20260701T000000_0000.simulator_calibration.json",
+          "size_bytes": 34629,
+          "sha256": "c0a83e8c5f47988243b368372e06516981e2638801e5657efaeb0339fe2f9bb2",
+          "modified_at": "2026-07-05T09:21:05.850610+00:00"
+        },
+        {
+          "path": "reports/simulator_calibration_v2_fastf1_momentum/2026_asof_20260701T000000_0000.simulator_calibration.md",
+          "size_bytes": 2242,
+          "sha256": "91feef500ba75ca60396aaa190771e535d363593f1583f4de16fd000f46705d2",
+          "modified_at": "2026-07-05T09:21:05.851124+00:00"
         },
         {
           "path": "reports/source_archives/barcelona_gp_cdx_discovery.json",
@@ -3387,5 +4900,5 @@
       ]
     }
   ],
-  "manifest_payload_sha256": "74c25ef86c87c66a8c62614b9736bdb9853f73befb9ec3dac38265f21fdbf70c"
+  "manifest_payload_sha256": "d8d70aad8dd062195c44d65a4356c1287878daddb69456a124d908f79292fb9a"
 }

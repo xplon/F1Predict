@@ -1,13 +1,13 @@
 {
   "year": 2026,
   "as_of": "2026-07-01T00:00:00+00:00",
-  "generated_at": "2026-07-01T16:51:28.235793+00:00",
+  "generated_at": "2026-07-05T12:15:58.279695+00:00",
   "status": "inputs_required",
   "formal_backtest_ready": false,
   "blocking_action_count": 9,
-  "warning_action_count": 7,
+  "warning_action_count": 6,
   "action_category_counts": {
-    "model_calibration_review": 5,
+    "model_calibration_review": 4,
     "after_cutoff_market_replacement": 2,
     "market_snapshot_required": 6,
     "source_archive_required": 3
@@ -504,12 +504,11 @@
       "severity": "medium",
       "blocks_formal_claim": false,
       "blocking_action_count": 0,
-      "warning_action_count": 5,
+      "warning_action_count": 4,
       "event_ids": [
         "australian_gp",
         "austrian_gp",
         "barcelona_gp",
-        "miami_gp",
         "monaco_gp"
       ],
       "success_criteria": [
@@ -520,7 +519,6 @@
         "python -m f1predict.cli predict --event australian_gp --knowledge-cutoff 2026-03-08T00:00:00+00:00 --iterations 5000",
         "python -m f1predict.cli predict --event austrian_gp --knowledge-cutoff 2026-06-28T00:00:00+00:00 --iterations 5000",
         "python -m f1predict.cli predict --event barcelona_gp --knowledge-cutoff 2026-06-14T00:00:00+00:00 --iterations 5000",
-        "python -m f1predict.cli predict --event miami_gp --knowledge-cutoff 2026-05-03T00:00:00+00:00 --iterations 5000",
         "python -m f1predict.cli predict --event monaco_gp --knowledge-cutoff 2026-06-07T00:00:00+00:00 --iterations 5000"
       ],
       "actions": [
@@ -534,10 +532,10 @@
           "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
           "required_by": null,
           "details": {
-            "top_pick": "verstappen",
+            "top_pick": "antonelli",
             "actual_winner": "russell",
-            "actual_winner_probability": 0.1625,
-            "actual_winner_rank": 4,
+            "actual_winner_probability": 0.2042,
+            "actual_winner_rank": 3,
             "max_evidence_win_delta": 0.0
           },
           "command_templates": [
@@ -556,8 +554,8 @@
           "details": {
             "top_pick": "antonelli",
             "actual_winner": "russell",
-            "actual_winner_probability": 0.2192,
-            "actual_winner_rank": 3,
+            "actual_winner_probability": 0.2267,
+            "actual_winner_rank": 2,
             "max_evidence_win_delta": 0.0
           },
           "command_templates": [
@@ -576,32 +574,12 @@
           "details": {
             "top_pick": "antonelli",
             "actual_winner": "hamilton",
-            "actual_winner_probability": 0.1325,
+            "actual_winner_probability": 0.0858,
             "actual_winner_rank": 4,
-            "max_evidence_win_delta": 0.0008
-          },
-          "command_templates": [
-            "python -m f1predict.cli predict --event barcelona_gp --knowledge-cutoff 2026-06-14T00:00:00+00:00 --iterations 5000"
-          ]
-        },
-        {
-          "action_id": "miami_gp:model_calibration",
-          "event_id": "miami_gp",
-          "event_name": "Miami Grand Prix",
-          "category": "model_calibration_review",
-          "severity": "medium",
-          "blocks_formal_claim": false,
-          "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
-          "required_by": null,
-          "details": {
-            "top_pick": "verstappen",
-            "actual_winner": "antonelli",
-            "actual_winner_probability": 0.2283,
-            "actual_winner_rank": 2,
             "max_evidence_win_delta": 0.0
           },
           "command_templates": [
-            "python -m f1predict.cli predict --event miami_gp --knowledge-cutoff 2026-05-03T00:00:00+00:00 --iterations 5000"
+            "python -m f1predict.cli predict --event barcelona_gp --knowledge-cutoff 2026-06-14T00:00:00+00:00 --iterations 5000"
           ]
         },
         {
@@ -616,7 +594,7 @@
           "details": {
             "top_pick": "verstappen",
             "actual_winner": "antonelli",
-            "actual_winner_probability": 0.2467,
+            "actual_winner_probability": 0.2942,
             "actual_winner_rank": 2,
             "max_evidence_win_delta": 0.0
           },
@@ -646,10 +624,10 @@
           "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
           "required_by": null,
           "details": {
-            "top_pick": "verstappen",
+            "top_pick": "antonelli",
             "actual_winner": "russell",
-            "actual_winner_probability": 0.1625,
-            "actual_winner_rank": 4,
+            "actual_winner_probability": 0.2042,
+            "actual_winner_rank": 3,
             "max_evidence_win_delta": 0.0
           },
           "command_templates": [
@@ -847,7 +825,7 @@
       "date_end": "2026-05-03T19:00:00+00:00",
       "status": "blocked",
       "blocking_action_count": 2,
-      "warning_action_count": 1,
+      "warning_action_count": 0,
       "actions": [
         {
           "action_id": "miami_gp:market_snapshot",
@@ -908,26 +886,6 @@
           "command_templates": [
             "python -m f1predict.cli discover-source-archives --event miami_gp --write --output reports\\source_archives\\miami_gp_wayback.json",
             "python -m f1predict.cli snapshot-source --event miami_gp --url https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5 --source <source-name> --source-class <class> --published-at <published-at> --observed-at <observed-before-cutoff> --knowledge-cutoff 2026-05-03T00:00:00+00:00 --historical-archive-url <archive-url> --historical-archived-at <archived-before-cutoff> --historical-original-url https://www.formula1.com/en/latest/article/antonelli-storms-to-miami-grand-prix-pole-ahead-of-verstappen-and-leclerc.RV6Gs6Sku3GUiB4V4hki5 --historical-verification-method wayback"
-          ]
-        },
-        {
-          "action_id": "miami_gp:model_calibration",
-          "event_id": "miami_gp",
-          "event_name": "Miami Grand Prix",
-          "category": "model_calibration_review",
-          "severity": "medium",
-          "blocks_formal_claim": false,
-          "summary": "The actual winner was not the top pick in diagnostic replay; inspect probability rank after blocking input gaps are fixed.",
-          "required_by": null,
-          "details": {
-            "top_pick": "verstappen",
-            "actual_winner": "antonelli",
-            "actual_winner_probability": 0.2283,
-            "actual_winner_rank": 2,
-            "max_evidence_win_delta": 0.0
-          },
-          "command_templates": [
-            "python -m f1predict.cli predict --event miami_gp --knowledge-cutoff 2026-05-03T00:00:00+00:00 --iterations 5000"
           ]
         }
       ]
@@ -1054,7 +1012,7 @@
           "details": {
             "top_pick": "verstappen",
             "actual_winner": "antonelli",
-            "actual_winner_probability": 0.2467,
+            "actual_winner_probability": 0.2942,
             "actual_winner_rank": 2,
             "max_evidence_win_delta": 0.0
           },
@@ -1145,9 +1103,9 @@
           "details": {
             "top_pick": "antonelli",
             "actual_winner": "hamilton",
-            "actual_winner_probability": 0.1325,
+            "actual_winner_probability": 0.0858,
             "actual_winner_rank": 4,
-            "max_evidence_win_delta": 0.0008
+            "max_evidence_win_delta": 0.0
           },
           "command_templates": [
             "python -m f1predict.cli predict --event barcelona_gp --knowledge-cutoff 2026-06-14T00:00:00+00:00 --iterations 5000"
@@ -1206,8 +1164,8 @@
           "details": {
             "top_pick": "antonelli",
             "actual_winner": "russell",
-            "actual_winner_probability": 0.2192,
-            "actual_winner_rank": 3,
+            "actual_winner_probability": 0.2267,
+            "actual_winner_rank": 2,
             "max_evidence_win_delta": 0.0
           },
           "command_templates": [

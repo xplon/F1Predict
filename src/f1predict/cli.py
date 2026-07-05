@@ -423,6 +423,12 @@ def main() -> None:
     ingest_fastf1_results.add_argument("--session", default="R")
     ingest_fastf1_results.add_argument("--as-of", default=None, help="Batch all due race sessions up to this UTC cutoff")
 
+    ingest_fastf1_laps = sub.add_parser("ingest-fastf1-laps", help="Snapshot FastF1 session lap timing")
+    ingest_fastf1_laps.add_argument("--year", type=int, required=True)
+    ingest_fastf1_laps.add_argument("--event", default=None, help="FastF1 event name or location query")
+    ingest_fastf1_laps.add_argument("--round", type=int, default=None, help="FastF1 round number")
+    ingest_fastf1_laps.add_argument("--session", default="FP2")
+
     ingest_official = sub.add_parser("ingest-f1-official", help="Snapshot F1 official HTML page")
     ingest_official.add_argument("--year", type=int, required=True)
     ingest_official.add_argument("--page", choices=["calendar", "drivers", "teams"], required=True)
@@ -1138,6 +1144,12 @@ def main() -> None:
             if event is None:
                 raise ValueError("Provide --event, --round, or --as-of for ingest-fastf1-results")
             result = ingestor.ingest_fastf1_results(year=args.year, event=event, session=args.session)
+        print(json.dumps(result.to_dict(), ensure_ascii=False, indent=2))
+    elif args.command == "ingest-fastf1-laps":
+        event = args.round if args.round is not None else args.event
+        if event is None:
+            raise ValueError("Provide --event or --round for ingest-fastf1-laps")
+        result = LiveIngestor().ingest_fastf1_session_laps(year=args.year, event=event, session=args.session)
         print(json.dumps(result.to_dict(), ensure_ascii=False, indent=2))
     elif args.command == "ingest-f1-official":
         result = LiveIngestor().ingest_f1_official_page(page=args.page, year=args.year)

@@ -94,11 +94,14 @@ class OpenF1SummaryBuilder:
         drivers = {}
         for driver_number, laps in by_driver.items():
             clean = sorted(laps)
+            fast_window = clean[: min(len(clean), 10)]
             drivers[driver_number] = {
                 "lap_count": len(clean),
                 "fastest_lap": round(min(clean), 3),
                 "median_lap": round(median(clean), 3),
-                "fast_10_avg": round(mean(clean[: min(len(clean), 10)]), 3),
+                "fast_5_avg": round(mean(clean[: min(len(clean), 5)]), 3),
+                "fast_10_avg": round(mean(fast_window), 3),
+                "long_run_proxy": round(mean(fast_window), 3),
             }
         fastest = sorted(
             (
@@ -110,6 +113,7 @@ class OpenF1SummaryBuilder:
         return {
             "lap_count": len(rows),
             "driver_count": len(drivers),
+            "driver_stats": fastest,
             "fastest_drivers": fastest[:10],
         }
 

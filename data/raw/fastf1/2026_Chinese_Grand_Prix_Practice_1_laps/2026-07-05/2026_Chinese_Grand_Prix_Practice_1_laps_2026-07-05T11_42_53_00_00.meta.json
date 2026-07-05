@@ -1,0 +1,14 @@
+{
+  "source": "fastf1",
+  "dataset": "2026_Chinese Grand Prix_Practice 1_laps",
+  "captured_at": "2026-07-05T11:42:53+00:00",
+  "params": {
+    "year": 2026,
+    "event": "Chinese Grand Prix",
+    "resolved_event": "Chinese Grand Prix",
+    "session": "FP1",
+    "session_name": "Practice 1"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\fastf1\\2026_Chinese_Grand_Prix_Practice_1_laps\\2026-07-05\\2026_Chinese_Grand_Prix_Practice_1_laps_2026-07-05T11_42_53_00_00.json"
+}
