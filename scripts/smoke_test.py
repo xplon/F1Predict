@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 import json
 
+from f1predict.api_v2 import BackendApiV2
 from f1predict.backtest import Backtester
 from f1predict.calibration import ReplayCalibrationBuilder
 from f1predict.chronological_replay import ChronologicalReplayBundleBuilder
@@ -237,6 +238,28 @@ def main() -> None:
     assert (
         british_event_technical_profile.ers_demand > static_british_profile.ers_demand
     ), "Silverstone geometry should slightly raise ERS demand above the coarse high-speed bucket"
+    api_v2 = BackendApiV2(Path.cwd())
+    assert "/api/v2/prediction-runs" in api_v2.handle_get("/api/v2/openapi.json", {}).payload[
+        "paths"
+    ], "API v2 should publish prediction-run endpoint definitions"
+    api_health = api_v2.handle_get("/api/v2/health", {}).payload
+    assert (
+        api_health["driver_count"] == len(season.drivers) == 22
+    ), "API v2 health should expose the verified 2026 22-driver roster"
+    api_season = api_v2.handle_get("/api/v2/season-state", {}).payload
+    assert (
+        api_season["team_count"] == len(season.teams) == 11
+    ), "API v2 season-state should expose the verified 2026 11-team roster"
+    api_intake = api_v2.handle_get(
+        "/api/v2/information-intake",
+        {
+            "event_id": ["british_gp"],
+            "knowledge_cutoff": ["2026-06-30T12:00:00+00:00"],
+        },
+    ).payload
+    assert api_intake["claim_count"] >= 1, "API v2 should preview cutoff-valid information intake"
+    api_runs = api_v2.handle_get("/api/v2/prediction-runs", {"event_id": ["british_gp"]}).payload
+    assert api_runs["run_count"] >= 1, "API v2 should list registered prediction runs"
     high_altitude_refs = {
         "weather_profile": {"elevation_m": 2240.0},
         "circuit_profile": {

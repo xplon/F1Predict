@@ -9,6 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+from f1predict.api_v2 import BackendApiV2
 from f1predict.backtest import Backtester
 from f1predict.calibration import ReplayCalibrationBuilder
 from f1predict.chronological_replay import ChronologicalReplayBundleBuilder
@@ -34,9 +35,20 @@ WEB_ROOT = ROOT / "web"
 
 class AppHandler(BaseHTTPRequestHandler):
     pipeline = PredictionPipeline(iterations=3000)
+    api_v2 = BackendApiV2(ROOT)
 
     def do_GET(self) -> None:  # noqa: N802 - stdlib API.
         parsed = urlparse(self.path)
+        query = parse_qs(parsed.query)
+        if parsed.path.startswith("/api/v2/") or parsed.path == "/api/v2":
+            try:
+                response = self.api_v2.handle_get(parsed.path, query)
+            except Exception as exc:  # noqa: BLE001
+                self._json({"error": str(exc)}, status=400)
+                return
+            if response is not None:
+                self._json(response.payload, status=response.status)
+                return
         if parsed.path == "/api/events":
             self._json(self.pipeline.list_events())
             return
@@ -436,8 +448,35 @@ class AppHandler(BaseHTTPRequestHandler):
 
         self._static(parsed.path)
 
+    def do_POST(self) -> None:  # noqa: N802 - stdlib API.
+        parsed = urlparse(self.path)
+        query = parse_qs(parsed.query)
+        if parsed.path.startswith("/api/v2/") or parsed.path == "/api/v2":
+            try:
+                body = self._request_json()
+                response = self.api_v2.handle_post(parsed.path, query, body)
+            except Exception as exc:  # noqa: BLE001
+                self._json({"error": str(exc)}, status=400)
+                return
+            if response is not None:
+                self._json(response.payload, status=response.status)
+                return
+        self._json({"error": "unknown_post_route", "path": parsed.path}, status=404)
+
     def log_message(self, fmt: str, *args: object) -> None:
         return
+
+    def _request_json(self) -> dict[str, object]:
+        length = int(self.headers.get("Content-Length") or "0")
+        if length <= 0:
+            return {}
+        body = self.rfile.read(length)
+        if not body.strip():
+            return {}
+        payload = json.loads(body.decode("utf-8"))
+        if not isinstance(payload, dict):
+            raise ValueError("JSON request body must be an object")
+        return payload
 
     def _json(self, payload: object, status: int = 200) -> None:
         body = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")

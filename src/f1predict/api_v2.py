@@ -1,0 +1,356 @@
+"""Backend API v2 service layer.
+
+The HTTP server delegates to this module, but the code is intentionally free of
+web-framework dependencies so tests and CLI tools can call the same backend
+workflow directly.
+"""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+from f1predict.domain import utc_now
+from f1predict.intelligence.codex import CodexEvidenceProvider
+from f1predict.pipeline import PredictionPipeline
+from f1predict.prediction_packet import PredictionPacketBuilder
+from f1predict.run_tracking import InformationIntakeStore, MatchedPredictionDiff, PredictionRunRegistry
+from f1predict.storage import safe_name
+
+
+API_VERSION = "v2"
+
+
+@dataclass(frozen=True)
+class ApiResponse:
+    payload: dict[str, Any] | list[Any]
+    status: int = 200
+
+
+class BackendApiV2:
+    """Implements the backend-only v2 API contract."""
+
+    def __init__(self, root: Path | str | None = None) -> None:
+        self.root = Path(root) if root is not None else Path(__file__).resolve().parents[2]
+        self.registry = PredictionRunRegistry(self.root / "reports" / "prediction_runs")
+        self.intake_store = InformationIntakeStore(
+            root=self.root / "data" / "intake",
+            evidence_provider=CodexEvidenceProvider(
+                evidence_dir=self.root / "data" / "seed" / "evidence",
+                packet_root=self.root / "data" / "evidence",
+            ),
+            research_root=self.root / "data" / "research",
+            reports_root=self.root / "reports",
+        )
+
+    def handle_get(self, path: str, query: dict[str, list[str]]) -> ApiResponse | None:
+        if not path.startswith("/api/v2/"):
+            return None
+        route = path.removeprefix("/api/v2")
+        if route in {"", "/"}:
+            return ApiResponse(self.index())
+        if route == "/openapi.json":
+            return ApiResponse(self.openapi())
+        if route == "/health":
+            return ApiResponse(self.health())
+        if route == "/verified-facts":
+            return ApiResponse(self.verified_facts())
+        if route == "/season-state":
+            return ApiResponse(self.season_state())
+        if route == "/information-intake":
+            event_id = _first(query, "event_id", "british_gp")
+            cutoff = _first(query, "knowledge_cutoff", None)
+            record = self.intake_store.build(event_id, knowledge_cutoff=cutoff)
+            return ApiResponse(record.to_dict())
+        if route == "/prediction-runs":
+            event_id = _first(query, "event_id", None)
+            rows = [record.to_dict() for record in self.registry.list_records(event_id=event_id)]
+            return ApiResponse({"run_count": len(rows), "runs": rows})
+        if route == "/prediction-runs/latest":
+            event_id = _first(query, "event_id", "british_gp")
+            cutoff = _first(query, "knowledge_cutoff", None)
+            record = self.registry.latest(event_id, knowledge_cutoff=cutoff)
+            if record is None:
+                return ApiResponse({"error": "prediction_run_not_found", "event_id": event_id}, status=404)
+            return ApiResponse(record.to_dict())
+        if route.startswith("/prediction-runs/"):
+            run_id = route.removeprefix("/prediction-runs/").strip("/")
+            if not run_id:
+                return ApiResponse({"error": "missing_run_id"}, status=400)
+            return ApiResponse(self.registry.load(run_id).to_dict())
+        if route == "/prediction-diffs":
+            event_id = _first(query, "event_id", None)
+            return ApiResponse(self._list_prediction_diffs(event_id=event_id))
+        if route.startswith("/prediction-diffs/"):
+            diff_id = route.removeprefix("/prediction-diffs/").strip("/")
+            payload = self._load_prediction_diff(diff_id)
+            if payload is None:
+                return ApiResponse({"error": "prediction_diff_not_found", "diff_id": diff_id}, status=404)
+            return ApiResponse(payload)
+        return ApiResponse({"error": "unknown_api_v2_route", "path": path}, status=404)
+
+    def handle_post(self, path: str, query: dict[str, list[str]], body: dict[str, Any]) -> ApiResponse | None:
+        if not path.startswith("/api/v2/"):
+            return None
+        route = path.removeprefix("/api/v2")
+        if route == "/information-intake":
+            event_id = str(body.get("event_id") or _first(query, "event_id", "british_gp"))
+            cutoff = body.get("knowledge_cutoff") or _first(query, "knowledge_cutoff", None)
+            record, artifact_path = self.intake_store.build_and_write(event_id, knowledge_cutoff=cutoff)
+            payload = record.to_dict()
+            payload["path"] = str(_relative_to_root(artifact_path, self.root))
+            return ApiResponse(payload, status=201)
+        if route == "/prediction-runs":
+            payload = self.create_prediction_run(body, query=query)
+            return ApiResponse(payload, status=201)
+        if route == "/prediction-diffs":
+            base_run_id = str(body.get("base_run_id") or body.get("base_run") or "")
+            candidate_run_id = str(body.get("candidate_run_id") or body.get("candidate_run") or "")
+            if not base_run_id or not candidate_run_id:
+                return ApiResponse({"error": "base_run_id_and_candidate_run_id_required"}, status=400)
+            write = bool(body.get("write", True))
+            output_dir = body.get("output_dir") or self.root / "reports" / "prediction_diffs"
+            differ = MatchedPredictionDiff(self.registry, output_dir=Path(output_dir))
+            diff = differ.build(base_run_id, candidate_run_id)
+            result = diff.to_dict()
+            if write:
+                paths = differ.write(diff)
+                result["paths"] = {key: str(_relative_to_root(path, self.root)) for key, path in paths.items()}
+            return ApiResponse(result, status=201)
+        return ApiResponse({"error": "unknown_api_v2_route", "path": path}, status=404)
+
+    def create_prediction_run(
+        self,
+        body: dict[str, Any],
+        query: dict[str, list[str]] | None = None,
+    ) -> dict[str, Any]:
+        query = query or {}
+        event_id = str(body.get("event_id") or _first(query, "event_id", "british_gp"))
+        cutoff = body.get("knowledge_cutoff") or _first(query, "knowledge_cutoff", None)
+        iterations = int(body.get("iterations") or _first(query, "iterations", "1200"))
+        output_dir = Path(body.get("output_dir") or self._default_prediction_packet_output_dir(event_id))
+        register = bool(body.get("register", True))
+        write_intake = bool(body.get("write_information_intake", True))
+        compare_to_latest = bool(body.get("compare_to_latest", True))
+        base_run_id = body.get("base_run_id")
+
+        base_record = None
+        if base_run_id:
+            base_record = self.registry.load(str(base_run_id))
+        elif compare_to_latest:
+            base_record = self.registry.latest(event_id, knowledge_cutoff=cutoff)
+
+        intake_record = None
+        intake_path = None
+        if write_intake:
+            intake_record, intake_path = self.intake_store.build_and_write(event_id, knowledge_cutoff=cutoff)
+
+        builder = PredictionPacketBuilder(PredictionPipeline(iterations=iterations), reports_root=self.root / "reports")
+        packet_paths = builder.write(
+            event_id,
+            knowledge_cutoff=cutoff,
+            iterations=iterations,
+            output_dir=output_dir,
+        )
+        result: dict[str, Any] = {
+            "event_id": event_id,
+            "knowledge_cutoff": cutoff,
+            "iterations": iterations,
+            "prediction_packet_paths": {
+                key: str(_relative_to_root(path, self.root))
+                for key, path in packet_paths.items()
+            },
+            "information_intake": intake_record.to_dict() if intake_record else None,
+            "information_intake_path": str(_relative_to_root(intake_path, self.root)) if intake_path else None,
+            "registered": False,
+            "prediction_run": None,
+            "comparison": None,
+        }
+        if not register:
+            return result
+
+        record = self.registry.register_packet(packet_paths["json"], information_intake_path=intake_path)
+        result["registered"] = True
+        result["prediction_run"] = record.to_dict()
+        if base_record is not None and base_record.run_id != record.run_id:
+            differ = MatchedPredictionDiff(self.registry, output_dir=self.root / "reports" / "prediction_diffs")
+            diff = differ.build(base_record.run_id, record.run_id)
+            diff_paths = differ.write(diff)
+            result["comparison"] = {
+                "base_run_id": base_record.run_id,
+                "candidate_run_id": record.run_id,
+                "diff": diff.to_dict(),
+                "paths": {
+                    key: str(_relative_to_root(path, self.root))
+                    for key, path in diff_paths.items()
+                },
+            }
+        return result
+
+    def _default_prediction_packet_output_dir(self, event_id: str) -> Path:
+        timestamp = safe_name(utc_now().replace(microsecond=0).isoformat())
+        return self.root / "reports" / "prediction_packets_v2" / safe_name(event_id) / timestamp
+
+    def index(self) -> dict[str, Any]:
+        return {
+            "api": "f1predict_backend",
+            "version": API_VERSION,
+            "openapi": "/api/v2/openapi.json",
+            "health": "/api/v2/health",
+            "primary_workflow": [
+                "POST /api/v2/information-intake",
+                "POST /api/v2/prediction-runs",
+                "POST /api/v2/prediction-diffs",
+            ],
+        }
+
+    def health(self) -> dict[str, Any]:
+        season = PredictionPipeline(iterations=1).data_source.load()
+        latest_british = self.registry.latest("british_gp")
+        return {
+            "status": "ok",
+            "api_version": API_VERSION,
+            "backend_only": True,
+            "season": season.season,
+            "team_count": len(season.teams),
+            "driver_count": len(season.drivers),
+            "event_count": len(season.events),
+            "latest_british_gp_run_id": latest_british.run_id if latest_british else None,
+            "expectation_doc": "docs/user_project_expectations_cn.md",
+            "api_design_doc": "docs/backend_api_v2_cn.md",
+            "verified_facts_doc": "docs/verified_facts_2026_cn.md",
+        }
+
+    def verified_facts(self) -> dict[str, Any]:
+        return {
+            "facts": [
+                {
+                    "fact_id": "2026_f1_roster_11_teams_22_drivers",
+                    "status": "verified",
+                    "verified_on": "2026-07-05",
+                    "source": "Formula 1 official teams page",
+                    "source_url": "https://www.formula1.com/en/teams",
+                    "claim": "2026 season lists 11 teams and 22 drivers, including Cadillac with Sergio Perez and Valtteri Bottas.",
+                    "local_artifact": "docs/verified_facts_2026_cn.md",
+                }
+            ]
+        }
+
+    def season_state(self) -> dict[str, Any]:
+        season = PredictionPipeline(iterations=1).data_source.load()
+        teams = [
+            {
+                "team_id": team.team_id,
+                "name": team.name,
+                "drivers": [
+                    {"driver_id": driver.driver_id, "name": driver.name}
+                    for driver in season.drivers.values()
+                    if driver.team_id == team.team_id
+                ],
+            }
+            for team in season.teams.values()
+        ]
+        events = [
+            {
+                "event_id": event.event_id,
+                "name": event.name,
+                "round_number": event.round_number,
+                "date": event.date,
+                "completed": event.completed,
+                "track_type": event.track_type,
+            }
+            for event in season.events
+        ]
+        return {
+            "season": season.season,
+            "team_count": len(season.teams),
+            "driver_count": len(season.drivers),
+            "event_count": len(season.events),
+            "teams": teams,
+            "events": events,
+            "verified_fact_refs": ["2026_f1_roster_11_teams_22_drivers"],
+        }
+
+    def openapi(self) -> dict[str, Any]:
+        return {
+            "openapi": "3.0.3",
+            "info": {
+                "title": "F1Predict Backend API",
+                "version": API_VERSION,
+                "description": "Backend-only API for information intake, prediction runs, and matched prediction diffs.",
+            },
+            "paths": {
+                "/api/v2/health": {"get": {"summary": "Backend health and roster counts"}},
+                "/api/v2/verified-facts": {"get": {"summary": "Verified real-world facts used by the backend"}},
+                "/api/v2/season-state": {"get": {"summary": "Current local season roster and event state"}},
+                "/api/v2/information-intake": {
+                    "get": {"summary": "Preview structured information available for an event"},
+                    "post": {"summary": "Build and persist an information intake artifact"},
+                },
+                "/api/v2/prediction-runs": {
+                    "get": {"summary": "List registered prediction runs"},
+                    "post": {"summary": "Build a prediction packet, register a run, and optionally compare to latest"},
+                },
+                "/api/v2/prediction-runs/latest": {"get": {"summary": "Fetch latest registered run for an event"}},
+                "/api/v2/prediction-runs/{run_id}": {"get": {"summary": "Fetch one registered prediction run"}},
+                "/api/v2/prediction-diffs": {
+                    "get": {"summary": "List stored prediction diff artifacts"},
+                    "post": {"summary": "Build a matched diff between two registered runs"},
+                },
+                "/api/v2/prediction-diffs/{diff_id}": {"get": {"summary": "Fetch one stored prediction diff"}},
+            },
+        }
+
+    def _list_prediction_diffs(self, event_id: str | None = None) -> dict[str, Any]:
+        root = self.root / "reports" / "prediction_diffs"
+        rows = []
+        if root.exists():
+            for path in sorted(root.rglob("*.prediction_diff.json")):
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                if event_id and payload.get("event_id") != event_id:
+                    continue
+                rows.append(
+                    {
+                        "diff_id": payload.get("diff_id"),
+                        "event_id": payload.get("event_id"),
+                        "generated_at": payload.get("generated_at"),
+                        "base_run_id": payload.get("base_run_id"),
+                        "candidate_run_id": payload.get("candidate_run_id"),
+                        "probability_changed": payload.get("probability_changed"),
+                        "evidence_changed": payload.get("evidence_changed"),
+                        "summary": payload.get("summary", {}),
+                        "path": str(_relative_to_root(path, self.root)),
+                    }
+                )
+        return {"diff_count": len(rows), "diffs": rows}
+
+    def _load_prediction_diff(self, diff_id: str) -> dict[str, Any] | None:
+        root = self.root / "reports" / "prediction_diffs"
+        if not root.exists():
+            return None
+        target_name = f"{safe_name(diff_id)}.prediction_diff.json"
+        for path in root.rglob("*.prediction_diff.json"):
+            if path.name == target_name:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                payload["path"] = str(_relative_to_root(path, self.root))
+                return payload
+        return None
+
+
+def _first(query: dict[str, list[str]], key: str, default: str | None) -> str | None:
+    values = query.get(key)
+    if not values:
+        return default
+    return values[0]
+
+
+def _relative_to_root(path: Path | str | None, root: Path) -> Path | str | None:
+    if path is None:
+        return None
+    path = Path(path)
+    try:
+        return path.resolve().relative_to(root.resolve())
+    except ValueError:
+        return path
