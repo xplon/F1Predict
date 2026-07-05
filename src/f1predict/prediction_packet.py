@@ -29,6 +29,7 @@ class PredictionPacket:
     warning_codes: tuple[str, ...]
     event_input_audit: dict[str, Any]
     market_context: dict[str, Any]
+    model_context: dict[str, Any]
     codex_context: dict[str, Any]
     probability_summary: dict[str, Any]
     top_market_edges: tuple[dict[str, Any], ...]
@@ -47,6 +48,7 @@ class PredictionPacket:
             "warning_codes": list(self.warning_codes),
             "event_input_audit": self.event_input_audit,
             "market_context": self.market_context,
+            "model_context": self.model_context,
             "codex_context": self.codex_context,
             "probability_summary": self.probability_summary,
             "top_market_edges": list(self.top_market_edges),
@@ -125,6 +127,15 @@ class PredictionPacket:
                 f"- `{edge.get('outcome_id')}` conservative_edge_after_cost="
                 f"{_fmt_pct(edge.get('conservative_edge_after_cost'))}, recommendation={edge.get('recommendation')}"
             )
+        simulator_config = self.model_context.get("simulator_config") or {}
+        if simulator_config:
+            lines.extend(["", "## Model Context", ""])
+            lines.append(f"- Simulator config: `{simulator_config.get('config_id', 'unknown')}`")
+            lines.append(f"- Config description: {simulator_config.get('description', '')}")
+            lines.append(f"- Race score lap-time scale: `{simulator_config.get('race_score_lap_time_scale')}`")
+            lines.append(f"- Race noise base SD: `{simulator_config.get('race_noise_base_sd')}`")
+            lines.append(f"- Race noise per-lap SD: `{simulator_config.get('race_noise_per_lap_sd')}`")
+            lines.append(f"- Qualifying noise SD: `{simulator_config.get('qualifying_noise_sd')}`")
         lines.extend(["", "## Input Audit", ""])
         lines.append(f"- Event input quality: `{self.event_input_audit.get('quality')}`")
         for code in self.event_input_audit.get("risk_codes", []):
@@ -160,6 +171,7 @@ class PredictionPacketBuilder:
         usable_markets = event_market_snapshots(season.markets, event_id, cutoff_dt, market_type="winner")
         after_cutoff_markets = after_cutoff_market_count(season.markets, event_id, cutoff_dt, market_type="winner")
         event_input_audit = audit_event_input(report.event).to_dict()
+        model_context = self._model_context(pipeline)
         codex_context = self._codex_context(report)
         codex_context["intake"] = self._codex_intake_context(event_id)
         market_context = self._market_context(report, usable_markets, after_cutoff_markets)
@@ -185,6 +197,7 @@ class PredictionPacketBuilder:
             warning_codes=tuple(warnings),
             event_input_audit=event_input_audit,
             market_context=market_context,
+            model_context=model_context,
             codex_context=codex_context,
             probability_summary=probability_summary,
             top_market_edges=top_market_edges,
@@ -204,11 +217,19 @@ class PredictionPacketBuilder:
             warning_codes=packet.warning_codes,
             event_input_audit=packet.event_input_audit,
             market_context=packet.market_context,
+            model_context=packet.model_context,
             codex_context=packet.codex_context,
             probability_summary=packet.probability_summary,
             top_market_edges=packet.top_market_edges,
             prediction=packet.prediction,
         )
+
+    @staticmethod
+    def _model_context(pipeline: PredictionPipeline) -> dict[str, Any]:
+        return {
+            "pipeline_class": pipeline.__class__.__name__,
+            "simulator_config": pipeline.simulator_config.to_dict(),
+        }
 
     def write(
         self,

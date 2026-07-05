@@ -31,18 +31,21 @@ class StrategyPlan:
 class SimulatorConfig:
     """Tunable parameters for the compact race-time simulator."""
 
-    config_id: str = "default_current"
-    description: str = "Current strategy-aware simulator defaults."
-    qualifying_noise_sd: float = 0.44
-    race_score_lap_time_scale: float = 0.58
+    config_id: str = "default_pace_separation_v1"
+    description: str = (
+        "Pace-separation simulator defaults selected from diagnostic replay calibration; "
+        "still not formal-ready without holdout validation."
+    )
+    qualifying_noise_sd: float = 0.38
+    race_score_lap_time_scale: float = 0.66
     grid_penalty_scale: float = 1.0
     initial_grid_gap_scale: float = 0.35
     traffic_gap_per_position: float = 0.018
     replay_lap_noise_sd: float = 0.16
     operational_noise_min_sd: float = 0.8
     operational_noise_per_stop: float = 1.05
-    race_noise_base_sd: float = 5.6
-    race_noise_per_lap_sd: float = 0.055
+    race_noise_base_sd: float = 4.8
+    race_noise_per_lap_sd: float = 0.045
     strategy_quality_scale: float = 0.65
     safety_car_pit_gain_cap: float = 8.0
     safety_car_pit_gain_fraction: float = 0.38

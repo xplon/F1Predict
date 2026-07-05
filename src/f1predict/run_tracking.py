@@ -273,6 +273,7 @@ class PredictionRunRegistry:
             {
                 "event_input_audit": packet.get("event_input_audit"),
                 "market_context": packet.get("market_context"),
+                "model_context": packet.get("model_context"),
                 "evidence": prediction.get("evidence"),
                 "feature_adjustments": prediction.get("feature_adjustments"),
                 "event": prediction.get("event"),

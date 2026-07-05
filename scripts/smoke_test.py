@@ -759,6 +759,12 @@ def main() -> None:
         packet.market_context["usable_snapshot_count"] >= 1
     ), "prediction packet should summarize cutoff-usable market snapshots"
     assert (
+        packet.model_context["simulator_config"]["config_id"] == "default_pace_separation_v1"
+    ), "prediction packet should expose the active simulator config for run diff auditability"
+    assert (
+        packet.model_context["simulator_config"]["race_score_lap_time_scale"] == 0.66
+    ), "prediction packet should preserve calibrated simulator parameters"
+    assert (
         packet.codex_context["factor_route_counts"].get("track_contextual_pace", 0) >= 3
     ), "prediction packet should preserve technical factor route counts"
     assert (
