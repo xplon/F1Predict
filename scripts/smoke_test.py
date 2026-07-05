@@ -231,6 +231,56 @@ def main() -> None:
     ), "simulation replay should include pit-stop laps across the selected drivers"
     season = pipeline.data_source.load()
     british_event = next(event for event in season.events if event.event_id == "british_gp")
+    british_pre_weekend_features = pipeline.feature_provider.load_event_features(
+        season,
+        british_event,
+        parse_dt("2026-06-30T12:00:00+00:00"),
+    )
+    assert not [
+        feature for feature in british_pre_weekend_features
+        if feature.source.startswith("fastf1_qualifying_result")
+    ], "British GP pre-weekend cutoff should not receive future same-event qualifying features"
+    austrian_event = next(event for event in season.events if event.event_id == "austrian_gp")
+    austrian_race_morning_features = pipeline.feature_provider.load_event_features(
+        season,
+        austrian_event,
+        parse_dt("2026-06-28T00:00:00+00:00"),
+    )
+    austrian_qualifying_features = [
+        feature for feature in austrian_race_morning_features
+        if feature.source.startswith("fastf1_qualifying_result")
+    ]
+    assert (
+        len([feature for feature in austrian_qualifying_features if feature.target_type == "driver"]) == 22
+        and any(
+            feature.target_id == "russell"
+            and feature.metric == "qualifying_pace"
+            and feature.value > 0
+            for feature in austrian_qualifying_features
+        )
+    ), "same-event FastF1 qualifying results should become cutoff-safe qualifying/grid features after Q"
+    austrian_team_strength = {
+        feature.target_id: feature
+        for feature in austrian_race_morning_features
+        if feature.source.startswith("fastf1_team_strength_reestimate")
+        and feature.target_type == "team"
+        and feature.metric == "race_pace"
+    }
+    assert (
+        austrian_team_strength["mercedes"].value
+        > austrian_team_strength["ferrari"].value
+        > austrian_team_strength["red_bull"].value
+        > 0
+    ), "cutoff-valid FastF1 team results should reestimate current-season team strength without hand-coded team order"
+    austrian_with_qualifying_order = pipeline._event_with_fastf1_qualifying_order(
+        season,
+        austrian_event,
+        parse_dt("2026-06-28T00:00:00+00:00"),
+    )
+    assert (
+        austrian_with_qualifying_order.feature_refs["fastf1_qualifying_order"]["row_count"] == 22
+        and SingleRaceSimulator._known_qualifying_positions(austrian_with_qualifying_order)["russell"] == 1
+    ), "race-morning simulator should expose cutoff-valid known qualifying order before sampling the grid"
     british_track_vector = track_feature_vector(british_event)
     assert (
         british_track_vector.source_status == "source_backed_derived_proxy"
@@ -1208,9 +1258,13 @@ def main() -> None:
     }
     assert not track_profile_risks, f"loaded event track profiles should not use generic placeholders: {track_profile_risks}"
     assert generated_report.feature_adjustments, "calendar-generated events should receive point-in-time form features"
-    assert all(
-        "miami" not in adjustment.source for adjustment in generated_report.feature_adjustments
-    ), "Miami prediction features must not include Miami race results"
+    miami_race_result_sources = [
+        adjustment.source
+        for adjustment in generated_report.feature_adjustments
+        if "miami" in adjustment.source
+        and not adjustment.source.startswith("fastf1_qualifying_result")
+    ]
+    assert not miami_race_result_sources, "Miami prediction features must not include Miami race results"
     assert all(
         adjustment.observed_at <= "2026-05-03T00:00:00+00:00"
         for adjustment in generated_report.feature_adjustments

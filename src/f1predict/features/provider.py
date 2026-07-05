@@ -60,6 +60,7 @@ class ProcessedFeatureProvider:
             adjustments.extend(self._summary_to_adjustments(season, event, summary))
         adjustments.extend(self._official_standings_adjustments(season, event, knowledge_cutoff))
         adjustments.extend(self._fastf1_form_adjustments(season, event, knowledge_cutoff))
+        adjustments.extend(self._fastf1_qualifying_session_adjustments(season, event, knowledge_cutoff))
         if knowledge_cutoff is None:
             return adjustments
         return [
@@ -139,6 +140,117 @@ class ProcessedFeatureProvider:
                         explanation=(
                             "Historical analogue race had meaningful rainfall; "
                             "driver wet-skill prior gets a small confidence-weighted boost."
+                        ),
+                    )
+                )
+        return adjustments
+
+    def _fastf1_qualifying_session_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        knowledge_cutoff=None,
+    ) -> list[FeatureAdjustment]:
+        """Convert same-event FastF1 qualifying classification into qualifying priors."""
+
+        target_cutoff = (
+            parse_dt(str(knowledge_cutoff))
+            if knowledge_cutoff
+            else parse_dt(f"{event.date}T00:00:00+00:00")
+        )
+        if target_cutoff is None:
+            return []
+        result = self.result_repository.latest_session_results_by_event(
+            season.season,
+            session_names={"q", "qualifying"},
+        ).get(normalize_event_name(event.name))
+        if result is None:
+            return []
+        observed_at = self._session_observed_at(result)
+        observed_dt = parse_dt(observed_at)
+        if observed_dt is None or observed_dt > target_cutoff:
+            return []
+
+        driver_lookup = self._driver_lookup(season)
+        rows = [
+            row
+            for row in result.classified
+            if row.get("position") and self._result_driver_id(row, driver_lookup) in season.drivers
+        ]
+        if not rows:
+            return []
+
+        driver_count = len(rows)
+        source = (
+            f"fastf1_qualifying_result:{season.season}:{normalize_event_name(result.event_name)}:"
+            f"{observed_at}:captured_at={result.captured_at}"
+        )
+        adjustments: list[FeatureAdjustment] = []
+        positions_by_team: defaultdict[str, list[int]] = defaultdict(list)
+        for row in rows:
+            driver_id = self._result_driver_id(row, driver_lookup)
+            if driver_id is None or driver_id not in season.drivers:
+                continue
+            position = int(row.get("position") or 0)
+            if position <= 0:
+                continue
+            centered = self._rank_center(position, driver_count)
+            value = round(self._clamp(centered * 0.46, -0.23, 0.23), 4)
+            confidence = 0.78
+            team_id = season.drivers[driver_id].team_id
+            positions_by_team[team_id].append(position)
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-qualifying-result:{season.season}:{event.event_id}:"
+                        f"{driver_id}:qualifying_pace:{observed_at}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="driver",
+                    target_id=driver_id,
+                    metric="qualifying_pace",
+                    value=value,
+                    confidence=confidence,
+                    observed_at=observed_at,
+                    explanation=(
+                        f"Same-event FastF1 qualifying classification before {event.name}: "
+                        f"P{position}/{driver_count}; used as a strong cutoff-valid qualifying/grid signal. "
+                        "It primarily affects sampled grid order and is not treated as direct race pace."
+                    ),
+                )
+            )
+
+        team_average_position = {
+            team_id: mean(positions)
+            for team_id, positions in positions_by_team.items()
+            if positions and team_id in season.teams
+        }
+        if team_average_position:
+            team_count = len(team_average_position)
+            ranked_team_ids = sorted(team_average_position, key=lambda team_id: team_average_position[team_id])
+            for team_rank, team_id in enumerate(ranked_team_ids, start=1):
+                centered = self._rank_center(team_rank, team_count)
+                value = round(self._clamp(centered * 0.20, -0.10, 0.10), 4)
+                if not value:
+                    continue
+                adjustments.append(
+                    FeatureAdjustment(
+                        feature_id=(
+                            f"fastf1-qualifying-result:{season.season}:{event.event_id}:"
+                            f"{team_id}:qualifying_pace:{observed_at}"
+                        ),
+                        event_id=event.event_id,
+                        source=source,
+                        target_type="team",
+                        target_id=team_id,
+                        metric="qualifying_pace",
+                        value=value,
+                        confidence=0.58,
+                        observed_at=observed_at,
+                        explanation=(
+                            f"Same-event FastF1 qualifying team average position before {event.name}: "
+                            f"{team_average_position[team_id]:.2f}; used as a team-level qualifying form signal."
                         ),
                     )
                 )
@@ -742,6 +854,16 @@ class ProcessedFeatureProvider:
                 feature_namespace="fastf1-season-form",
             )
         )
+        adjustments.extend(
+            self._fastf1_team_strength_reestimate_adjustments(
+                season,
+                event,
+                all_result_rows,
+                recent_result_rows,
+                driver_lookup,
+                observed_at,
+            )
+        )
         return adjustments
 
     def _fastf1_momentum_adjustments(
@@ -1024,6 +1146,98 @@ class ProcessedFeatureProvider:
             )
         return adjustments
 
+    def _fastf1_team_strength_reestimate_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        all_result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        recent_result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        driver_lookup: dict[str, str],
+        observed_at: str,
+    ) -> list[FeatureAdjustment]:
+        if len(all_result_rows) < 2:
+            return []
+        all_team_totals = self._team_event_point_totals(season, all_result_rows, driver_lookup)
+        recent_team_totals = self._team_event_point_totals(season, recent_result_rows, driver_lookup)
+        if not all_team_totals:
+            return []
+
+        all_team_avg = {
+            team_id: mean(points)
+            for team_id, points in all_team_totals.items()
+            if points and team_id in season.teams
+        }
+        recent_team_avg = {
+            team_id: mean(points)
+            for team_id, points in recent_team_totals.items()
+            if points and team_id in season.teams
+        }
+        team_ids = sorted(team_id for team_id in all_team_avg if team_id in season.teams)
+        if not team_ids:
+            return []
+
+        field_all_avg = mean(all_team_avg[team_id] for team_id in team_ids)
+        field_recent_avg = mean(recent_team_avg.get(team_id, all_team_avg[team_id]) for team_id in team_ids)
+        recent_count = len(recent_result_rows)
+        recent_weight = min(0.45, 0.15 + 0.10 * recent_count) if recent_count >= 2 else 0.0
+        confidence = min(0.62, 0.34 + 0.035 * len(all_result_rows))
+        source = (
+            f"fastf1_team_strength_reestimate:{season.season}:"
+            f"{self._source_span([normalize_event_name(result.event_name) for _, result, _ in all_result_rows])}:"
+            f"{len(all_result_rows)}_races_recent_{recent_count}"
+        )
+        adjustments: list[FeatureAdjustment] = []
+        for team_id in team_ids:
+            season_delta = all_team_avg[team_id] - field_all_avg
+            recent_delta = recent_team_avg.get(team_id, all_team_avg[team_id]) - field_recent_avg
+            blended_delta = (1.0 - recent_weight) * season_delta + recent_weight * recent_delta
+            value = round(self._clamp(blended_delta / 35.0 * 0.22, -0.16, 0.16), 4)
+            if not value:
+                continue
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-team-strength-reestimate:{season.season}:{event.event_id}:"
+                        f"{team_id}:race_pace:{len(all_result_rows)}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="race_pace",
+                    value=value,
+                    confidence=confidence,
+                    observed_at=observed_at,
+                    explanation=(
+                        f"Cutoff-valid FastF1 race results before {event.name}: team total points per race "
+                        f"{all_team_avg[team_id]:.2f} vs field {field_all_avg:.2f}; recent window "
+                        f"{recent_team_avg.get(team_id, all_team_avg[team_id]):.2f} vs field {field_recent_avg:.2f}. "
+                        "Used as a bounded team/car strength reestimate so current-season results can move the "
+                        "race-pace prior without hand-writing a team order."
+                    ),
+                )
+            )
+        return adjustments
+
+    def _team_event_point_totals(
+        self,
+        season: SeasonState,
+        result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        driver_lookup: dict[str, str],
+    ) -> defaultdict[str, list[float]]:
+        totals: defaultdict[str, list[float]] = defaultdict(list)
+        for _, result, _ in result_rows:
+            event_totals: defaultdict[str, float] = defaultdict(float)
+            for row in result.classified:
+                driver_id = self._result_driver_id(row, driver_lookup)
+                if driver_id is None or driver_id not in season.drivers:
+                    continue
+                team_id = season.drivers[driver_id].team_id
+                event_totals[team_id] += float(row.get("points") or 0.0)
+            for team_id in season.teams:
+                totals[team_id].append(event_totals.get(team_id, 0.0))
+        return totals
+
     def _collect_fastf1_form_inputs(
         self,
         season: SeasonState,
@@ -1236,3 +1450,9 @@ class ProcessedFeatureProvider:
         if dates:
             return max(dates)
         return f"{summary.get('year', 1970)}-12-31T00:00:00+00:00"
+
+    @staticmethod
+    def _session_observed_at(result: NormalizedRaceResult) -> str:
+        if result.session_date:
+            return result.session_date
+        return result.captured_at

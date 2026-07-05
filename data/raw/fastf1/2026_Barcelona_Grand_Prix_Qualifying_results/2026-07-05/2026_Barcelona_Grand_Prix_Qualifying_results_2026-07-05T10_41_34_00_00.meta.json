@@ -1,0 +1,14 @@
+{
+  "source": "fastf1",
+  "dataset": "2026_Barcelona Grand Prix_Qualifying_results",
+  "captured_at": "2026-07-05T10:41:34+00:00",
+  "params": {
+    "year": 2026,
+    "event": 7,
+    "resolved_event": "Barcelona Grand Prix",
+    "session": "Q",
+    "session_name": "Qualifying"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\fastf1\\2026_Barcelona_Grand_Prix_Qualifying_results\\2026-07-05\\2026_Barcelona_Grand_Prix_Qualifying_results_2026-07-05T10_41_34_00_00.json"
+}

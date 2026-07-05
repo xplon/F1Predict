@@ -1,0 +1,14 @@
+{
+  "source": "fastf1",
+  "dataset": "2026_Monaco Grand Prix_Qualifying_results",
+  "captured_at": "2026-07-05T10:41:32+00:00",
+  "params": {
+    "year": 2026,
+    "event": 6,
+    "resolved_event": "Monaco Grand Prix",
+    "session": "Q",
+    "session_name": "Qualifying"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\fastf1\\2026_Monaco_Grand_Prix_Qualifying_results\\2026-07-05\\2026_Monaco_Grand_Prix_Qualifying_results_2026-07-05T10_41_32_00_00.json"
+}

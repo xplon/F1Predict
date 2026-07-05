@@ -23,6 +23,7 @@ class NormalizedRaceResult:
     event_name: str
     round_number: int | None
     session_name: str
+    session_date: str | None
     captured_at: str
     source: str
     path: str
@@ -36,6 +37,7 @@ class NormalizedRaceResult:
             "event_name": self.event_name,
             "round_number": self.round_number,
             "session_name": self.session_name,
+            "session_date": self.session_date,
             "captured_at": self.captured_at,
             "source": self.source,
             "path": self.path,
@@ -149,6 +151,7 @@ class FastF1ResultRepository:
             event_name=str(event.get("EventName") or meta.get("params", {}).get("event") or ""),
             round_number=FastF1ResultRepository._as_int(event.get("RoundNumber")),
             session_name=str(session.get("name") or payload.get("requested_session") or ""),
+            session_date=FastF1ResultRepository._session_date(session),
             captured_at=str(meta.get("captured_at", "")),
             source="fastf1",
             path=str(payload_path),
@@ -173,6 +176,18 @@ class FastF1ResultRepository:
             "points": FastF1ResultRepository._as_float(row.get("Points")),
             "laps": FastF1ResultRepository._as_int(row.get("Laps")),
         }
+
+    @staticmethod
+    def _session_date(session: dict[str, Any]) -> str | None:
+        raw = session.get("date")
+        if raw is None:
+            return None
+        text = str(raw)
+        if not text:
+            return None
+        if text.endswith("Z") or "+" in text:
+            return text
+        return f"{text}+00:00"
 
     @staticmethod
     def _as_int(value: Any) -> int | None:

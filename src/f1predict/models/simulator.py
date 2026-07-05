@@ -52,6 +52,7 @@ class SimulatorConfig:
     safety_car_pit_gain_fraction: float = 0.38
     safety_car_bunching_per_grid_position: float = 0.16
     launch_time_scale: float = 22.0
+    known_qualifying_position_noise_sd: float = 0.32
 
     def to_dict(self) -> dict[str, Any]:
         return self.__dict__
@@ -354,6 +355,25 @@ class SingleRaceSimulator:
             self.random.setstate(random_state)
 
     def _sample_grid(self, event: RaceEvent, driver_ids: list[str]) -> list[str]:
+        known_positions = self._known_qualifying_positions(event)
+        if len(known_positions) >= max(3, len(driver_ids) // 2):
+            sampled_positions: list[tuple[float, str]] = []
+            fallback_position = max(known_positions.values(), default=len(driver_ids)) + 1
+            for driver_id in driver_ids:
+                driver = self.season_state.drivers[driver_id]
+                qualifying_score = self.pace_model.driver_score(driver, event, mode="qualifying")
+                base_position = known_positions.get(driver_id, fallback_position)
+                sampled_positions.append(
+                    (
+                        base_position
+                        - qualifying_score * 0.08
+                        + self.random.gauss(0.0, self.config.known_qualifying_position_noise_sd),
+                        driver_id,
+                    )
+                )
+            sampled_positions.sort(key=lambda item: item[0])
+            return [driver_id for _, driver_id in sampled_positions]
+
         sampled: list[tuple[float, str]] = []
         for driver_id in driver_ids:
             driver = self.season_state.drivers[driver_id]
@@ -568,3 +588,25 @@ class SingleRaceSimulator:
         features = track_feature_vector(event)
         self._track_feature_cache[event.event_id] = features
         return features
+
+    @staticmethod
+    def _known_qualifying_positions(event: RaceEvent) -> dict[str, int]:
+        refs = event.feature_refs if isinstance(event.feature_refs, dict) else {}
+        payload = refs.get("fastf1_qualifying_order")
+        if not isinstance(payload, dict):
+            return {}
+        rows = payload.get("driver_positions")
+        if not isinstance(rows, list):
+            return {}
+        output: dict[str, int] = {}
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            driver_id = str(row.get("driver_id") or "")
+            try:
+                position = int(row.get("qualifying_position") or 0)
+            except (TypeError, ValueError):
+                continue
+            if driver_id and position > 0:
+                output[driver_id] = position
+        return output

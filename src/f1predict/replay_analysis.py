@@ -623,11 +623,10 @@ class ReplayAnalysisBuilder:
             codes.add("missing_source_snapshots")
         if retrospective_source_snapshot_count > 0 and status == "replayed":
             codes.add("retrospective_source_snapshots")
-        if int(row.get("feature_adjustment_count") or 0) == 0 and status == "replayed":
-            if int(row.get("round_number") or 0) == 1:
-                codes.add("season_opener_no_prior_form")
-            else:
-                codes.add("missing_processed_features")
+        if status == "replayed" and int(row.get("round_number") or 0) == 1:
+            codes.add("season_opener_no_prior_form")
+        elif int(row.get("feature_adjustment_count") or 0) == 0 and status == "replayed":
+            codes.add("missing_processed_features")
         if int(row.get("market_snapshot_count") or 0) == 0 and status == "replayed":
             codes.add("missing_market_snapshot")
         if int(row.get("market_snapshot_after_cutoff_count") or 0) > 0 and status == "replayed":

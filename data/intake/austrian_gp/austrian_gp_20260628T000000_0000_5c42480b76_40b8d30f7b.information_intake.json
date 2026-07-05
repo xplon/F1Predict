@@ -1,0 +1,40 @@
+{
+  "intake_id": "austrian_gp_20260628T000000_0000_5c42480b76_40b8d30f7b",
+  "event_id": "austrian_gp",
+  "created_at": "2026-07-05T11:11:17+00:00",
+  "knowledge_cutoff": "2026-06-28T00:00:00+00:00",
+  "status": "intake_with_missing_audit_artifacts",
+  "claim_count": 1,
+  "unique_source_count": 1,
+  "claim_fingerprint": "5c42480b7602388196a59b4d052792ae992fc51ce1b9314eabdb67f0ed783336",
+  "source_fingerprint": "40b8d30f7ba3b96985b7d3d59f5e8ff92bdadeed7bbd7768c405942cdd258e06",
+  "metric_counts": {
+    "qualifying_pace": 1
+  },
+  "target_counts": {
+    "driver:russell": 1
+  },
+  "direction_counts": {
+    "positive": 1
+  },
+  "source_class_counts": {
+    "f1_official": 1
+  },
+  "claim_ids": [
+    "austrian_gp-f1official-qualifying-russell-pole-001"
+  ],
+  "source_urls": [
+    "https://www.formula1.com/en/latest/article/russell-beats-leclerc-and-hamilton-to-austrian-gp-pole-after-dramatic-late-verstappen-crash.6oiA7Tyo3B89DFJNLWtG8P"
+  ],
+  "evidence_paths": [
+    "E:\\1.study\\code\\AI_Projects\\F1Predict\\data\\evidence\\austrian_gp\\packets\\2026-06-30\\austrian_gp_2026-06-30T09_46_01_00_00.jsonl"
+  ],
+  "source_log_path": "E:\\1.study\\code\\AI_Projects\\F1Predict\\data\\research\\austrian_gp\\source_log.json",
+  "source_candidate_report_path": null,
+  "research_preflight_report_path": null,
+  "warnings": [
+    "claims_require_review",
+    "source_candidate_report_missing",
+    "research_preflight_report_missing"
+  ]
+}

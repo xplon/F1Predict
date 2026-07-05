@@ -70,6 +70,7 @@ class PredictionPipeline:
 
         cutoff_dt = self._normalize_cutoff(parse_dt(knowledge_cutoff))
         event = self._event_with_cutoff_weather_forecast(event, cutoff_dt)
+        event = self._event_with_fastf1_qualifying_order(season, event, cutoff_dt)
         event = self._event_with_track_feature_vector(event)
         evidence = self.evidence_provider.load_event_evidence(event_id, cutoff_dt)
         feature_adjustments = self.feature_provider.load_event_features(season, event, cutoff_dt)
@@ -220,6 +221,73 @@ class PredictionPipeline:
             feature_refs["event_input_provenance"] = updated_provenance
         return replace(event, feature_refs=feature_refs)
 
+    def _event_with_fastf1_qualifying_order(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        cutoff_dt: datetime | None,
+    ) -> RaceEvent:
+        if cutoff_dt is None:
+            return event
+        result = self.result_repository.latest_session_results_by_event(
+            season.season,
+            session_names={"q", "qualifying"},
+        ).get(normalize_event_name(event.name))
+        if result is None:
+            return event
+        observed_at = result.session_date or result.captured_at
+        observed_dt = parse_dt(observed_at)
+        if observed_dt is None or observed_dt > cutoff_dt:
+            return event
+
+        driver_lookup = self._driver_lookup(season)
+        driver_positions = []
+        for row in result.classified:
+            driver_id = self._result_driver_id(row, driver_lookup)
+            if driver_id is None or driver_id not in season.drivers:
+                continue
+            position = row.get("position")
+            if position is None:
+                continue
+            driver_positions.append(
+                {
+                    "driver_id": driver_id,
+                    "qualifying_position": int(position),
+                    "driver_number": row.get("driver_number"),
+                    "team_id": season.drivers[driver_id].team_id,
+                }
+            )
+        if len(driver_positions) < max(3, len(season.drivers) // 2):
+            return event
+        driver_positions.sort(key=lambda row: row["qualifying_position"])
+        feature_refs = dict(event.feature_refs)
+        feature_refs["fastf1_qualifying_order"] = {
+            "source": "fastf1_qualifying_result",
+            "event_name": result.event_name,
+            "session_name": result.session_name,
+            "observed_at": observed_at,
+            "captured_at": result.captured_at,
+            "path": result.path,
+            "row_count": len(driver_positions),
+            "driver_positions": driver_positions,
+            "quality": "source_backed_retrospective_snapshot"
+            if result.captured_at > observed_at
+            else "source_backed",
+        }
+        event_input_provenance = feature_refs.get("event_input_provenance")
+        if isinstance(event_input_provenance, dict):
+            updated_provenance = dict(event_input_provenance)
+            updated_provenance["qualifying_order"] = {
+                "source": "fastf1_qualifying_result",
+                "quality": "derived",
+                "observed_at": observed_at,
+                "captured_at": result.captured_at,
+                "path": result.path,
+                "row_count": len(driver_positions),
+            }
+            feature_refs["event_input_provenance"] = updated_provenance
+        return replace(event, feature_refs=feature_refs)
+
     def forecast_season(
         self,
         knowledge_cutoff: str | None = None,
@@ -239,7 +307,13 @@ class PredictionPipeline:
             self.result_repository.latest_results_by_event(season.season),
         )
         remaining_events = [
-            self._event_with_track_feature_vector(self._event_with_cutoff_weather_forecast(event, cutoff_dt))
+            self._event_with_track_feature_vector(
+                self._event_with_fastf1_qualifying_order(
+                    season,
+                    self._event_with_cutoff_weather_forecast(event, cutoff_dt),
+                    cutoff_dt,
+                )
+            )
             for event in self._remaining_events_for_forecast(season, cutoff_dt)
         ]
         pace_models = {}

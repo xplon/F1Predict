@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-05T08:41:22+00:00",
-  "intake_count": 1,
+  "updated_at": "2026-07-05T11:11:17+00:00",
+  "intake_count": 2,
   "intakes": [
     {
       "intake_id": "british_gp_20260630T120000_0000_c6e0a66a08_5952150b7d",
@@ -13,6 +13,18 @@
       "claim_fingerprint": "c6e0a66a08bf01d995b1df460d571502fb3bcbc59e485959ff9d8528df49199b",
       "source_fingerprint": "5952150b7da6e8fa1aae5c83414acd79ce889a95df9577a16344b7441d5f27e7",
       "path": "E:\\1.study\\code\\AI_Projects\\F1Predict\\data\\intake\\british_gp\\british_gp_20260630T120000_0000_c6e0a66a08_5952150b7d.information_intake.json"
+    },
+    {
+      "intake_id": "austrian_gp_20260628T000000_0000_5c42480b76_40b8d30f7b",
+      "event_id": "austrian_gp",
+      "created_at": "2026-07-05T11:11:17+00:00",
+      "knowledge_cutoff": "2026-06-28T00:00:00+00:00",
+      "status": "intake_with_missing_audit_artifacts",
+      "claim_count": 1,
+      "unique_source_count": 1,
+      "claim_fingerprint": "5c42480b7602388196a59b4d052792ae992fc51ce1b9314eabdb67f0ed783336",
+      "source_fingerprint": "40b8d30f7ba3b96985b7d3d59f5e8ff92bdadeed7bbd7768c405942cdd258e06",
+      "path": "E:\\1.study\\code\\AI_Projects\\F1Predict\\data\\intake\\austrian_gp\\austrian_gp_20260628T000000_0000_5c42480b76_40b8d30f7b.information_intake.json"
     }
   ]
 }
