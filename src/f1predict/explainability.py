@@ -140,6 +140,17 @@ BLOCKER_LABELS = {
     "probability_calibration_diagnostic_only": "概率校准仍停留在诊断级",
 }
 
+STATIC_PRIOR_COMPONENTS = {
+    "team_base_strength",
+    "driver_base_skill",
+    "track_affinity",
+    "racecraft",
+    "wet_skill",
+    "team_strategy",
+    "tyre_management",
+    "qualifying",
+}
+
 
 @dataclass(frozen=True)
 class PredictionExplanation:
@@ -176,8 +187,8 @@ class PredictionExplanation:
             "answer": self.answer,
             "confidence": self.confidence,
             "limitations": self.limitations,
-            "evidence_context": self.evidence_context,
-            "supporting_evidence": self.supporting_evidence,
+            "evidence_context": _public_evidence_context(self.evidence_context),
+            "supporting_evidence": _public_supporting_evidence(self.supporting_evidence),
             "codex_prompt": self.codex_prompt,
             "codex_context": self.codex_context,
         }
@@ -723,7 +734,9 @@ class PredictionExplainer:
         if quali:
             lines.append(quali)
         if score:
-            lines.append(self._single_score_note(driver_id, context, driver_lookup))
+            note = self._single_score_note(driver_id, context, driver_lookup)
+            if note:
+                lines.append(note)
         if feature_lines:
             lines.append("最直接支撑这个判断的输入包括：" + "；".join(feature_lines) + "。")
         lines.append(_diagnostic_sentence(packet))
@@ -749,24 +762,28 @@ class PredictionExplainer:
         low_features = self._driver_feature_lines(
             low["driver_id"], context, team_lookup, driver_lookup, limit=3, polarity="negative"
         )
-        score_note = self._score_comparison_note(high["driver_id"], low["driver_id"], context, driver_lookup)
+        score_note = self._score_comparison_note(
+            high["driver_id"], low["driver_id"], context, driver_lookup, team_lookup
+        )
         same_team_note = self._same_team_note(high["driver_id"], low["driver_id"], context, team_lookup)
         impact_lines = self._impact_lines(context, driver_lookup, limit=3)
         lines = [
             f"当前预测中，{high_name} 的冠军概率是 {_pct(high['win'])}，{low_name} 的冠军概率是 {_pct(low['win'])}；"
             f"领奖台概率分别是 {_pct(high['podium'])} 和 {_pct(low['podium'])}。"
-            f"两人同队，所以这不应该被解释成 Ferrari 赛车本身一边强一边弱；差距主要来自模型当前给两名车手的个人先验、"
-            f"同场排位、近期正赛速度特征和可靠性输入。",
+            f"两人同队，所以这不应该被解释成 Ferrari 赛车本身一边强一边弱；更需要检查的是，模型内部是否把静态车手先验、"
+            f"同场排位、近期正赛速度特征和可靠性输入混在一起后放大了差距。",
         ]
         if same_team_note:
             lines.append(same_team_note)
         if score_note:
             lines.append(score_note)
         lines.append(
-            f"{high_name} 这边最强的支撑输入是：" + ("；".join(high_features) if high_features else "当前没有足够特征行。")
+            f"{high_name} 这边最强的可追溯支撑输入是："
+            + ("；".join(high_features) if high_features else "当前没有足够可追溯特征行。")
         )
         lines.append(
-            f"{low_name} 这边最明显的弱项是：" + ("；".join(low_features) if low_features else "当前没有明显负向特征行。")
+            f"{low_name} 这边最明显的可追溯弱项是："
+            + ("；".join(low_features) if low_features else "当前没有明显负向特征行。")
         )
         if impact_lines:
             lines.append("Codex 证据层对这组对比的可见影响包括：" + "；".join(impact_lines) + "。")
@@ -805,7 +822,12 @@ class PredictionExplainer:
         if comparison:
             lines.append(f"同组后续几名是：{comparison}。这个差距说明他更像是模型里的积分区边缘车手，而不是领奖台候选。")
         if score:
-            lines.append(self._single_score_note(leader["driver_id"], context, driver_lookup))
+            note = self._single_score_note(leader["driver_id"], context, driver_lookup)
+            if note:
+                lines.append(note)
+        anomaly = self._zero_podium_anomaly_note(leader["driver_id"], context, driver_lookup, team_lookup)
+        if anomaly:
+            lines.append(anomaly)
         if feature_lines:
             lines.append("相关输入包括：" + "；".join(feature_lines) + "。")
         lines.append(
@@ -898,16 +920,14 @@ class PredictionExplainer:
         if not score:
             return ""
         name = driver_lookup.get(driver_id, driver_id)
-        race_total = _as_float(score.get("race_total"))
-        qualifying_total = _as_float(score.get("qualifying_total"))
-        reliability = _as_float(score.get("reliability"))
-        components = score.get("race_components") or {}
-        top_components = _component_lines(components, limit=5)
+        unsupported = _unsupported_prior_labels(score.get("race_components") or {})
+        if not unsupported:
+            return ""
         return (
-            f"这里的模型内部正赛能力分不是一条外部事实，而是模拟器把赛车/车队先验、车手先验、赛道适配、"
-            f"保胎、湿地折算、结构化速度特征和 Codex 证据修正相加后的内部输入。"
-            f"{name} 的内部正赛能力分为 {race_total:.5f}，内部排位能力分为 {qualifying_total:.5f}，"
-            f"可靠性估计值为 {reliability:.5f}。贡献最大的组成项是：{'；'.join(top_components)}。"
+            f"我不会再把 {name} 的内部能力分当作解释证据来展示。这个分数里混有"
+            f"{'、'.join(unsupported)}等静态 seed 先验；这些先验来自本地种子数据，不是由本场新闻、排位、练习赛、"
+            "近期分站结果或车队技术信息直接计算出来的事实。除非这些先验被重新标定并绑定来源，否则它们只能作为模型风险提示，"
+            "不能作为“为什么预测如此”的证据。"
         )
 
     def _score_comparison_note(
@@ -916,6 +936,7 @@ class PredictionExplainer:
         low_driver_id: str,
         context: dict[str, Any],
         driver_lookup: dict[str, str],
+        team_lookup: dict[str, str],
     ) -> str | None:
         scores = context.get("score_breakdown") or {}
         high = scores.get(high_driver_id)
@@ -924,65 +945,90 @@ class PredictionExplainer:
             return None
         high_name = driver_lookup.get(high_driver_id, high_driver_id)
         low_name = driver_lookup.get(low_driver_id, low_driver_id)
-        high_race = _as_float(high.get("race_total"))
-        low_race = _as_float(low.get("race_total"))
-        high_quali = _as_float(high.get("qualifying_total"))
-        low_quali = _as_float(low.get("qualifying_total"))
-        high_rel = _as_float(high.get("reliability"))
-        low_rel = _as_float(low.get("reliability"))
-        race_delta_lines = _component_delta_lines(
-            high.get("race_components") or {},
-            low.get("race_components") or {},
-            high_name,
-            low_name,
-            limit=6,
-        )
-        qualifying_delta_lines = _component_delta_lines(
-            high.get("qualifying_components") or {},
-            low.get("qualifying_components") or {},
-            high_name,
-            low_name,
-            limit=3,
-        )
-        caution = self._teammate_prior_caution(high, low, high_name, low_name)
+        high_static = _unsupported_prior_labels(high.get("race_components") or {})
+        low_static = _unsupported_prior_labels(low.get("race_components") or {})
+        shared_static = list(dict.fromkeys([*high_static, *low_static]))
+        traceable = self._traceable_comparison_summary(high_driver_id, low_driver_id, context, driver_lookup, team_lookup)
         lines = [
-            "这里必须先解释“内部正赛能力分”：它不是外部事实，也不是对车手真实强弱的直接断言，"
-            "而是模拟器把车队/赛车基础强度、车手基础能力、正赛攻防、保胎、湿地能力、赛道适配、"
-            "结构化速度特征和 Codex 证据修正相加后得到的内部输入。",
-            f"当前这项内部输入中，{high_name} 为 {high_race:.5f}，{low_name} 为 {low_race:.5f}，"
-            f"差值为 {high_race - low_race:+.5f}；内部排位能力分分别为 {high_quali:.5f} 和 {low_quali:.5f}，"
-            f"可靠性估计值分别为 {high_rel:.5f} 和 {low_rel:.5f}。",
+            "这里不能再用内部能力分差值来解释结果。那个分数混合了两类东西：一类是排位、练习赛、近期分站、官方积分榜等可追溯输入；"
+            "另一类是本地 seed 数据里的静态先验。静态先验没有本场事实来源，不能被当作解释证据。",
         ]
-        if race_delta_lines:
-            lines.append("正赛能力分差距主要来自：" + "；".join(race_delta_lines) + "。")
-        if qualifying_delta_lines:
-            lines.append("排位能力分差距主要来自：" + "；".join(qualifying_delta_lines) + "。")
-        if caution:
-            lines.append(caution)
+        if traceable:
+            lines.append(traceable)
+        if shared_static:
+            lines.append(
+                "不可直接采信的静态先验包括：" + "、".join(shared_static) + "。这些先验来自本地种子数据，"
+                "不是由 Ham/Lec 英国站前的同队近期表现自动推导出来的。"
+            )
+        lines.append(
+            f"因此，当前解释不应该说“{high_name} 的内部正赛能力分高，所以 {low_name} 胜率低”。"
+            "更准确的结论是：可追溯输入不足以单独证明这么大的队内差距，当前模型很可能把静态车手先验或近期特征映射放大了。"
+        )
         return "\n\n".join(lines)
 
     @staticmethod
-    def _teammate_prior_caution(
-        high: dict[str, Any],
-        low: dict[str, Any],
-        high_name: str,
-        low_name: str,
+    def _traceable_comparison_summary(
+        high_driver_id: str,
+        low_driver_id: str,
+        context: dict[str, Any],
+        driver_lookup: dict[str, str],
+        team_lookup: dict[str, str],
     ) -> str:
-        high_components = high.get("race_components") or {}
-        low_components = low.get("race_components") or {}
-        prior_keys = ("driver_base_skill", "racecraft", "tyre_management", "wet_skill")
-        prior_gap = sum(_as_float(high_components.get(key)) - _as_float(low_components.get(key)) for key in prior_keys)
-        feature_gap = _as_float(high_components.get("feature_race_pace")) - _as_float(
-            low_components.get("feature_race_pace")
-        )
-        if abs(prior_gap) < 0.12:
+        qualifying_rows = context.get("qualifying_context", {}).get("selected_positions") or []
+        positions = {
+            row.get("driver_id"): row.get("qualifying_position")
+            for row in qualifying_rows
+            if isinstance(row, dict)
+        }
+        parts = []
+        if high_driver_id in positions and low_driver_id in positions:
+            parts.append(
+                f"同场排位里，{driver_lookup.get(low_driver_id, low_driver_id)} 是第 {positions[low_driver_id]}，"
+                f"{driver_lookup.get(high_driver_id, high_driver_id)} 是第 {positions[high_driver_id]}；"
+                "这条可追溯事实并不支持把前者明显压低。"
+            )
+        low_features = (context.get("feature_context") or {}).get(low_driver_id, {}).get("features") or []
+        notable_negative = [
+            row for row in low_features
+            if _as_float(row.get("weighted_value")) < 0 and row.get("metric") in {"race_pace", "reliability"}
+        ][:3]
+        if notable_negative:
+            parts.append(
+                f"{driver_lookup.get(low_driver_id, low_driver_id)} 的可追溯负面输入主要是："
+                + "；".join(_feature_line(row, team_lookup, driver_lookup, include_direction=False) for row in notable_negative)
+                + "。"
+            )
+        return " ".join(parts)
+
+    @staticmethod
+    def _zero_podium_anomaly_note(
+        driver_id: str,
+        context: dict[str, Any],
+        driver_lookup: dict[str, str],
+        team_lookup: dict[str, str],
+    ) -> str:
+        feature_context = context.get("feature_context") or {}
+        payload = feature_context.get(driver_id) or {}
+        features = payload.get("features") or []
+        score = (context.get("score_breakdown") or {}).get(driver_id) or {}
+        negative_facts = [
+            row for row in features
+            if _as_float(row.get("weighted_value")) < 0
+            and row.get("metric") in {"race_pace", "qualifying_pace", "reliability"}
+        ][:5]
+        unsupported = _unsupported_prior_labels(score.get("race_components") or {})
+        if not negative_facts or not unsupported:
             return ""
+        driver_name = driver_lookup.get(driver_id, driver_id)
+        team_id = payload.get("team_id")
+        team_name = team_lookup.get(team_id, team_id)
         return (
-            f"这个差距需要谨慎看待：同队车手共享赛车和车队级输入，{high_name} 相对 {low_name} 的优势里，"
-            f"有 {prior_gap:+.5f} 来自车手基础能力、正赛攻防、保胎和湿地能力这些模型先验，"
-            f"另有 {feature_gap:+.5f} 来自结构化正赛速度特征。"
-            "如果你的赛前判断是两人在英国站前基本打平，那么这不是“证明 Leclerc 正赛能力显著更差”，"
-            "而是说明当前模型的车手先验或近期正赛特征映射可能把队内差距放大了，应该进入后续校准。"
+            f"这正是当前预测最值得怀疑的地方：{driver_name} 排在这个分组第一，并不是因为可追溯事实显示 "
+            f"{team_name} 近期很强。相反，可追溯输入里有明显负面信号："
+            + "；".join(_feature_line(row, team_lookup, driver_lookup, include_direction=False) for row in negative_facts)
+            + "。模型仍然把他放到这个分组第一，主要说明静态 seed 先验仍在抬高他，涉及"
+            + "、".join(unsupported)
+            + "等没有本场事实来源的先验。这个结论应标记为模型校准问题，而不是被解释成合理预测。"
         )
 
     @staticmethod
@@ -995,9 +1041,11 @@ class PredictionExplainer:
             for item in affected:
                 if not isinstance(item, dict):
                     continue
+                win_delta = _as_float(item.get("win_delta"))
+                points_delta = _as_float(item.get("expected_points_delta"))
                 relevant.append(
                     f"{driver_lookup.get(str(item.get('driver_id')), str(item.get('driver_id')))} "
-                    f"冠军概率变化 {_signed_pct(item.get('win_delta'))}，期望积分变化 {item.get('expected_points_delta')}"
+                    f"方向为{_delta_direction(win_delta, points_delta)}、幅度为{_delta_bucket(win_delta, points_delta)}"
                 )
             lines.append(
                 f"{_metric_label(row.get('metric'))}证据的同种子移除对比：{'；'.join(relevant)}"
@@ -1082,7 +1130,7 @@ class PredictionExplainer:
                 {
                     "kind": "codex_evidence_impact",
                     "label": f"{_metric_label(row.get('metric'))}证据影响",
-                    "detail": "同种子移除该证据后，对相关车手的冠军概率、领奖台概率和期望积分变化进行比较。",
+                    "detail": "同种子移除该证据后，只展示相关车手影响方向和幅度等级，不把原始内部数值当成解释。",
                     "metric": _metric_label(row.get("metric")),
                     "max_win_probability_delta": row.get("max_win_probability_delta"),
                 }
@@ -1112,7 +1160,7 @@ class PredictionExplainer:
                 "do_not_claim_stable_edge": True,
                 "say_missing_when_context_is_insufficient": True,
             },
-            "evidence_context": context,
+            "evidence_context": _public_evidence_context(context),
         }
 
     @staticmethod
@@ -1138,6 +1186,180 @@ def _read_json(path: Path | str) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError(f"{path}: expected JSON object")
     return payload
+
+
+def _public_evidence_context(context: dict[str, Any]) -> dict[str, Any]:
+    """Return the user/API-visible context without raw internal score weights."""
+
+    public = json.loads(json.dumps(context, ensure_ascii=False))
+    score_breakdown = public.pop("score_breakdown", None)
+    _redact_public_feature_context(public)
+    _redact_public_factor_traces(public)
+    _redact_public_evidence_impacts(public)
+    _redact_public_track_context(public)
+    audit: dict[str, Any] = {}
+    if isinstance(score_breakdown, dict):
+        for driver_id, score in score_breakdown.items():
+            if not isinstance(score, dict):
+                continue
+            components = {}
+            components.update(score.get("race_components") or {})
+            components.update(score.get("qualifying_components") or {})
+            labels = _unsupported_prior_labels(components)
+            if labels:
+                audit[driver_id] = {
+                    "status": "unsupported_static_priors_redacted",
+                    "unsupported_static_prior_labels": labels,
+                    "note": (
+                        "这些静态先验只能作为模型风险提示，不能作为解释证据；"
+                        "需要重新标定并绑定信息来源后才能用于回答用户为什么。"
+                    ),
+                }
+    if audit:
+        public["model_prior_audit"] = audit
+    public["internal_fields_redacted"] = [
+        "内部能力分明细",
+        "特征归一化数值、置信度和加权影响",
+        "指标加权汇总",
+        "证据路线原始影响权重",
+        "同种子对比原始概率差值",
+        "未经来源化解释的归一化赛道指数",
+    ]
+    return public
+
+
+def _public_supporting_evidence(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    public_rows = []
+    for row in rows:
+        public = dict(row)
+        public.pop("weighted_value", None)
+        public.pop("max_win_probability_delta", None)
+        public_rows.append(public)
+    return public_rows
+
+
+def _redact_public_feature_context(public: dict[str, Any]) -> None:
+    feature_context = public.get("feature_context")
+    if not isinstance(feature_context, dict):
+        return
+    for driver_context in feature_context.values():
+        if not isinstance(driver_context, dict):
+            continue
+        for key in ("features", "top_features"):
+            rows = driver_context.get(key)
+            if isinstance(rows, list):
+                driver_context[key] = [_public_feature_row(row) for row in rows if isinstance(row, dict)]
+        driver_context.pop("metric_weighted_totals", None)
+        driver_context["redaction_note"] = (
+            "公开解释只保留事实来源、指标方向和原始说明；"
+            "归一化取值、置信度和加权影响不作为解释证据展示。"
+        )
+
+
+def _public_feature_row(row: dict[str, Any]) -> dict[str, Any]:
+    weighted = _as_float(row.get("weighted_value"))
+    direction = "positive" if weighted > 0 else "negative" if weighted < 0 else "neutral"
+    direction_label = "正向" if weighted > 0 else "负向" if weighted < 0 else "中性"
+    return {
+        "kind": row.get("kind"),
+        "scope": row.get("scope"),
+        "feature_id": row.get("feature_id"),
+        "source": row.get("source"),
+        "target_type": row.get("target_type"),
+        "target_id": row.get("target_id"),
+        "metric": row.get("metric"),
+        "direction": direction,
+        "direction_label": direction_label,
+        "explanation": row.get("explanation"),
+    }
+
+
+def _redact_public_factor_traces(public: dict[str, Any]) -> None:
+    rows = public.get("factor_trace_context")
+    if not isinstance(rows, list):
+        return
+    public["factor_trace_context"] = [
+        {
+            "claim_id": row.get("claim_id"),
+            "target_type": row.get("target_type"),
+            "target_id": row.get("target_id"),
+            "claim_type": row.get("claim_type"),
+            "metric": row.get("metric"),
+            "direction": row.get("direction"),
+            "route": row.get("route"),
+            "model_surface": row.get("model_surface"),
+            "route_status": row.get("route_status"),
+            "quality_status": row.get("quality_status"),
+            "source_status": row.get("source_status"),
+            "triangulation_status": row.get("triangulation_status"),
+            "conflict_status": row.get("conflict_status"),
+            "risk_flags": row.get("risk_flags") or [],
+            "redaction_note": (
+                "公开解释不展示原始影响值、加权输入值、模型输入权重或上下文乘数；"
+                "这些只能用于内部调试。"
+            ),
+        }
+        for row in rows
+        if isinstance(row, dict)
+    ]
+
+
+def _redact_public_evidence_impacts(public: dict[str, Any]) -> None:
+    rows = public.get("evidence_impact_context")
+    if not isinstance(rows, list):
+        return
+    redacted = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        outcomes = []
+        for outcome in row.get("affected_outcomes") or []:
+            if not isinstance(outcome, dict):
+                continue
+            win_delta = _as_float(outcome.get("win_delta"))
+            points_delta = _as_float(outcome.get("expected_points_delta"))
+            outcomes.append(
+                {
+                    "driver_id": outcome.get("driver_id"),
+                    "direction_label": _delta_direction(win_delta, points_delta),
+                    "magnitude_label": _delta_bucket(win_delta, points_delta),
+                }
+            )
+        redacted.append(
+            {
+                "claim_id": row.get("claim_id"),
+                "source": row.get("source"),
+                "target_type": row.get("target_type"),
+                "target_id": row.get("target_id"),
+                "metric": row.get("metric"),
+                "direction": row.get("direction"),
+                "attribution_method": row.get("attribution_method"),
+                "affected_outcomes": outcomes,
+                "interpretation": row.get("interpretation"),
+                "redaction_note": (
+                    "公开解释只展示同种子移除对比的方向和幅度等级，"
+                    "不展示原始概率差值或内部输入权重。"
+                ),
+            }
+        )
+    public["evidence_impact_context"] = redacted
+
+
+def _redact_public_track_context(public: dict[str, Any]) -> None:
+    track = public.get("track_context")
+    if not isinstance(track, dict):
+        return
+    public["track_context"] = {
+        "track_type": track.get("track_type"),
+        "corner_count": track.get("corner_count"),
+        "high_speed_corner_count": track.get("high_speed_corner_count"),
+        "long_straight_count": track.get("long_straight_count"),
+        "provenance": track.get("provenance") or {},
+        "redaction_note": (
+            "公开解释不展示未经来源化解释的归一化赛道指数；"
+            "赛道指数需要绑定弯角、直道、DRS/替代系统、天气和沥青来源后才能前端展示。"
+        ),
+    }
 
 
 def _probability_rows(packet: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1263,14 +1485,30 @@ def _component_delta_lines(
     ]
 
 
-def _feature_line(row: dict[str, Any], team_lookup: dict[str, str], driver_lookup: dict[str, str]) -> str:
+def _unsupported_prior_labels(components: dict[str, Any]) -> list[str]:
+    rows = []
+    for key, value in components.items():
+        if key in STATIC_PRIOR_COMPONENTS and abs(_as_float(value)) > 0.00001:
+            rows.append((key, abs(_as_float(value))))
+    rows.sort(key=lambda item: item[1], reverse=True)
+    return [_component_label(key) for key, _ in rows]
+
+
+def _feature_line(
+    row: dict[str, Any],
+    team_lookup: dict[str, str],
+    driver_lookup: dict[str, str],
+    include_direction: bool = True,
+) -> str:
     scope = str(row.get("scope") or "")
     target = str(row.get("target_id") or "")
     target_label = team_lookup.get(target, target) if scope == "team" else driver_lookup.get(target, target)
     weighted = _as_float(row.get("weighted_value"))
+    direction = "正向" if weighted > 0 else "负向" if weighted < 0 else "中性"
+    direction_text = f"，方向为{direction}" if include_direction else ""
     return (
         f"{_scope_label(scope)} {target_label} 的{_metric_label(row.get('metric'))}输入，"
-        f"加权影响 {weighted:+.4f}（{_feature_explanation_zh(row)}）"
+        f"依据是：{_feature_explanation_zh(row)}{direction_text}"
     )
 
 
@@ -1452,6 +1690,24 @@ def _pct(value: Any) -> str:
 
 def _signed_pct(value: Any) -> str:
     return f"{_as_float(value) * 100:+.2f} 个百分点"
+
+
+def _delta_direction(win_delta: float, points_delta: float) -> str:
+    combined = win_delta + points_delta / 25.0
+    if combined > 0.0005:
+        return "正向"
+    if combined < -0.0005:
+        return "负向"
+    return "接近中性"
+
+
+def _delta_bucket(win_delta: float, points_delta: float) -> str:
+    magnitude = max(abs(win_delta), abs(points_delta) / 25.0)
+    if magnitude >= 0.02:
+        return "中等以上"
+    if magnitude >= 0.005:
+        return "小幅"
+    return "很小"
 
 
 def _diagnostic_sentence(packet: dict[str, Any]) -> str:

@@ -1,6 +1,6 @@
 {
   "explanation_id": "british_gp_20260705T000000_0000_20260705T115935_0000_9e3dfa22c3_7078cf3305",
-  "generated_at": "2026-07-05T16:35:42+00:00",
+  "generated_at": "2026-07-05T17:11:32+00:00",
   "event_id": "british_gp",
   "event_name": "British Grand Prix",
   "run_id": "british_gp_20260705T000000_0000_20260705T115935_0000_9e3dfa22c3",
@@ -15,7 +15,7 @@
     "teams": [],
     "derived_groups": []
   },
-  "answer": "这里要先区分两个口径：George Russell 是按平均完赛名次排第一，不是按冠军概率排第一。当前预测里 George Russell 的平均完赛名次是 2.718，预计排名为第 1；冠军概率第一的是 Kimi Antonelli（45.33%）。\n\nGeorge Russell 能在平均完赛名次上排到第一，主要因为模型给了他很高的领奖台概率 (81.17%) 和积分区概率 (97.50%)，坏结果尾部比其他争冠车手略低。\n\n排位输入方面，George Russell 的同场排位名次是 第 4，这个输入主要影响发车顺序和起步后的赛道位置。\n\n这里的模型内部正赛能力分不是一条外部事实，而是模拟器把赛车/车队先验、车手先验、赛道适配、保胎、湿地折算、结构化速度特征和 Codex 证据修正相加后的内部输入。George Russell 的内部正赛能力分为 2.41414，内部排位能力分为 2.80247，可靠性估计值为 0.96738。贡献最大的组成项是：车队和赛车基础强度先验 +1.24000；车手基础能力先验 +0.39000；结构化数据给出的正赛速度修正 +0.22016；正赛攻防和比赛执行先验 +0.19000；赛车与赛道类型适配 +0.18000。\n\n最直接支撑这个判断的输入包括：车手 George Russell 的排位速度输入，加权影响 +0.1281（来源：同场 FastF1 排位结果；同场排位名次为 第 4/22，作为排位和发车位信号，不直接当作正赛速度）；车队 Mercedes 的正赛速度输入，加权影响 +0.0846（来源：FastF1 本赛季车队强度重估；截止本场前车队每站积分对比为 33.50，全场平均 9.18，作为赛车/车队强度重估）；车队 Mercedes 的排位速度输入，加权影响 +0.0580（来源：同场 FastF1 排位结果；同场车队平均排位名次为 2.50，作为车队排位状态输入）；车队 Mercedes 的正赛速度输入，加权影响 +0.0403（来源：F1 官方积分榜；官方车队积分榜信息为 第 1，302.0 分，全场平均 83.3，作为车队状态先验）。\n\n注意：这次预测的状态是诊断专用，阻塞项为：Codex 证据质量仍需复核、概率校准仍停留在诊断级。因此这是一份模型机制解释，不是稳定盈利优势证明。",
+  "answer": "这里要先区分两个口径：George Russell 是按平均完赛名次排第一，不是按冠军概率排第一。当前预测里 George Russell 的平均完赛名次是 2.718，预计排名为第 1；冠军概率第一的是 Kimi Antonelli（45.33%）。\n\nGeorge Russell 能在平均完赛名次上排到第一，主要因为模型给了他很高的领奖台概率 (81.17%) 和积分区概率 (97.50%)，坏结果尾部比其他争冠车手略低。\n\n排位输入方面，George Russell 的同场排位名次是 第 4，这个输入主要影响发车顺序和起步后的赛道位置。\n\n我不会再把 George Russell 的内部能力分当作解释证据来展示。这个分数里混有车队和赛车基础强度先验、车手基础能力先验、正赛攻防和比赛执行先验、赛车与赛道类型适配、车队策略能力、湿地能力按天气概率折算、保胎能力等静态 seed 先验；这些先验来自本地种子数据，不是由本场新闻、排位、练习赛、近期分站结果或车队技术信息直接计算出来的事实。除非这些先验被重新标定并绑定来源，否则它们只能作为模型风险提示，不能作为“为什么预测如此”的证据。\n\n最直接支撑这个判断的输入包括：车手 George Russell 的排位速度输入，依据是：来源：同场 FastF1 排位结果；同场排位名次为 第 4/22，作为排位和发车位信号，不直接当作正赛速度，方向为正向；车队 Mercedes 的正赛速度输入，依据是：来源：FastF1 本赛季车队强度重估；截止本场前车队每站积分对比为 33.50，全场平均 9.18，作为赛车/车队强度重估，方向为正向；车队 Mercedes 的排位速度输入，依据是：来源：同场 FastF1 排位结果；同场车队平均排位名次为 2.50，作为车队排位状态输入，方向为正向；车队 Mercedes 的正赛速度输入，依据是：来源：F1 官方积分榜；官方车队积分榜信息为 第 1，302.0 分，全场平均 83.3，作为车队状态先验，方向为正向。\n\n注意：这次预测的状态是诊断专用，阻塞项为：Codex 证据质量仍需复核、概率校准仍停留在诊断级。因此这是一份模型机制解释，不是稳定盈利优势证明。",
   "confidence": "diagnostic_medium_for_model_mechanics_low_for_real_world_edge",
   "limitations": [
     "当前预测包状态不是正式可用于盈利优势判断，只能用于诊断解释。",
@@ -276,9 +276,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "qualifying_pace",
-            "value": 0.1643,
-            "confidence": 0.78,
-            "weighted_value": 0.12815,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Same-event FastF1 qualifying classification before British Grand Prix: P4/22; used as a strong cutoff-valid qualifying/grid signal. It primarily affects sampled grid order and is not treated as direct race pace."
           },
           {
@@ -289,9 +288,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "race_pace",
-            "value": 0.1364,
-            "confidence": 0.62,
-            "weighted_value": 0.08457,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Cutoff-valid FastF1 race results before British Grand Prix: team total points per race 33.50 vs field 9.18; recent window 27.67 vs field 9.18. Used as a bounded team/car strength reestimate so current-season results can move the race-pace prior without hand-writing a team order."
           },
           {
@@ -302,9 +300,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "qualifying_pace",
-            "value": 0.1,
-            "confidence": 0.58,
-            "weighted_value": 0.058,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Same-event FastF1 qualifying team average position before British Grand Prix: 2.50; used as a team-level qualifying form signal."
           },
           {
@@ -315,9 +312,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "race_pace",
-            "value": 0.105,
-            "confidence": 0.384,
-            "weighted_value": 0.04032,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Official constructor standings before British Grand Prix: P1, 302.0 points vs field average 83.3; used as a cutoff-safe team form prior."
           },
           {
@@ -328,9 +324,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "race_pace",
-            "value": 0.085,
-            "confidence": 0.2856,
-            "weighted_value": 0.02428,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Practice 1 long-run proxy before British Grand Prix: 93.134s vs field 94.350s over 9 clean lap(s); used as a same-weekend race-pace signal."
           },
           {
@@ -341,9 +336,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "qualifying_pace",
-            "value": 0.044,
-            "confidence": 0.44,
-            "weighted_value": 0.01936,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Qualifying best valid lap before British Grand Prix: 88.481s vs field 89.500s; used as gap-aware qualifying pace, separate from the qualifying classification/grid-order feature."
           },
           {
@@ -354,9 +348,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "race_pace",
-            "value": 0.0599,
-            "confidence": 0.32,
-            "weighted_value": 0.01917,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Official driver standings before British Grand Prix: P2, 131.0 points vs field average 41.6; used as a cutoff-safe season form prior, not a manual team-strength override."
           },
           {
@@ -367,9 +360,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "qualifying_pace",
-            "value": 0.0442,
-            "confidence": 0.32,
-            "weighted_value": 0.01414,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Previous 3 race grid result(s) before British Grand Prix: average grid 2.67 vs field 11.50; used as point-in-time qualifying form prior."
           },
           {
@@ -380,9 +372,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "race_pace",
-            "value": 0.039,
-            "confidence": 0.36,
-            "weighted_value": 0.01404,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Previous 3 race result(s) before British Grand Prix: average points 14.33 vs field 4.59; used as point-in-time race form prior."
           },
           {
@@ -393,9 +384,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "qualifying_pace",
-            "value": 0.042,
-            "confidence": 0.294,
-            "weighted_value": 0.01235,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Official constructor standings before British Grand Prix: P1, 302.0 points; converted into a smaller qualifying prior because standings primarily reflect race outcomes."
           },
           {
@@ -406,9 +396,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "qualifying_pace",
-            "value": 0.0357,
-            "confidence": 0.34,
-            "weighted_value": 0.01214,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Qualifying team best-lap proxy before British Grand Prix: 88.296s vs team field 89.500s; used as same-weekend car qualifying pace."
           },
           {
@@ -419,9 +408,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "qualifying_pace",
-            "value": 0.05,
-            "confidence": 0.24,
-            "weighted_value": 0.012,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Historical OpenF1 analogue rank 1/10 in Qualifying_9554; used as low-confidence qualifying_pace prior."
           },
           {
@@ -432,9 +420,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "qualifying_pace",
-            "value": 0.0365,
-            "confidence": 0.29,
-            "weighted_value": 0.01059,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Season-to-date FastF1 grid results before British Grand Prix: average grid 2.38 vs field 11.50; used as a broader qualifying-form prior."
           },
           {
@@ -445,9 +432,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "race_pace",
-            "value": 0.0296,
-            "confidence": 0.33,
-            "weighted_value": 0.00977,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Team average driver points over previous 3 race(s): 13.83 vs field 4.59; used as point-in-time team form prior."
           },
           {
@@ -458,9 +444,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "race_pace",
-            "value": 0.0275,
-            "confidence": 0.34,
-            "weighted_value": 0.00935,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Season-to-date FastF1 race results before British Grand Prix: 8 race(s), driver average points 13.75 vs field 4.59; used as a broader form prior than the recent-window signal."
           },
           {
@@ -471,9 +456,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "race_pace",
-            "value": 0.0292,
-            "confidence": 0.32,
-            "weighted_value": 0.00934,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Team average driver points across 8 race(s) before British Grand Prix: 16.75 vs field 4.59; used as a season-to-date team form prior."
           },
           {
@@ -484,9 +468,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "race_pace",
-            "value": -0.0278,
-            "confidence": 0.28,
-            "weighted_value": -0.00778,
+            "direction": "negative",
+            "direction_label": "负向",
             "explanation": "Historical OpenF1 analogue rank 8/10 in Practice_2_9552; used as low-confidence race_pace prior."
           },
           {
@@ -497,9 +480,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "race_pace",
-            "value": 0.0278,
-            "confidence": 0.28,
-            "weighted_value": 0.00778,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Historical OpenF1 analogue rank 3/10 in Practice_3_9553; used as low-confidence race_pace prior."
           },
           {
@@ -510,9 +492,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "qualifying_pace",
-            "value": 0.027,
-            "confidence": 0.24,
-            "weighted_value": 0.00648,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Official driver standings before British Grand Prix: P2, 131.0 points; converted into a smaller qualifying prior because standings primarily reflect race outcomes."
           },
           {
@@ -523,9 +504,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "race_pace",
-            "value": 0.0275,
-            "confidence": 0.2312,
-            "weighted_value": 0.00636,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Practice 1 team long-run proxy before British Grand Prix: 93.134s vs team field 94.257s; used as same-weekend car race pace."
           },
           {
@@ -536,9 +516,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "race_pace",
-            "value": 0.0167,
-            "confidence": 0.28,
-            "weighted_value": 0.00468,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Historical OpenF1 analogue rank 4/10 in Practice_1_9551; used as low-confidence race_pace prior."
           },
           {
@@ -549,9 +528,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "straight_line_speed",
-            "value": 0.0211,
-            "confidence": 0.1632,
-            "weighted_value": 0.00344,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Practice 1 speed-trap average before British Grand Prix: 288.4 kph vs field 276.9 kph; used as a small straight-line signal."
           },
           {
@@ -562,9 +540,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "race_pace",
-            "value": -0.0093,
-            "confidence": 0.25,
-            "weighted_value": -0.00232,
+            "direction": "negative",
+            "direction_label": "负向",
             "explanation": "FastF1 recent-vs-older team form before British Grand Prix: relative points delta -4.67; used as team momentum signal."
           },
           {
@@ -575,9 +552,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "reliability",
-            "value": -0.006,
-            "confidence": 0.27,
-            "weighted_value": -0.00162,
+            "direction": "negative",
+            "direction_label": "负向",
             "explanation": "1 non-finished classification(s) across 8 cutoff-valid FastF1 result(s); used as a season reliability risk prior."
           },
           {
@@ -588,9 +564,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "wet_skill",
-            "value": 0.0048,
-            "confidence": 0.25,
-            "weighted_value": 0.0012,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Historical analogue race had meaningful rainfall; driver wet-skill prior gets a small confidence-weighted boost."
           },
           {
@@ -601,9 +576,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "tyre_deg",
-            "value": -0.0057,
-            "confidence": 0.204,
-            "weighted_value": -0.00116,
+            "direction": "negative",
+            "direction_label": "负向",
             "explanation": "Practice 1 tyre-degradation proxy before British Grand Prix: +0.0229s/lap vs field -0.2481s/lap; lower degradation improves strategy pace."
           },
           {
@@ -614,9 +588,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "race_execution",
-            "value": -0.0021,
-            "confidence": 0.3,
-            "weighted_value": -0.00063,
+            "direction": "negative",
+            "direction_label": "负向",
             "explanation": "Previous 3 finished race result(s) before British Grand Prix: average opportunity-normalized grid-to-finish conversion -0.14 vs field +0.28; used as point-in-time race execution prior."
           },
           {
@@ -627,9 +600,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "race_pace",
-            "value": 0.0022,
-            "confidence": 0.28,
-            "weighted_value": 0.00062,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "FastF1 recent-vs-older form before British Grand Prix: relative points delta 0.93; used as momentum signal so late-season improvement or decline can move the race-pace prior."
           },
           {
@@ -640,9 +612,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "race_execution",
-            "value": -0.0013,
-            "confidence": 0.29,
-            "weighted_value": -0.00038,
+            "direction": "negative",
+            "direction_label": "负向",
             "explanation": "Team opportunity-normalized finished-race grid-to-finish conversion over previous 3 race(s): -0.02 vs field +0.32; used as point-in-time team race execution prior."
           },
           {
@@ -653,9 +624,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "qualifying_pace",
-            "value": -0.0016,
-            "confidence": 0.23,
-            "weighted_value": -0.00037,
+            "direction": "negative",
+            "direction_label": "负向",
             "explanation": "FastF1 recent-vs-older grid form before British Grand Prix: relative grid delta -0.47; used as qualifying momentum signal."
           },
           {
@@ -666,9 +636,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "race_execution",
-            "value": -0.0012,
-            "confidence": 0.28,
-            "weighted_value": -0.00034,
+            "direction": "negative",
+            "direction_label": "负向",
             "explanation": "Season-to-date FastF1 finished races before British Grand Prix: average opportunity-normalized grid-to-finish conversion -0.04 vs field +0.24; used as a broader race execution prior."
           },
           {
@@ -679,9 +648,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "race_execution",
-            "value": -0.0013,
-            "confidence": 0.22,
-            "weighted_value": -0.00029,
+            "direction": "negative",
+            "direction_label": "负向",
             "explanation": "FastF1 recent-vs-older finished-race grid conversion before British Grand Prix: relative conversion delta -0.29; used as race execution momentum."
           },
           {
@@ -692,9 +660,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "race_execution",
-            "value": -0.001,
-            "confidence": 0.21,
-            "weighted_value": -0.00021,
+            "direction": "negative",
+            "direction_label": "负向",
             "explanation": "FastF1 recent-vs-older team grid conversion before British Grand Prix: relative conversion delta -0.28; used as team race execution momentum."
           },
           {
@@ -705,9 +672,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "race_execution",
-            "value": -0.0006,
-            "confidence": 0.27,
-            "weighted_value": -0.00016,
+            "direction": "negative",
+            "direction_label": "负向",
             "explanation": "Team average opportunity-normalized finished-race grid-to-finish conversion across 8 race(s) before British Grand Prix: +0.08 vs field +0.26; used as a season-to-date team race execution prior."
           }
         ],
@@ -720,9 +686,8 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "qualifying_pace",
-            "value": 0.1643,
-            "confidence": 0.78,
-            "weighted_value": 0.12815,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Same-event FastF1 qualifying classification before British Grand Prix: P4/22; used as a strong cutoff-valid qualifying/grid signal. It primarily affects sampled grid order and is not treated as direct race pace."
           },
           {
@@ -733,9 +698,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "race_pace",
-            "value": 0.1364,
-            "confidence": 0.62,
-            "weighted_value": 0.08457,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Cutoff-valid FastF1 race results before British Grand Prix: team total points per race 33.50 vs field 9.18; recent window 27.67 vs field 9.18. Used as a bounded team/car strength reestimate so current-season results can move the race-pace prior without hand-writing a team order."
           },
           {
@@ -746,9 +710,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "qualifying_pace",
-            "value": 0.1,
-            "confidence": 0.58,
-            "weighted_value": 0.058,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Same-event FastF1 qualifying team average position before British Grand Prix: 2.50; used as a team-level qualifying form signal."
           },
           {
@@ -759,9 +722,8 @@
             "target_type": "team",
             "target_id": "mercedes",
             "metric": "race_pace",
-            "value": 0.105,
-            "confidence": 0.384,
-            "weighted_value": 0.04032,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Official constructor standings before British Grand Prix: P1, 302.0 points vs field average 83.3; used as a cutoff-safe team form prior."
           },
           {
@@ -772,34 +734,12 @@
             "target_type": "driver",
             "target_id": "russell",
             "metric": "race_pace",
-            "value": 0.085,
-            "confidence": 0.2856,
-            "weighted_value": 0.02428,
+            "direction": "positive",
+            "direction_label": "正向",
             "explanation": "Practice 1 long-run proxy before British Grand Prix: 93.134s vs field 94.350s over 9 clean lap(s); used as a same-weekend race-pace signal."
-          },
-          {
-            "kind": "feature_adjustment",
-            "scope": "driver",
-            "feature_id": "fastf1-session-laps:2026:british_gp:qualifying:russell:qualifying_pace:2026-07-04T15:00:00+00:00",
-            "source": "fastf1_session_laps:2026:british:qualifying:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:38+00:00:quality=retrospective_snapshot:path=data\\raw\\fastf1\\2026_British_Grand_Prix_Qualifying_laps\\2026-07-05\\2026_British_Grand_Prix_Qualifying_laps_2026-07-05T11_44_38_00_00.json",
-            "target_type": "driver",
-            "target_id": "russell",
-            "metric": "qualifying_pace",
-            "value": 0.044,
-            "confidence": 0.44,
-            "weighted_value": 0.01936,
-            "explanation": "Qualifying best valid lap before British Grand Prix: 88.481s vs field 89.500s; used as gap-aware qualifying pace, separate from the qualifying classification/grid-order feature."
           }
         ],
-        "metric_weighted_totals": {
-          "qualifying_pace": 0.27284,
-          "race_pace": 0.22018,
-          "straight_line_speed": 0.00344,
-          "race_execution": -0.00201,
-          "reliability": -0.00162,
-          "wet_skill": 0.0012,
-          "tyre_deg": -0.00116
-        }
+        "redaction_note": "公开解释只保留事实来源、指标方向和原始说明；归一化取值、置信度和加权影响不作为解释证据展示。"
       }
     },
     "factor_trace_context": [
@@ -813,61 +753,17 @@
         "route": "track_contextual_pace",
         "model_surface": "track-weighted pace score",
         "route_status": "observed_probability_movement",
-        "raw_signed_impact": 0.0472,
-        "weighted_input_impact": 0.0252,
-        "effective_race_input": 0.0128,
-        "effective_qualifying_input": 0.0134,
-        "signed_input_impact": 0.0252,
-        "max_win_probability_delta": 0.0083,
-        "affected_outcome_count": 2,
         "quality_status": "weak_diagnostic",
         "source_status": "source_log_missing",
         "triangulation_status": "seed_or_test_only",
         "conflict_status": "no_conflict",
-        "source_reliability": 0.3,
-        "model_input_weight": 0.5338,
-        "context_multiplier": 0.5082,
-        "context_multiplier_reason": "energy_recovery uses ERS deployment, recovery efficiency, and clipping exposure; track_type=high_speed, base=0.16, track_sensitivity=0.35, mode=race, context_multiplier=0.508, demand_component=ers_demand, demand_value=0.35, launch_importance=0.25, altitude_power_derate=0.00, profile_notes=Sustained high-speed load and repeated deployment make clipping, drag, and mass visible. | event_geometry_adjusted=true corners=18 high_angle_ratio=0.28 low_angle_ratio=0.22 avg_abs_angle=83.4 | low_altitude_air_density_adjusted=true elevation_m=119",
-        "track_demand_component": "ers_demand",
-        "track_demand_value": 0.3482,
-        "track_demand_profile": {
-          "track_type": "high_speed",
-          "power_demand": 0.5201,
-          "ers_demand": 0.3482,
-          "drag_demand": 0.4401,
-          "traction_demand": 0.1344,
-          "mass_sensitivity": 0.3497,
-          "launch_importance": 0.2498,
-          "braking_energy_demand": 0.3504,
-          "altitude_power_derate": 0.0,
-          "notes": [
-            "Sustained high-speed load and repeated deployment make clipping, drag, and mass visible.",
-            "event_geometry_adjusted=true corners=18 high_angle_ratio=0.28 low_angle_ratio=0.22 avg_abs_angle=83.4",
-            "low_altitude_air_density_adjusted=true elevation_m=119"
-          ]
-        },
         "risk_flags": [
           "claim_requires_review",
           "seed_scenario_source",
           "source_log_missing",
           "seed_only_triangulation"
         ],
-        "route_notes": [
-          "Scaled by circuit type; captures ERS deployment and clipping sensitivity.",
-          "target_scope=team:mercedes",
-          "track_type=high_speed",
-          "track_context_multiplier_applied=true",
-          "context_multiplier=0.5082",
-          "qualifying_context_multiplier=0.5336",
-          "effective_race_input=+0.0128",
-          "track_demand_component=ers_demand",
-          "track_demand_value=0.3482",
-          "energy_recovery uses ERS deployment, recovery efficiency, and clipping exposure; track_type=high_speed, base=0.16, track_sensitivity=0.35, mode=race, context_multiplier=0.508, demand_component=ers_demand, demand_value=0.35, launch_importance=0.25, altitude_power_derate=0.00, profile_notes=Sustained high-speed load and repeated deployment make clipping, drag, and mass visible. | event_geometry_adjusted=true corners=18 high_angle_ratio=0.28 low_angle_ratio=0.22 avg_abs_angle=83.4 | low_altitude_air_density_adjusted=true elevation_m=119",
-          "model_input_weight=0.53",
-          "raw_signed_impact=+0.0472",
-          "weighted_input_impact=+0.0252",
-          "same_seed_max_win_delta=+0.0083"
-        ]
+        "redaction_note": "公开解释不展示原始影响值、加权输入值、模型输入权重或上下文乘数；这些只能用于内部调试。"
       },
       {
         "claim_id": "british_gp-weather-openmeteo-001",
@@ -879,37 +775,15 @@
         "route": "wet_weather",
         "model_surface": "wet-race branch",
         "route_status": "observed_probability_movement",
-        "raw_signed_impact": -0.091,
-        "weighted_input_impact": -0.0639,
-        "effective_race_input": -0.0639,
-        "effective_qualifying_input": null,
-        "signed_input_impact": -0.0639,
-        "max_win_probability_delta": 0.0042,
-        "affected_outcome_count": 5,
         "quality_status": "usable_diagnostic",
         "source_status": "within_cutoff",
         "triangulation_status": "single_source",
         "conflict_status": "no_conflict",
-        "source_reliability": 0.7,
-        "model_input_weight": 0.7023,
-        "context_multiplier": null,
-        "context_multiplier_reason": null,
-        "track_demand_component": null,
-        "track_demand_value": null,
-        "track_demand_profile": null,
         "risk_flags": [
           "claim_requires_review",
           "single_source_claim"
         ],
-        "route_notes": [
-          "Changes wet probability or wet-performance contribution depending on target scope.",
-          "target_scope=event:british_gp",
-          "track_type=high_speed",
-          "model_input_weight=0.70",
-          "raw_signed_impact=-0.0910",
-          "weighted_input_impact=-0.0639",
-          "same_seed_max_win_delta=+0.0042"
-        ]
+        "redaction_note": "公开解释不展示原始影响值、加权输入值、模型输入权重或上下文乘数；这些只能用于内部调试。"
       }
     ],
     "evidence_impact_context": [
@@ -920,26 +794,21 @@
         "target_id": "mercedes",
         "metric": "energy_recovery",
         "direction": "positive",
-        "signed_input_impact": 0.0252,
-        "confidence": 0.72,
-        "uncertainty": 0.18,
         "attribution_method": "diagnostic_same_seed_leave_one_claim_comparison",
         "affected_outcomes": [
           {
             "driver_id": "antonelli",
-            "win_delta": 0.0083,
-            "podium_delta": 0.0067,
-            "expected_points_delta": 0.102
+            "direction_label": "正向",
+            "magnitude_label": "小幅"
           },
           {
             "driver_id": "russell",
-            "win_delta": 0.0058,
-            "podium_delta": 0.0083,
-            "expected_points_delta": 0.113
+            "direction_label": "正向",
+            "magnitude_label": "小幅"
           }
         ],
-        "max_win_probability_delta": 0.0083,
-        "interpretation": "small diagnostic sensitivity for energy_recovery; computed by comparing the full prediction with a same-seed run that removes this claim only."
+        "interpretation": "small diagnostic sensitivity for energy_recovery; computed by comparing the full prediction with a same-seed run that removes this claim only.",
+        "redaction_note": "公开解释只展示同种子移除对比的方向和幅度等级，不展示原始概率差值或内部输入权重。"
       },
       {
         "claim_id": "british_gp-weather-openmeteo-001",
@@ -948,141 +817,38 @@
         "target_id": "british_gp",
         "metric": "wet_skill",
         "direction": "negative",
-        "signed_input_impact": -0.0639,
-        "confidence": 0.7,
-        "uncertainty": 0.35,
         "attribution_method": "diagnostic_same_seed_leave_one_claim_comparison",
         "affected_outcomes": [
           {
             "driver_id": "antonelli",
-            "win_delta": 0.0042,
-            "podium_delta": 0.0033,
-            "expected_points_delta": 0.049
+            "direction_label": "正向",
+            "magnitude_label": "很小"
           },
           {
             "driver_id": "hamilton",
-            "win_delta": -0.0025,
-            "podium_delta": -0.0033,
-            "expected_points_delta": -0.062
+            "direction_label": "负向",
+            "magnitude_label": "很小"
           },
           {
             "driver_id": "verstappen",
-            "win_delta": -0.0017,
-            "podium_delta": -0.0025,
-            "expected_points_delta": -0.055
+            "direction_label": "负向",
+            "magnitude_label": "很小"
           },
           {
             "driver_id": "russell",
-            "win_delta": -0.0008,
-            "podium_delta": -0.0008,
-            "expected_points_delta": 0.002
+            "direction_label": "负向",
+            "magnitude_label": "很小"
           },
           {
             "driver_id": "norris",
-            "win_delta": 0.0008,
-            "podium_delta": -0.0008,
-            "expected_points_delta": 0.007
+            "direction_label": "正向",
+            "magnitude_label": "很小"
           }
         ],
-        "max_win_probability_delta": 0.0042,
-        "interpretation": "small diagnostic sensitivity for wet_skill; computed by comparing the full prediction with a same-seed run that removes this claim only."
+        "interpretation": "small diagnostic sensitivity for wet_skill; computed by comparing the full prediction with a same-seed run that removes this claim only.",
+        "redaction_note": "公开解释只展示同种子移除对比的方向和幅度等级，不展示原始概率差值或内部输入权重。"
       }
     ],
-    "score_breakdown": {
-      "russell": {
-        "race_total": 2.41414,
-        "qualifying_total": 2.80247,
-        "race_components": {
-          "team_base_strength": 1.24,
-          "driver_base_skill": 0.39,
-          "track_affinity": 0.18,
-          "racecraft": 0.19,
-          "wet_skill": 0.05606,
-          "team_strategy": 0.0888,
-          "tyre_management": 0.036,
-          "feature_race_pace": 0.22016,
-          "feature_race_execution": -0.002,
-          "evidence_energy_recovery": 0.01281,
-          "feature_straight_line_speed": 0.00231
-        },
-        "qualifying_components": {
-          "team_base_strength": 1.24,
-          "driver_base_skill": 0.39,
-          "track_affinity": 0.18,
-          "racecraft": 0.19,
-          "wet_skill": 0.05606,
-          "team_strategy": 0.0888,
-          "qualifying": 0.1485,
-          "feature_race_pace": 0.22016,
-          "feature_qualifying_pace": 0.27284,
-          "evidence_energy_recovery": 0.01345,
-          "feature_straight_line_speed": 0.00265
-        },
-        "race_top_components": [
-          {
-            "component": "team_base_strength",
-            "value": 1.24
-          },
-          {
-            "component": "driver_base_skill",
-            "value": 0.39
-          },
-          {
-            "component": "feature_race_pace",
-            "value": 0.22016
-          },
-          {
-            "component": "racecraft",
-            "value": 0.19
-          },
-          {
-            "component": "track_affinity",
-            "value": 0.18
-          },
-          {
-            "component": "team_strategy",
-            "value": 0.0888
-          },
-          {
-            "component": "wet_skill",
-            "value": 0.05606
-          },
-          {
-            "component": "tyre_management",
-            "value": 0.036
-          }
-        ],
-        "qualifying_top_components": [
-          {
-            "component": "team_base_strength",
-            "value": 1.24
-          },
-          {
-            "component": "driver_base_skill",
-            "value": 0.39
-          },
-          {
-            "component": "feature_qualifying_pace",
-            "value": 0.27284
-          },
-          {
-            "component": "feature_race_pace",
-            "value": 0.22016
-          },
-          {
-            "component": "racecraft",
-            "value": 0.19
-          },
-          {
-            "component": "track_affinity",
-            "value": 0.18
-          }
-        ],
-        "reliability": 0.96738,
-        "tyre_degradation_adjustment": -0.00116,
-        "launch_adjustment": 0.0
-      }
-    },
     "qualifying_context": {
       "source": "fastf1_qualifying_result",
       "observed_at": "2026-07-04T15:00:00+00:00",
@@ -1102,18 +868,14 @@
       "corner_count": 18,
       "high_speed_corner_count": 6,
       "long_straight_count": 5,
-      "overtaking_index": 0.4175,
-      "track_position_value": 0.3856,
-      "safety_car_probability": 0.4198,
-      "wet_probability": 0.4143,
-      "tyre_degradation_index": 0.5356,
       "provenance": {
         "circuit_source": "openf1_circuit_info_url",
         "circuit_source_url": "https://api.multiviewer.app/api/v1/circuits/2/2026",
         "weather_source": "open_meteo_historical_climate_profile",
         "method": "v1:circuit_corner_angle_progress_weather_prior_proxy",
         "geometry_proxy_note": "Corner speed classes and straight counts are derived from stored corner angle/progress fields; not official speed or DRS/deployment-zone data."
-      }
+      },
+      "redaction_note": "公开解释不展示未经来源化解释的归一化赛道指数；赛道指数需要绑定弯角、直道、DRS/替代系统、天气和沥青来源后才能前端展示。"
     },
     "readiness": {
       "status": "diagnostic_only",
@@ -1131,53 +893,65 @@
       "factor_trace_count": 6,
       "weak_evidence_quality_count": 5,
       "strong_evidence_quality_count": 0
-    }
+    },
+    "model_prior_audit": {
+      "russell": {
+        "status": "unsupported_static_priors_redacted",
+        "unsupported_static_prior_labels": [
+          "车队和赛车基础强度先验",
+          "车手基础能力先验",
+          "正赛攻防和比赛执行先验",
+          "赛车与赛道类型适配",
+          "排位单圈能力先验",
+          "车队策略能力",
+          "湿地能力按天气概率折算",
+          "保胎能力"
+        ],
+        "note": "这些静态先验只能作为模型风险提示，不能作为解释证据；需要重新标定并绑定信息来源后才能用于回答用户为什么。"
+      }
+    },
+    "internal_fields_redacted": [
+      "内部能力分明细",
+      "特征归一化数值、置信度和加权影响",
+      "指标加权汇总",
+      "证据路线原始影响权重",
+      "同种子对比原始概率差值",
+      "未经来源化解释的归一化赛道指数"
+    ]
   },
   "supporting_evidence": [
     {
       "kind": "feature_adjustment",
       "label": "George Russell：排位速度：车手",
       "detail": "来源：同场 FastF1 排位结果；同场排位名次为 第 4/22，作为排位和发车位信号，不直接当作正赛速度",
-      "weighted_value": 0.12815,
       "source": "fastf1_qualifying_result:2026:british:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:33+00:00"
     },
     {
       "kind": "feature_adjustment",
       "label": "George Russell：正赛速度：车队",
       "detail": "来源：FastF1 本赛季车队强度重估；截止本场前车队每站积分对比为 33.50，全场平均 9.18，作为赛车/车队强度重估",
-      "weighted_value": 0.08457,
       "source": "fastf1_team_strength_reestimate:2026:australian+...+austrian:8_races_recent_3"
     },
     {
       "kind": "feature_adjustment",
       "label": "George Russell：排位速度：车队",
       "detail": "来源：同场 FastF1 排位结果；同场车队平均排位名次为 2.50，作为车队排位状态输入",
-      "weighted_value": 0.058,
       "source": "fastf1_qualifying_result:2026:british:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:33+00:00"
     },
     {
       "kind": "feature_adjustment",
       "label": "George Russell：正赛速度：车队",
       "detail": "来源：F1 官方积分榜；官方车队积分榜信息为 第 1，302.0 分，全场平均 83.3，作为车队状态先验",
-      "weighted_value": 0.04032,
       "source": "f1_official_standings:2026:2026-06-30T07:44:26+00:00"
     },
     {
       "kind": "feature_adjustment",
       "label": "George Russell：正赛速度：车手",
       "detail": "来源：结构化特征；练习赛长距离速度代理值为 93.134 秒，全场平均 94.350 秒，样本圈数 9 个干净圈，作为同一比赛周末的正赛速度信号",
-      "weighted_value": 0.02428,
       "source": "fastf1_session_laps:2026:british:practice1:2026-07-03T11:30:00+00:00:captured_at=2026-07-05T11:45:04+00:00:quality=retrospective_snapshot:path=data\\raw\\fastf1\\2026_British_Grand_Prix_Practice_1_laps\\2026-07-05\\2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.json"
-    },
-    {
-      "kind": "feature_adjustment",
-      "label": "George Russell：排位速度：车手",
-      "detail": "来源：结构化特征；同场排位名次为 88.481 秒，全场平均 89.500 秒，作为排位和发车位信号，不直接当作正赛速度",
-      "weighted_value": 0.01936,
-      "source": "fastf1_session_laps:2026:british:qualifying:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:38+00:00:quality=retrospective_snapshot:path=data\\raw\\fastf1\\2026_British_Grand_Prix_Qualifying_laps\\2026-07-05\\2026_British_Grand_Prix_Qualifying_laps_2026-07-05T11_44_38_00_00.json"
     }
   ],
-  "codex_prompt": "你是和 F1Predict 后端可解释性模块协作的 Codex。\n请只使用下面 JSON 上下文回答用户关于预测结果的问题。不要编造来源，不要声称已经证明稳定盈利优势，必须区分模型机制解释和真实世界强结论。如果上下文不足，请明确说明缺少哪类产物或输入。\n回答语言：zh\n用户问题：为什么预测拉塞尔第一？\n上下文 JSON：\n{\n  \"event_id\": \"british_gp\",\n  \"event_name\": \"British Grand Prix\",\n  \"generated_at\": \"2026-07-05T11:59:35+00:00\",\n  \"knowledge_cutoff\": \"2026-07-05T00:00:00+00:00\",\n  \"iterations\": 1200,\n  \"status\": \"diagnostic_only\",\n  \"packet_payload_sha256\": \"9e3dfa22c33404713877465c308143da7ff558448c19bec7f832480bb58dc390\",\n  \"answer_contract\": {\n    \"use_only_context\": true,\n    \"must_state_diagnostic_status\": true,\n    \"do_not_claim_stable_edge\": true,\n    \"say_missing_when_context_is_insufficient\": true\n  },\n  \"evidence_context\": {\n    \"question\": \"为什么预测拉塞尔第一？\",\n    \"question_type\": \"rank_explanation\",\n    \"selected_driver_ids\": [\n      \"russell\"\n    ],\n    \"probability_rows\": [\n      {\n        \"driver_id\": \"russell\",\n        \"win\": 0.338333,\n        \"podium\": 0.811667,\n        \"points\": 0.975,\n        \"expected_points\": 18.253333,\n        \"average_finish\": 2.718333,\n        \"expected_rank\": 1,\n        \"win_rank\": 2\n      }\n    ],\n    \"all_probability_rows\": [\n      {\n        \"driver_id\": \"russell\",\n        \"win\": 0.338333,\n        \"podium\": 0.811667,\n        \"points\": 0.975,\n        \"expected_points\": 18.253333,\n        \"average_finish\": 2.718333,\n        \"expected_rank\": 1,\n        \"win_rank\": 2\n      },\n      {\n        \"driver_id\": \"antonelli\",\n        \"win\": 0.453333,\n        \"podium\": 0.8675,\n        \"points\": 0.958333,\n        \"expected_points\": 19.345833,\n        \"average_finish\": 2.726667,\n        \"expected_rank\": 2,\n        \"win_rank\": 1\n      },\n      {\n        \"driver_id\": \"verstappen\",\n        \"win\": 0.12,\n        \"podium\": 0.5775,\n        \"points\": 0.936667,\n        \"expected_points\": 14.203333,\n        \"average_finish\": 4.351667,\n        \"expected_rank\": 3,\n        \"win_rank\": 3\n      },\n      {\n        \"driver_id\": \"hamilton\",\n        \"win\": 0.071667,\n        \"podium\": 0.488333,\n        \"points\": 0.940833,\n        \"expected_points\": 13.259167,\n        \"average_finish\": 4.5825,\n        \"expected_rank\": 4,\n        \"win_rank\": 4\n      },\n      {\n        \"driver_id\": \"norris\",\n        \"win\": 0.011667,\n        \"podium\": 0.13,\n        \"points\": 0.943333,\n        \"expected_points\": 9.575833,\n        \"average_finish\": 5.953333,\n        \"expected_rank\": 5,\n        \"win_rank\": 5\n      },\n      {\n        \"driver_id\": \"piastri\",\n        \"win\": 0.003333,\n        \"podium\": 0.0575,\n        \"points\": 0.958333,\n        \"expected_points\": 8.385,\n        \"average_finish\": 6.285833,\n        \"expected_rank\": 6,\n        \"win_rank\": 6\n      },\n      {\n        \"driver_id\": \"leclerc\",\n        \"win\": 0.001667,\n        \"podium\": 0.065833,\n        \"points\": 0.944167,\n        \"expected_points\": 7.915,\n        \"average_finish\": 6.703333,\n        \"expected_rank\": 7,\n        \"win_rank\": 7\n      },\n      {\n        \"driver_id\": \"hadjar\",\n        \"win\": 0.0,\n        \"podium\": 0.001667,\n        \"points\": 0.876667,\n        \"expected_points\": 4.3925,\n        \"average_finish\": 8.783333,\n        \"expected_rank\": 8,\n        \"win_rank\": 8\n      },\n      {\n        \"driver_id\": \"alonso\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.625,\n        \"expected_points\": 1.645,\n        \"average_finish\": 11.013333,\n        \"expected_rank\": 9,\n        \"win_rank\": 9\n      },\n      {\n        \"driver_id\": \"sainz\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.6,\n        \"expected_points\": 1.579167,\n        \"average_finish\": 11.2125,\n        \"expected_rank\": 10,\n        \"win_rank\": 12\n      },\n      {\n        \"driver_id\": \"albon\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.428333,\n        \"expected_points\": 0.981667,\n        \"average_finish\": 12.169167,\n        \"expected_rank\": 11,\n        \"win_rank\": 11\n      },\n      {\n        \"driver_id\": \"gasly\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.258333,\n        \"expected_points\": 0.514167,\n        \"average_finish\": 13.365833,\n        \"expected_rank\": 12,\n        \"win_rank\": 13\n      },\n      {\n        \"driver_id\": \"ocon\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.106667,\n        \"expected_points\": 0.193333,\n        \"average_finish\": 15.016667,\n        \"expected_rank\": 13,\n        \"win_rank\": 15\n      },\n      {\n        \"driver_id\": \"stroll\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.091667,\n        \"expected_points\": 0.158333,\n        \"average_finish\": 15.533333,\n        \"expected_rank\": 14,\n        \"win_rank\": 10\n      },\n      {\n        \"driver_id\": \"lawson\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.064167,\n        \"expected_points\": 0.1125,\n        \"average_finish\": 15.895833,\n        \"expected_rank\": 15,\n        \"win_rank\": 19\n      },\n      {\n        \"driver_id\": \"lindblad\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.058333,\n        \"expected_points\": 0.095,\n        \"average_finish\": 16.170833,\n        \"expected_rank\": 16,\n        \"win_rank\": 20\n      },\n      {\n        \"driver_id\": \"perez\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.0425,\n        \"expected_points\": 0.085,\n        \"average_finish\": 16.204167,\n        \"expected_rank\": 17,\n        \"win_rank\": 22\n      },\n      {\n        \"driver_id\": \"hulkenberg\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.0575,\n        \"expected_points\": 0.098333,\n        \"average_finish\": 16.265833,\n        \"expected_rank\": 18,\n        \"win_rank\": 17\n      },\n      {\n        \"driver_id\": \"colapinto\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.040833,\n        \"expected_points\": 0.0625,\n        \"average_finish\": 16.640833,\n        \"expected_rank\": 19,\n        \"win_rank\": 14\n      },\n      {\n        \"driver_id\": \"bearman\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.035833,\n        \"expected_points\": 0.056667,\n        \"average_finish\": 16.649167,\n        \"expected_rank\": 20,\n        \"win_rank\": 16\n      },\n      {\n        \"driver_id\": \"bottas\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.045,\n        \"expected_points\": 0.068333,\n        \"average_finish\": 16.8625,\n        \"expected_rank\": 21,\n        \"win_rank\": 21\n      },\n      {\n        \"driver_id\": \"bortoleto\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.0125,\n        \"expected_points\": 0.02,\n        \"average_finish\": 17.895,\n        \"expected_rank\": 22,\n        \"win_rank\": 18\n      }\n    ],\n    \"feature_context\": {\n      \"russell\": {\n        \"team_id\": \"mercedes\",\n        \"features\": [\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-qualifying-result:2026:british_gp:russell:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_qualifying_result:2026:british:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:33+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": 0.1643,\n            \"confidence\": 0.78,\n            \"weighted_value\": 0.12815,\n            \"explanation\": \"Same-event FastF1 qualifying classification before British Grand Prix: P4/22; used as a strong cutoff-valid qualifying/grid signal. It primarily affects sampled grid order and is not treated as direct race pace.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-team-strength-reestimate:2026:british_gp:mercedes:race_pace:8\",\n            \"source\": \"fastf1_team_strength_reestimate:2026:australian+...+austrian:8_races_recent_3\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.1364,\n            \"confidence\": 0.62,\n            \"weighted_value\": 0.08457,\n            \"explanation\": \"Cutoff-valid FastF1 race results before British Grand Prix: team total points per race 33.50 vs field 9.18; recent window 27.67 vs field 9.18. Used as a bounded team/car strength reestimate so current-season results can move the race-pace prior without hand-writing a team order.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-qualifying-result:2026:british_gp:mercedes:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_qualifying_result:2026:british:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:33+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": 0.1,\n            \"confidence\": 0.58,\n            \"weighted_value\": 0.058,\n            \"explanation\": \"Same-event FastF1 qualifying team average position before British Grand Prix: 2.50; used as a team-level qualifying form signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"f1-official-standings:2026:british_gp:mercedes:race_pace:2026-06-30T07:44:26+00:00\",\n            \"source\": \"f1_official_standings:2026:2026-06-30T07:44:26+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.105,\n            \"confidence\": 0.384,\n            \"weighted_value\": 0.04032,\n            \"explanation\": \"Official constructor standings before British Grand Prix: P1, 302.0 points vs field average 83.3; used as a cutoff-safe team form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:practice1:russell:race_pace:2026-07-03T11:30:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:practice1:2026-07-03T11:30:00+00:00:captured_at=2026-07-05T11:45:04+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Practice_1_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.json\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.085,\n            \"confidence\": 0.2856,\n            \"weighted_value\": 0.02428,\n            \"explanation\": \"Practice 1 long-run proxy before British Grand Prix: 93.134s vs field 94.350s over 9 clean lap(s); used as a same-weekend race-pace signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:qualifying:russell:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:qualifying:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:38+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Qualifying_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Qualifying_laps_2026-07-05T11_44_38_00_00.json\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": 0.044,\n            \"confidence\": 0.44,\n            \"weighted_value\": 0.01936,\n            \"explanation\": \"Qualifying best valid lap before British Grand Prix: 88.481s vs field 89.500s; used as gap-aware qualifying pace, separate from the qualifying classification/grid-order feature.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"f1-official-standings:2026:british_gp:russell:race_pace:2026-06-30T07:44:26+00:00\",\n            \"source\": \"f1_official_standings:2026:2026-06-30T07:44:26+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.0599,\n            \"confidence\": 0.32,\n            \"weighted_value\": 0.01917,\n            \"explanation\": \"Official driver standings before British Grand Prix: P2, 131.0 points vs field average 41.6; used as a cutoff-safe season form prior, not a manual team-strength override.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-form:2026:british_gp:russell:qualifying_pace:3\",\n            \"source\": \"fastf1_form:2026:monaco+barcelona+austrian\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": 0.0442,\n            \"confidence\": 0.32,\n            \"weighted_value\": 0.01414,\n            \"explanation\": \"Previous 3 race grid result(s) before British Grand Prix: average grid 2.67 vs field 11.50; used as point-in-time qualifying form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-form:2026:british_gp:russell:race_pace:3\",\n            \"source\": \"fastf1_form:2026:monaco+barcelona+austrian\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.039,\n            \"confidence\": 0.36,\n            \"weighted_value\": 0.01404,\n            \"explanation\": \"Previous 3 race result(s) before British Grand Prix: average points 14.33 vs field 4.59; used as point-in-time race form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"f1-official-standings:2026:british_gp:mercedes:qualifying_pace:2026-06-30T07:44:26+00:00\",\n            \"source\": \"f1_official_standings:2026:2026-06-30T07:44:26+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": 0.042,\n            \"confidence\": 0.294,\n            \"weighted_value\": 0.01235,\n            \"explanation\": \"Official constructor standings before British Grand Prix: P1, 302.0 points; converted into a smaller qualifying prior because standings primarily reflect race outcomes.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:qualifying:mercedes:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:qualifying:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:38+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Qualifying_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Qualifying_laps_2026-07-05T11_44_38_00_00.json\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": 0.0357,\n            \"confidence\": 0.34,\n            \"weighted_value\": 0.01214,\n            \"explanation\": \"Qualifying team best-lap proxy before British Grand Prix: 88.296s vs team field 89.500s; used as same-weekend car qualifying pace.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"openf1:2024:Silverstone:Qualifying_9554:russell:qualifying_pace\",\n            \"source\": \"openf1_summary:2024:Silverstone:Qualifying_9554\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": 0.05,\n            \"confidence\": 0.24,\n            \"weighted_value\": 0.012,\n            \"explanation\": \"Historical OpenF1 analogue rank 1/10 in Qualifying_9554; used as low-confidence qualifying_pace prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-season-form:2026:british_gp:russell:qualifying_pace:8\",\n            \"source\": \"fastf1_season_form:2026:australian+...+austrian:8_races\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": 0.0365,\n            \"confidence\": 0.29,\n            \"weighted_value\": 0.01059,\n            \"explanation\": \"Season-to-date FastF1 grid results before British Grand Prix: average grid 2.38 vs field 11.50; used as a broader qualifying-form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-form:2026:british_gp:mercedes:race_pace:3\",\n            \"source\": \"fastf1_form:2026:monaco+barcelona+austrian\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.0296,\n            \"confidence\": 0.33,\n            \"weighted_value\": 0.00977,\n            \"explanation\": \"Team average driver points over previous 3 race(s): 13.83 vs field 4.59; used as point-in-time team form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-season-form:2026:british_gp:russell:race_pace:8\",\n            \"source\": \"fastf1_season_form:2026:australian+...+austrian:8_races\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.0275,\n            \"confidence\": 0.34,\n            \"weighted_value\": 0.00935,\n            \"explanation\": \"Season-to-date FastF1 race results before British Grand Prix: 8 race(s), driver average points 13.75 vs field 4.59; used as a broader form prior than the recent-window signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-season-form:2026:british_gp:mercedes:race_pace:8_race(s)\",\n            \"source\": \"fastf1_season_form:2026:australian+...+austrian:8_races\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.0292,\n            \"confidence\": 0.32,\n            \"weighted_value\": 0.00934,\n            \"explanation\": \"Team average driver points across 8 race(s) before British Grand Prix: 16.75 vs field 4.59; used as a season-to-date team form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"openf1:2024:Silverstone:Practice_2_9552:russell:race_pace\",\n            \"source\": \"openf1_summary:2024:Silverstone:Practice_2_9552\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"value\": -0.0278,\n            \"confidence\": 0.28,\n            \"weighted_value\": -0.00778,\n            \"explanation\": \"Historical OpenF1 analogue rank 8/10 in Practice_2_9552; used as low-confidence race_pace prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"openf1:2024:Silverstone:Practice_3_9553:russell:race_pace\",\n            \"source\": \"openf1_summary:2024:Silverstone:Practice_3_9553\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.0278,\n            \"confidence\": 0.28,\n            \"weighted_value\": 0.00778,\n            \"explanation\": \"Historical OpenF1 analogue rank 3/10 in Practice_3_9553; used as low-confidence race_pace prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"f1-official-standings:2026:british_gp:russell:qualifying_pace:2026-06-30T07:44:26+00:00\",\n            \"source\": \"f1_official_standings:2026:2026-06-30T07:44:26+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": 0.027,\n            \"confidence\": 0.24,\n            \"weighted_value\": 0.00648,\n            \"explanation\": \"Official driver standings before British Grand Prix: P2, 131.0 points; converted into a smaller qualifying prior because standings primarily reflect race outcomes.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:practice1:mercedes:race_pace:2026-07-03T11:30:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:practice1:2026-07-03T11:30:00+00:00:captured_at=2026-07-05T11:45:04+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Practice_1_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.json\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.0275,\n            \"confidence\": 0.2312,\n            \"weighted_value\": 0.00636,\n            \"explanation\": \"Practice 1 team long-run proxy before British Grand Prix: 93.134s vs team field 94.257s; used as same-weekend car race pace.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"openf1:2024:Silverstone:Practice_1_9551:russell:race_pace\",\n            \"source\": \"openf1_summary:2024:Silverstone:Practice_1_9551\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.0167,\n            \"confidence\": 0.28,\n            \"weighted_value\": 0.00468,\n            \"explanation\": \"Historical OpenF1 analogue rank 4/10 in Practice_1_9551; used as low-confidence race_pace prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:practice1:russell:straight_line_speed:2026-07-03T11:30:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:practice1:2026-07-03T11:30:00+00:00:captured_at=2026-07-05T11:45:04+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Practice_1_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.json\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"straight_line_speed\",\n            \"value\": 0.0211,\n            \"confidence\": 0.1632,\n            \"weighted_value\": 0.00344,\n            \"explanation\": \"Practice 1 speed-trap average before British Grand Prix: 288.4 kph vs field 276.9 kph; used as a small straight-line signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-momentum:2026:british_gp:mercedes:race_pace:8\",\n            \"source\": \"fastf1_momentum:2026:monaco+barcelona+austrian:cutoff_2026-07-05T00:00:00+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"value\": -0.0093,\n            \"confidence\": 0.25,\n            \"weighted_value\": -0.00232,\n            \"explanation\": \"FastF1 recent-vs-older team form before British Grand Prix: relative points delta -4.67; used as team momentum signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-season-form:2026:british_gp:russell:reliability:8\",\n            \"source\": \"fastf1_season_form:2026:australian+...+austrian:8_races\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"reliability\",\n            \"value\": -0.006,\n            \"confidence\": 0.27,\n            \"weighted_value\": -0.00162,\n            \"explanation\": \"1 non-finished classification(s) across 8 cutoff-valid FastF1 result(s); used as a season reliability risk prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"openf1:2024:Silverstone:wet:russell\",\n            \"source\": \"openf1_summary:2024:Silverstone:weather\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"wet_skill\",\n            \"value\": 0.0048,\n            \"confidence\": 0.25,\n            \"weighted_value\": 0.0012,\n            \"explanation\": \"Historical analogue race had meaningful rainfall; driver wet-skill prior gets a small confidence-weighted boost.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:practice1:russell:tyre_deg:2026-07-03T11:30:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:practice1:2026-07-03T11:30:00+00:00:captured_at=2026-07-05T11:45:04+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Practice_1_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.json\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"tyre_deg\",\n            \"value\": -0.0057,\n            \"confidence\": 0.204,\n            \"weighted_value\": -0.00116,\n            \"explanation\": \"Practice 1 tyre-degradation proxy before British Grand Prix: +0.0229s/lap vs field -0.2481s/lap; lower degradation improves strategy pace.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-form:2026:british_gp:russell:race_execution:3\",\n            \"source\": \"fastf1_form:2026:monaco+barcelona+austrian\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_execution\",\n            \"value\": -0.0021,\n            \"confidence\": 0.3,\n            \"weighted_value\": -0.00063,\n            \"explanation\": \"Previous 3 finished race result(s) before British Grand Prix: average opportunity-normalized grid-to-finish conversion -0.14 vs field +0.28; used as point-in-time race execution prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-momentum:2026:british_gp:russell:race_pace:8\",\n            \"source\": \"fastf1_momentum:2026:monaco+barcelona+austrian:cutoff_2026-07-05T00:00:00+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.0022,\n            \"confidence\": 0.28,\n            \"weighted_value\": 0.00062,\n            \"explanation\": \"FastF1 recent-vs-older form before British Grand Prix: relative points delta 0.93; used as momentum signal so late-season improvement or decline can move the race-pace prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-form:2026:british_gp:mercedes:race_execution:3\",\n            \"source\": \"fastf1_form:2026:monaco+barcelona+austrian\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_execution\",\n            \"value\": -0.0013,\n            \"confidence\": 0.29,\n            \"weighted_value\": -0.00038,\n            \"explanation\": \"Team opportunity-normalized finished-race grid-to-finish conversion over previous 3 race(s): -0.02 vs field +0.32; used as point-in-time team race execution prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-momentum:2026:british_gp:russell:qualifying_pace:8\",\n            \"source\": \"fastf1_momentum:2026:monaco+barcelona+austrian:cutoff_2026-07-05T00:00:00+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": -0.0016,\n            \"confidence\": 0.23,\n            \"weighted_value\": -0.00037,\n            \"explanation\": \"FastF1 recent-vs-older grid form before British Grand Prix: relative grid delta -0.47; used as qualifying momentum signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-season-form:2026:british_gp:russell:race_execution:8\",\n            \"source\": \"fastf1_season_form:2026:australian+...+austrian:8_races\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_execution\",\n            \"value\": -0.0012,\n            \"confidence\": 0.28,\n            \"weighted_value\": -0.00034,\n            \"explanation\": \"Season-to-date FastF1 finished races before British Grand Prix: average opportunity-normalized grid-to-finish conversion -0.04 vs field +0.24; used as a broader race execution prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-momentum:2026:british_gp:russell:race_execution:8\",\n            \"source\": \"fastf1_momentum:2026:monaco+barcelona+austrian:cutoff_2026-07-05T00:00:00+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_execution\",\n            \"value\": -0.0013,\n            \"confidence\": 0.22,\n            \"weighted_value\": -0.00029,\n            \"explanation\": \"FastF1 recent-vs-older finished-race grid conversion before British Grand Prix: relative conversion delta -0.29; used as race execution momentum.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-momentum:2026:british_gp:mercedes:race_execution:8\",\n            \"source\": \"fastf1_momentum:2026:monaco+barcelona+austrian:cutoff_2026-07-05T00:00:00+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_execution\",\n            \"value\": -0.001,\n            \"confidence\": 0.21,\n            \"weighted_value\": -0.00021,\n            \"explanation\": \"FastF1 recent-vs-older team grid conversion before British Grand Prix: relative conversion delta -0.28; used as team race execution momentum.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-season-form:2026:british_gp:mercedes:race_execution:8_race(s)\",\n            \"source\": \"fastf1_season_form:2026:australian+...+austrian:8_races\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_execution\",\n            \"value\": -0.0006,\n            \"confidence\": 0.27,\n            \"weighted_value\": -0.00016,\n            \"explanation\": \"Team average opportunity-normalized finished-race grid-to-finish conversion across 8 race(s) before British Grand Prix: +0.08 vs field +0.26; used as a season-to-date team race execution prior.\"\n          }\n        ],\n        \"top_features\": [\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-qualifying-result:2026:british_gp:russell:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_qualifying_result:2026:british:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:33+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": 0.1643,\n            \"confidence\": 0.78,\n            \"weighted_value\": 0.12815,\n            \"explanation\": \"Same-event FastF1 qualifying classification before British Grand Prix: P4/22; used as a strong cutoff-valid qualifying/grid signal. It primarily affects sampled grid order and is not treated as direct race pace.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-team-strength-reestimate:2026:british_gp:mercedes:race_pace:8\",\n            \"source\": \"fastf1_team_strength_reestimate:2026:australian+...+austrian:8_races_recent_3\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.1364,\n            \"confidence\": 0.62,\n            \"weighted_value\": 0.08457,\n            \"explanation\": \"Cutoff-valid FastF1 race results before British Grand Prix: team total points per race 33.50 vs field 9.18; recent window 27.67 vs field 9.18. Used as a bounded team/car strength reestimate so current-season results can move the race-pace prior without hand-writing a team order.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-qualifying-result:2026:british_gp:mercedes:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_qualifying_result:2026:british:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:33+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": 0.1,\n            \"confidence\": 0.58,\n            \"weighted_value\": 0.058,\n            \"explanation\": \"Same-event FastF1 qualifying team average position before British Grand Prix: 2.50; used as a team-level qualifying form signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"f1-official-standings:2026:british_gp:mercedes:race_pace:2026-06-30T07:44:26+00:00\",\n            \"source\": \"f1_official_standings:2026:2026-06-30T07:44:26+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.105,\n            \"confidence\": 0.384,\n            \"weighted_value\": 0.04032,\n            \"explanation\": \"Official constructor standings before British Grand Prix: P1, 302.0 points vs field average 83.3; used as a cutoff-safe team form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:practice1:russell:race_pace:2026-07-03T11:30:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:practice1:2026-07-03T11:30:00+00:00:captured_at=2026-07-05T11:45:04+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Practice_1_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.json\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"value\": 0.085,\n            \"confidence\": 0.2856,\n            \"weighted_value\": 0.02428,\n            \"explanation\": \"Practice 1 long-run proxy before British Grand Prix: 93.134s vs field 94.350s over 9 clean lap(s); used as a same-weekend race-pace signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:qualifying:russell:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:qualifying:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:38+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Qualifying_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Qualifying_laps_2026-07-05T11_44_38_00_00.json\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"value\": 0.044,\n            \"confidence\": 0.44,\n            \"weighted_value\": 0.01936,\n            \"explanation\": \"Qualifying best valid lap before British Grand Prix: 88.481s vs field 89.500s; used as gap-aware qualifying pace, separate from the qualifying classification/grid-order feature.\"\n          }\n        ],\n        \"metric_weighted_totals\": {\n          \"qualifying_pace\": 0.27284,\n          \"race_pace\": 0.22018,\n          \"straight_line_speed\": 0.00344,\n          \"race_execution\": -0.00201,\n          \"reliability\": -0.00162,\n          \"wet_skill\": 0.0012,\n          \"tyre_deg\": -0.00116\n        }\n      }\n    },\n    \"factor_trace_context\": [\n      {\n        \"claim_id\": \"seed-british-001\",\n        \"target_type\": \"team\",\n        \"target_id\": \"mercedes\",\n        \"claim_type\": \"ers\",\n        \"metric\": \"energy_recovery\",\n        \"direction\": \"positive\",\n        \"route\": \"track_contextual_pace\",\n        \"model_surface\": \"track-weighted pace score\",\n        \"route_status\": \"observed_probability_movement\",\n        \"raw_signed_impact\": 0.0472,\n        \"weighted_input_impact\": 0.0252,\n        \"effective_race_input\": 0.0128,\n        \"effective_qualifying_input\": 0.0134,\n        \"signed_input_impact\": 0.0252,\n        \"max_win_probability_delta\": 0.0083,\n        \"affected_outcome_count\": 2,\n        \"quality_status\": \"weak_diagnostic\",\n        \"source_status\": \"source_log_missing\",\n        \"triangulation_status\": \"seed_or_test_only\",\n        \"conflict_status\": \"no_conflict\",\n        \"source_reliability\": 0.3,\n        \"model_input_weight\": 0.5338,\n        \"context_multiplier\": 0.5082,\n        \"context_multiplier_reason\": \"energy_recovery uses ERS deployment, recovery efficiency, and clipping exposure; track_type=high_speed, base=0.16, track_sensitivity=0.35, mode=race, context_multiplier=0.508, demand_component=ers_demand, demand_value=0.35, launch_importance=0.25, altitude_power_derate=0.00, profile_notes=Sustained high-speed load and repeated deployment make clipping, drag, and mass visible. | event_geometry_adjusted=true corners=18 high_angle_ratio=0.28 low_angle_ratio=0.22 avg_abs_angle=83.4 | low_altitude_air_density_adjusted=true elevation_m=119\",\n        \"track_demand_component\": \"ers_demand\",\n        \"track_demand_value\": 0.3482,\n        \"track_demand_profile\": {\n          \"track_type\": \"high_speed\",\n          \"power_demand\": 0.5201,\n          \"ers_demand\": 0.3482,\n          \"drag_demand\": 0.4401,\n          \"traction_demand\": 0.1344,\n          \"mass_sensitivity\": 0.3497,\n          \"launch_importance\": 0.2498,\n          \"braking_energy_demand\": 0.3504,\n          \"altitude_power_derate\": 0.0,\n          \"notes\": [\n            \"Sustained high-speed load and repeated deployment make clipping, drag, and mass visible.\",\n            \"event_geometry_adjusted=true corners=18 high_angle_ratio=0.28 low_angle_ratio=0.22 avg_abs_angle=83.4\",\n            \"low_altitude_air_density_adjusted=true elevation_m=119\"\n          ]\n        },\n        \"risk_flags\": [\n          \"claim_requires_review\",\n          \"seed_scenario_source\",\n          \"source_log_missing\",\n          \"seed_only_triangulation\"\n        ],\n        \"route_notes\": [\n          \"Scaled by circuit type; captures ERS deployment and clipping sensitivity.\",\n          \"target_scope=team:mercedes\",\n          \"track_type=high_speed\",\n          \"track_context_multiplier_applied=true\",\n          \"context_multiplier=0.5082\",\n          \"qualifying_context_multiplier=0.5336\",\n          \"effective_race_input=+0.0128\",\n          \"track_demand_component=ers_demand\",\n          \"track_demand_value=0.3482\",\n          \"energy_recovery uses ERS deployment, recovery efficiency, and clipping exposure; track_type=high_speed, base=0.16, track_sensitivity=0.35, mode=race, context_multiplier=0.508, demand_component=ers_demand, demand_value=0.35, launch_importance=0.25, altitude_power_derate=0.00, profile_notes=Sustained high-speed load and repeated deployment make clipping, drag, and mass visible. | event_geometry_adjusted=true corners=18 high_angle_ratio=0.28 low_angle_ratio=0.22 avg_abs_angle=83.4 | low_altitude_air_density_adjusted=true elevation_m=119\",\n          \"model_input_weight=0.53\",\n          \"raw_signed_impact=+0.0472\",\n          \"weighted_input_impact=+0.0252\",\n          \"same_seed_max_win_delta=+0.0083\"\n        ]\n      },\n      {\n        \"claim_id\": \"british_gp-weather-openmeteo-001\",\n        \"target_type\": \"event\",\n        \"target_id\": \"british_gp\",\n        \"claim_type\": \"weather_forecast\",\n        \"metric\": \"wet_skill\",\n        \"direction\": \"negative\",\n        \"route\": \"wet_weather\",\n        \"model_surface\": \"wet-race branch\",\n        \"route_status\": \"observed_probability_movement\",\n        \"raw_signed_impact\": -0.091,\n        \"weighted_input_impact\": -0.0639,\n        \"effective_race_input\": -0.0639,\n        \"effective_qualifying_input\": null,\n        \"signed_input_impact\": -0.0639,\n        \"max_win_probability_delta\": 0.0042,\n        \"affected_outcome_count\": 5,\n        \"quality_status\": \"usable_diagnostic\",\n        \"source_status\": \"within_cutoff\",\n        \"triangulation_status\": \"single_source\",\n        \"conflict_status\": \"no_conflict\",\n        \"source_reliability\": 0.7,\n        \"model_input_weight\": 0.7023,\n        \"context_multiplier\": null,\n        \"context_multiplier_reason\": null,\n        \"track_demand_component\": null,\n        \"track_demand_value\": null,\n        \"track_demand_profile\": null,\n        \"risk_flags\": [\n          \"claim_requires_review\",\n          \"single_source_claim\"\n        ],\n        \"route_notes\": [\n          \"Changes wet probability or wet-performance contribution depending on target scope.\",\n          \"target_scope=event:british_gp\",\n          \"track_type=high_speed\",\n          \"model_input_weight=0.70\",\n          \"raw_signed_impact=-0.0910\",\n          \"weighted_input_impact=-0.0639\",\n          \"same_seed_max_win_delta=+0.0042\"\n        ]\n      }\n    ],\n    \"evidence_impact_context\": [\n      {\n        \"claim_id\": \"seed-british-001\",\n        \"source\": \"Codex seed research packet\",\n        \"target_type\": \"team\",\n        \"target_id\": \"mercedes\",\n        \"metric\": \"energy_recovery\",\n        \"direction\": \"positive\",\n        \"signed_input_impact\": 0.0252,\n        \"confidence\": 0.72,\n        \"uncertainty\": 0.18,\n        \"attribution_method\": \"diagnostic_same_seed_leave_one_claim_comparison\",\n        \"affected_outcomes\": [\n          {\n            \"driver_id\": \"antonelli\",\n            \"win_delta\": 0.0083,\n            \"podium_delta\": 0.0067,\n            \"expected_points_delta\": 0.102\n          },\n          {\n            \"driver_id\": \"russell\",\n            \"win_delta\": 0.0058,\n            \"podium_delta\": 0.0083,\n            \"expected_points_delta\": 0.113\n          }\n        ],\n        \"max_win_probability_delta\": 0.0083,\n        \"interpretation\": \"small diagnostic sensitivity for energy_recovery; computed by comparing the full prediction with a same-seed run that removes this claim only.\"\n      },\n      {\n        \"claim_id\": \"british_gp-weather-openmeteo-001\",\n        \"source\": \"Open-Meteo forecast API\",\n        \"target_type\": \"event\",\n        \"target_id\": \"british_gp\",\n        \"metric\": \"wet_skill\",\n        \"direction\": \"negative\",\n        \"signed_input_impact\": -0.0639,\n        \"confidence\": 0.7,\n        \"uncertainty\": 0.35,\n        \"attribution_method\": \"diagnostic_same_seed_leave_one_claim_comparison\",\n        \"affected_outcomes\": [\n          {\n            \"driver_id\": \"antonelli\",\n            \"win_delta\": 0.0042,\n            \"podium_delta\": 0.0033,\n            \"expected_points_delta\": 0.049\n          },\n          {\n            \"driver_id\": \"hamilton\",\n            \"win_delta\": -0.0025,\n            \"podium_delta\": -0.0033,\n            \"expected_points_delta\": -0.062\n          },\n          {\n            \"driver_id\": \"verstappen\",\n            \"win_delta\": -0.0017,\n            \"podium_delta\": -0.0025,\n            \"expected_points_delta\": -0.055\n          },\n          {\n            \"driver_id\": \"russell\",\n            \"win_delta\": -0.0008,\n            \"podium_delta\": -0.0008,\n            \"expected_points_delta\": 0.002\n          },\n          {\n            \"driver_id\": \"norris\",\n            \"win_delta\": 0.0008,\n            \"podium_delta\": -0.0008,\n            \"expected_points_delta\": 0.007\n          }\n        ],\n        \"max_win_probability_delta\": 0.0042,\n        \"interpretation\": \"small diagnostic sensitivity for wet_skill; computed by comparing the full prediction with a same-seed run that removes this claim only.\"\n      }\n    ],\n    \"score_breakdown\": {\n      \"russell\": {\n        \"race_total\": 2.41414,\n        \"qualifying_total\": 2.80247,\n        \"race_components\": {\n          \"team_base_strength\": 1.24,\n          \"driver_base_skill\": 0.39,\n          \"track_affinity\": 0.18,\n          \"racecraft\": 0.19,\n          \"wet_skill\": 0.05606,\n          \"team_strategy\": 0.0888,\n          \"tyre_management\": 0.036,\n          \"feature_race_pace\": 0.22016,\n          \"feature_race_execution\": -0.002,\n          \"evidence_energy_recovery\": 0.01281,\n          \"feature_straight_line_speed\": 0.00231\n        },\n        \"qualifying_components\": {\n          \"team_base_strength\": 1.24,\n          \"driver_base_skill\": 0.39,\n          \"track_affinity\": 0.18,\n          \"racecraft\": 0.19,\n          \"wet_skill\": 0.05606,\n          \"team_strategy\": 0.0888,\n          \"qualifying\": 0.1485,\n          \"feature_race_pace\": 0.22016,\n          \"feature_qualifying_pace\": 0.27284,\n          \"evidence_energy_recovery\": 0.01345,\n          \"feature_straight_line_speed\": 0.00265\n        },\n        \"race_top_components\": [\n          {\n            \"component\": \"team_base_strength\",\n            \"value\": 1.24\n          },\n          {\n            \"component\": \"driver_base_skill\",\n            \"value\": 0.39\n          },\n          {\n            \"component\": \"feature_race_pace\",\n            \"value\": 0.22016\n          },\n          {\n            \"component\": \"racecraft\",\n            \"value\": 0.19\n          },\n          {\n            \"component\": \"track_affinity\",\n            \"value\": 0.18\n          },\n          {\n            \"component\": \"team_strategy\",\n            \"value\": 0.0888\n          },\n          {\n            \"component\": \"wet_skill\",\n            \"value\": 0.05606\n          },\n          {\n            \"component\": \"tyre_management\",\n            \"value\": 0.036\n          }\n        ],\n        \"qualifying_top_components\": [\n          {\n            \"component\": \"team_base_strength\",\n            \"value\": 1.24\n          },\n          {\n            \"component\": \"driver_base_skill\",\n            \"value\": 0.39\n          },\n          {\n            \"component\": \"feature_qualifying_pace\",\n            \"value\": 0.27284\n          },\n          {\n            \"component\": \"feature_race_pace\",\n            \"value\": 0.22016\n          },\n          {\n            \"component\": \"racecraft\",\n            \"value\": 0.19\n          },\n          {\n            \"component\": \"track_affinity\",\n            \"value\": 0.18\n          }\n        ],\n        \"reliability\": 0.96738,\n        \"tyre_degradation_adjustment\": -0.00116,\n        \"launch_adjustment\": 0.0\n      }\n    },\n    \"qualifying_context\": {\n      \"source\": \"fastf1_qualifying_result\",\n      \"observed_at\": \"2026-07-04T15:00:00+00:00\",\n      \"captured_at\": \"2026-07-05T11:44:33+00:00\",\n      \"row_count\": 22,\n      \"selected_positions\": [\n        {\n          \"driver_id\": \"russell\",\n          \"qualifying_position\": 4,\n          \"driver_number\": \"63\",\n          \"team_id\": \"mercedes\"\n        }\n      ]\n    },\n    \"track_context\": {\n      \"track_type\": \"high_speed\",\n      \"corner_count\": 18,\n      \"high_speed_corner_count\": 6,\n      \"long_straight_count\": 5,\n      \"overtaking_index\": 0.4175,\n      \"track_position_value\": 0.3856,\n      \"safety_car_probability\": 0.4198,\n      \"wet_probability\": 0.4143,\n      \"tyre_degradation_index\": 0.5356,\n      \"provenance\": {\n        \"circuit_source\": \"openf1_circuit_info_url\",\n        \"circuit_source_url\": \"https://api.multiviewer.app/api/v1/circuits/2/2026\",\n        \"weather_source\": \"open_meteo_historical_climate_profile\",\n        \"method\": \"v1:circuit_corner_angle_progress_weather_prior_proxy\",\n        \"geometry_proxy_note\": \"Corner speed classes and straight counts are derived from stored corner angle/progress fields; not official speed or DRS/deployment-zone data.\"\n      }\n    },\n    \"readiness\": {\n      \"status\": \"diagnostic_only\",\n      \"formal_edge_ready\": false,\n      \"blocker_codes\": [\n        \"codex_evidence_quality_review_required\",\n        \"probability_calibration_diagnostic_only\"\n      ],\n      \"warning_codes\": [\n        \"codex_claims_require_review\"\n      ]\n    },\n    \"codex_counts\": {\n      \"evidence_count\": 6,\n      \"factor_trace_count\": 6,\n      \"weak_evidence_quality_count\": 5,\n      \"strong_evidence_quality_count\": 0\n    }\n  }\n}\n",
+  "codex_prompt": "你是和 F1Predict 后端可解释性模块协作的 Codex。\n请只使用下面 JSON 上下文回答用户关于预测结果的问题。不要编造来源，不要声称已经证明稳定盈利优势，必须区分模型机制解释和真实世界强结论。如果上下文不足，请明确说明缺少哪类产物或输入。\n回答语言：zh\n用户问题：为什么预测拉塞尔第一？\n上下文 JSON：\n{\n  \"event_id\": \"british_gp\",\n  \"event_name\": \"British Grand Prix\",\n  \"generated_at\": \"2026-07-05T11:59:35+00:00\",\n  \"knowledge_cutoff\": \"2026-07-05T00:00:00+00:00\",\n  \"iterations\": 1200,\n  \"status\": \"diagnostic_only\",\n  \"packet_payload_sha256\": \"9e3dfa22c33404713877465c308143da7ff558448c19bec7f832480bb58dc390\",\n  \"answer_contract\": {\n    \"use_only_context\": true,\n    \"must_state_diagnostic_status\": true,\n    \"do_not_claim_stable_edge\": true,\n    \"say_missing_when_context_is_insufficient\": true\n  },\n  \"evidence_context\": {\n    \"question\": \"为什么预测拉塞尔第一？\",\n    \"question_type\": \"rank_explanation\",\n    \"selected_driver_ids\": [\n      \"russell\"\n    ],\n    \"probability_rows\": [\n      {\n        \"driver_id\": \"russell\",\n        \"win\": 0.338333,\n        \"podium\": 0.811667,\n        \"points\": 0.975,\n        \"expected_points\": 18.253333,\n        \"average_finish\": 2.718333,\n        \"expected_rank\": 1,\n        \"win_rank\": 2\n      }\n    ],\n    \"all_probability_rows\": [\n      {\n        \"driver_id\": \"russell\",\n        \"win\": 0.338333,\n        \"podium\": 0.811667,\n        \"points\": 0.975,\n        \"expected_points\": 18.253333,\n        \"average_finish\": 2.718333,\n        \"expected_rank\": 1,\n        \"win_rank\": 2\n      },\n      {\n        \"driver_id\": \"antonelli\",\n        \"win\": 0.453333,\n        \"podium\": 0.8675,\n        \"points\": 0.958333,\n        \"expected_points\": 19.345833,\n        \"average_finish\": 2.726667,\n        \"expected_rank\": 2,\n        \"win_rank\": 1\n      },\n      {\n        \"driver_id\": \"verstappen\",\n        \"win\": 0.12,\n        \"podium\": 0.5775,\n        \"points\": 0.936667,\n        \"expected_points\": 14.203333,\n        \"average_finish\": 4.351667,\n        \"expected_rank\": 3,\n        \"win_rank\": 3\n      },\n      {\n        \"driver_id\": \"hamilton\",\n        \"win\": 0.071667,\n        \"podium\": 0.488333,\n        \"points\": 0.940833,\n        \"expected_points\": 13.259167,\n        \"average_finish\": 4.5825,\n        \"expected_rank\": 4,\n        \"win_rank\": 4\n      },\n      {\n        \"driver_id\": \"norris\",\n        \"win\": 0.011667,\n        \"podium\": 0.13,\n        \"points\": 0.943333,\n        \"expected_points\": 9.575833,\n        \"average_finish\": 5.953333,\n        \"expected_rank\": 5,\n        \"win_rank\": 5\n      },\n      {\n        \"driver_id\": \"piastri\",\n        \"win\": 0.003333,\n        \"podium\": 0.0575,\n        \"points\": 0.958333,\n        \"expected_points\": 8.385,\n        \"average_finish\": 6.285833,\n        \"expected_rank\": 6,\n        \"win_rank\": 6\n      },\n      {\n        \"driver_id\": \"leclerc\",\n        \"win\": 0.001667,\n        \"podium\": 0.065833,\n        \"points\": 0.944167,\n        \"expected_points\": 7.915,\n        \"average_finish\": 6.703333,\n        \"expected_rank\": 7,\n        \"win_rank\": 7\n      },\n      {\n        \"driver_id\": \"hadjar\",\n        \"win\": 0.0,\n        \"podium\": 0.001667,\n        \"points\": 0.876667,\n        \"expected_points\": 4.3925,\n        \"average_finish\": 8.783333,\n        \"expected_rank\": 8,\n        \"win_rank\": 8\n      },\n      {\n        \"driver_id\": \"alonso\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.625,\n        \"expected_points\": 1.645,\n        \"average_finish\": 11.013333,\n        \"expected_rank\": 9,\n        \"win_rank\": 9\n      },\n      {\n        \"driver_id\": \"sainz\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.6,\n        \"expected_points\": 1.579167,\n        \"average_finish\": 11.2125,\n        \"expected_rank\": 10,\n        \"win_rank\": 12\n      },\n      {\n        \"driver_id\": \"albon\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.428333,\n        \"expected_points\": 0.981667,\n        \"average_finish\": 12.169167,\n        \"expected_rank\": 11,\n        \"win_rank\": 11\n      },\n      {\n        \"driver_id\": \"gasly\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.258333,\n        \"expected_points\": 0.514167,\n        \"average_finish\": 13.365833,\n        \"expected_rank\": 12,\n        \"win_rank\": 13\n      },\n      {\n        \"driver_id\": \"ocon\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.106667,\n        \"expected_points\": 0.193333,\n        \"average_finish\": 15.016667,\n        \"expected_rank\": 13,\n        \"win_rank\": 15\n      },\n      {\n        \"driver_id\": \"stroll\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.091667,\n        \"expected_points\": 0.158333,\n        \"average_finish\": 15.533333,\n        \"expected_rank\": 14,\n        \"win_rank\": 10\n      },\n      {\n        \"driver_id\": \"lawson\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.064167,\n        \"expected_points\": 0.1125,\n        \"average_finish\": 15.895833,\n        \"expected_rank\": 15,\n        \"win_rank\": 19\n      },\n      {\n        \"driver_id\": \"lindblad\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.058333,\n        \"expected_points\": 0.095,\n        \"average_finish\": 16.170833,\n        \"expected_rank\": 16,\n        \"win_rank\": 20\n      },\n      {\n        \"driver_id\": \"perez\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.0425,\n        \"expected_points\": 0.085,\n        \"average_finish\": 16.204167,\n        \"expected_rank\": 17,\n        \"win_rank\": 22\n      },\n      {\n        \"driver_id\": \"hulkenberg\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.0575,\n        \"expected_points\": 0.098333,\n        \"average_finish\": 16.265833,\n        \"expected_rank\": 18,\n        \"win_rank\": 17\n      },\n      {\n        \"driver_id\": \"colapinto\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.040833,\n        \"expected_points\": 0.0625,\n        \"average_finish\": 16.640833,\n        \"expected_rank\": 19,\n        \"win_rank\": 14\n      },\n      {\n        \"driver_id\": \"bearman\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.035833,\n        \"expected_points\": 0.056667,\n        \"average_finish\": 16.649167,\n        \"expected_rank\": 20,\n        \"win_rank\": 16\n      },\n      {\n        \"driver_id\": \"bottas\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.045,\n        \"expected_points\": 0.068333,\n        \"average_finish\": 16.8625,\n        \"expected_rank\": 21,\n        \"win_rank\": 21\n      },\n      {\n        \"driver_id\": \"bortoleto\",\n        \"win\": 0.0,\n        \"podium\": 0.0,\n        \"points\": 0.0125,\n        \"expected_points\": 0.02,\n        \"average_finish\": 17.895,\n        \"expected_rank\": 22,\n        \"win_rank\": 18\n      }\n    ],\n    \"feature_context\": {\n      \"russell\": {\n        \"team_id\": \"mercedes\",\n        \"features\": [\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-qualifying-result:2026:british_gp:russell:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_qualifying_result:2026:british:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:33+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Same-event FastF1 qualifying classification before British Grand Prix: P4/22; used as a strong cutoff-valid qualifying/grid signal. It primarily affects sampled grid order and is not treated as direct race pace.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-team-strength-reestimate:2026:british_gp:mercedes:race_pace:8\",\n            \"source\": \"fastf1_team_strength_reestimate:2026:australian+...+austrian:8_races_recent_3\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Cutoff-valid FastF1 race results before British Grand Prix: team total points per race 33.50 vs field 9.18; recent window 27.67 vs field 9.18. Used as a bounded team/car strength reestimate so current-season results can move the race-pace prior without hand-writing a team order.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-qualifying-result:2026:british_gp:mercedes:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_qualifying_result:2026:british:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:33+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"qualifying_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Same-event FastF1 qualifying team average position before British Grand Prix: 2.50; used as a team-level qualifying form signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"f1-official-standings:2026:british_gp:mercedes:race_pace:2026-06-30T07:44:26+00:00\",\n            \"source\": \"f1_official_standings:2026:2026-06-30T07:44:26+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Official constructor standings before British Grand Prix: P1, 302.0 points vs field average 83.3; used as a cutoff-safe team form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:practice1:russell:race_pace:2026-07-03T11:30:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:practice1:2026-07-03T11:30:00+00:00:captured_at=2026-07-05T11:45:04+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Practice_1_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.json\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Practice 1 long-run proxy before British Grand Prix: 93.134s vs field 94.350s over 9 clean lap(s); used as a same-weekend race-pace signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:qualifying:russell:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:qualifying:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:38+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Qualifying_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Qualifying_laps_2026-07-05T11_44_38_00_00.json\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Qualifying best valid lap before British Grand Prix: 88.481s vs field 89.500s; used as gap-aware qualifying pace, separate from the qualifying classification/grid-order feature.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"f1-official-standings:2026:british_gp:russell:race_pace:2026-06-30T07:44:26+00:00\",\n            \"source\": \"f1_official_standings:2026:2026-06-30T07:44:26+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Official driver standings before British Grand Prix: P2, 131.0 points vs field average 41.6; used as a cutoff-safe season form prior, not a manual team-strength override.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-form:2026:british_gp:russell:qualifying_pace:3\",\n            \"source\": \"fastf1_form:2026:monaco+barcelona+austrian\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Previous 3 race grid result(s) before British Grand Prix: average grid 2.67 vs field 11.50; used as point-in-time qualifying form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-form:2026:british_gp:russell:race_pace:3\",\n            \"source\": \"fastf1_form:2026:monaco+barcelona+austrian\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Previous 3 race result(s) before British Grand Prix: average points 14.33 vs field 4.59; used as point-in-time race form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"f1-official-standings:2026:british_gp:mercedes:qualifying_pace:2026-06-30T07:44:26+00:00\",\n            \"source\": \"f1_official_standings:2026:2026-06-30T07:44:26+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"qualifying_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Official constructor standings before British Grand Prix: P1, 302.0 points; converted into a smaller qualifying prior because standings primarily reflect race outcomes.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:qualifying:mercedes:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:qualifying:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:38+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Qualifying_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Qualifying_laps_2026-07-05T11_44_38_00_00.json\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"qualifying_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Qualifying team best-lap proxy before British Grand Prix: 88.296s vs team field 89.500s; used as same-weekend car qualifying pace.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"openf1:2024:Silverstone:Qualifying_9554:russell:qualifying_pace\",\n            \"source\": \"openf1_summary:2024:Silverstone:Qualifying_9554\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Historical OpenF1 analogue rank 1/10 in Qualifying_9554; used as low-confidence qualifying_pace prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-season-form:2026:british_gp:russell:qualifying_pace:8\",\n            \"source\": \"fastf1_season_form:2026:australian+...+austrian:8_races\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Season-to-date FastF1 grid results before British Grand Prix: average grid 2.38 vs field 11.50; used as a broader qualifying-form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-form:2026:british_gp:mercedes:race_pace:3\",\n            \"source\": \"fastf1_form:2026:monaco+barcelona+austrian\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Team average driver points over previous 3 race(s): 13.83 vs field 4.59; used as point-in-time team form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-season-form:2026:british_gp:russell:race_pace:8\",\n            \"source\": \"fastf1_season_form:2026:australian+...+austrian:8_races\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Season-to-date FastF1 race results before British Grand Prix: 8 race(s), driver average points 13.75 vs field 4.59; used as a broader form prior than the recent-window signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-season-form:2026:british_gp:mercedes:race_pace:8_race(s)\",\n            \"source\": \"fastf1_season_form:2026:australian+...+austrian:8_races\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Team average driver points across 8 race(s) before British Grand Prix: 16.75 vs field 4.59; used as a season-to-date team form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"openf1:2024:Silverstone:Practice_2_9552:russell:race_pace\",\n            \"source\": \"openf1_summary:2024:Silverstone:Practice_2_9552\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"negative\",\n            \"direction_label\": \"负向\",\n            \"explanation\": \"Historical OpenF1 analogue rank 8/10 in Practice_2_9552; used as low-confidence race_pace prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"openf1:2024:Silverstone:Practice_3_9553:russell:race_pace\",\n            \"source\": \"openf1_summary:2024:Silverstone:Practice_3_9553\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Historical OpenF1 analogue rank 3/10 in Practice_3_9553; used as low-confidence race_pace prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"f1-official-standings:2026:british_gp:russell:qualifying_pace:2026-06-30T07:44:26+00:00\",\n            \"source\": \"f1_official_standings:2026:2026-06-30T07:44:26+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Official driver standings before British Grand Prix: P2, 131.0 points; converted into a smaller qualifying prior because standings primarily reflect race outcomes.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:practice1:mercedes:race_pace:2026-07-03T11:30:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:practice1:2026-07-03T11:30:00+00:00:captured_at=2026-07-05T11:45:04+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Practice_1_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.json\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Practice 1 team long-run proxy before British Grand Prix: 93.134s vs team field 94.257s; used as same-weekend car race pace.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"openf1:2024:Silverstone:Practice_1_9551:russell:race_pace\",\n            \"source\": \"openf1_summary:2024:Silverstone:Practice_1_9551\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Historical OpenF1 analogue rank 4/10 in Practice_1_9551; used as low-confidence race_pace prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:practice1:russell:straight_line_speed:2026-07-03T11:30:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:practice1:2026-07-03T11:30:00+00:00:captured_at=2026-07-05T11:45:04+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Practice_1_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.json\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"straight_line_speed\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Practice 1 speed-trap average before British Grand Prix: 288.4 kph vs field 276.9 kph; used as a small straight-line signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-momentum:2026:british_gp:mercedes:race_pace:8\",\n            \"source\": \"fastf1_momentum:2026:monaco+barcelona+austrian:cutoff_2026-07-05T00:00:00+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"negative\",\n            \"direction_label\": \"负向\",\n            \"explanation\": \"FastF1 recent-vs-older team form before British Grand Prix: relative points delta -4.67; used as team momentum signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-season-form:2026:british_gp:russell:reliability:8\",\n            \"source\": \"fastf1_season_form:2026:australian+...+austrian:8_races\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"reliability\",\n            \"direction\": \"negative\",\n            \"direction_label\": \"负向\",\n            \"explanation\": \"1 non-finished classification(s) across 8 cutoff-valid FastF1 result(s); used as a season reliability risk prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"openf1:2024:Silverstone:wet:russell\",\n            \"source\": \"openf1_summary:2024:Silverstone:weather\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"wet_skill\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Historical analogue race had meaningful rainfall; driver wet-skill prior gets a small confidence-weighted boost.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:practice1:russell:tyre_deg:2026-07-03T11:30:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:practice1:2026-07-03T11:30:00+00:00:captured_at=2026-07-05T11:45:04+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Practice_1_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.json\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"tyre_deg\",\n            \"direction\": \"negative\",\n            \"direction_label\": \"负向\",\n            \"explanation\": \"Practice 1 tyre-degradation proxy before British Grand Prix: +0.0229s/lap vs field -0.2481s/lap; lower degradation improves strategy pace.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-form:2026:british_gp:russell:race_execution:3\",\n            \"source\": \"fastf1_form:2026:monaco+barcelona+austrian\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_execution\",\n            \"direction\": \"negative\",\n            \"direction_label\": \"负向\",\n            \"explanation\": \"Previous 3 finished race result(s) before British Grand Prix: average opportunity-normalized grid-to-finish conversion -0.14 vs field +0.28; used as point-in-time race execution prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-momentum:2026:british_gp:russell:race_pace:8\",\n            \"source\": \"fastf1_momentum:2026:monaco+barcelona+austrian:cutoff_2026-07-05T00:00:00+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"FastF1 recent-vs-older form before British Grand Prix: relative points delta 0.93; used as momentum signal so late-season improvement or decline can move the race-pace prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-form:2026:british_gp:mercedes:race_execution:3\",\n            \"source\": \"fastf1_form:2026:monaco+barcelona+austrian\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_execution\",\n            \"direction\": \"negative\",\n            \"direction_label\": \"负向\",\n            \"explanation\": \"Team opportunity-normalized finished-race grid-to-finish conversion over previous 3 race(s): -0.02 vs field +0.32; used as point-in-time team race execution prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-momentum:2026:british_gp:russell:qualifying_pace:8\",\n            \"source\": \"fastf1_momentum:2026:monaco+barcelona+austrian:cutoff_2026-07-05T00:00:00+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"direction\": \"negative\",\n            \"direction_label\": \"负向\",\n            \"explanation\": \"FastF1 recent-vs-older grid form before British Grand Prix: relative grid delta -0.47; used as qualifying momentum signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-season-form:2026:british_gp:russell:race_execution:8\",\n            \"source\": \"fastf1_season_form:2026:australian+...+austrian:8_races\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_execution\",\n            \"direction\": \"negative\",\n            \"direction_label\": \"负向\",\n            \"explanation\": \"Season-to-date FastF1 finished races before British Grand Prix: average opportunity-normalized grid-to-finish conversion -0.04 vs field +0.24; used as a broader race execution prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-momentum:2026:british_gp:russell:race_execution:8\",\n            \"source\": \"fastf1_momentum:2026:monaco+barcelona+austrian:cutoff_2026-07-05T00:00:00+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_execution\",\n            \"direction\": \"negative\",\n            \"direction_label\": \"负向\",\n            \"explanation\": \"FastF1 recent-vs-older finished-race grid conversion before British Grand Prix: relative conversion delta -0.29; used as race execution momentum.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-momentum:2026:british_gp:mercedes:race_execution:8\",\n            \"source\": \"fastf1_momentum:2026:monaco+barcelona+austrian:cutoff_2026-07-05T00:00:00+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_execution\",\n            \"direction\": \"negative\",\n            \"direction_label\": \"负向\",\n            \"explanation\": \"FastF1 recent-vs-older team grid conversion before British Grand Prix: relative conversion delta -0.28; used as team race execution momentum.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-season-form:2026:british_gp:mercedes:race_execution:8_race(s)\",\n            \"source\": \"fastf1_season_form:2026:australian+...+austrian:8_races\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_execution\",\n            \"direction\": \"negative\",\n            \"direction_label\": \"负向\",\n            \"explanation\": \"Team average opportunity-normalized finished-race grid-to-finish conversion across 8 race(s) before British Grand Prix: +0.08 vs field +0.26; used as a season-to-date team race execution prior.\"\n          }\n        ],\n        \"top_features\": [\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-qualifying-result:2026:british_gp:russell:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_qualifying_result:2026:british:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:33+00:00\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"qualifying_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Same-event FastF1 qualifying classification before British Grand Prix: P4/22; used as a strong cutoff-valid qualifying/grid signal. It primarily affects sampled grid order and is not treated as direct race pace.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-team-strength-reestimate:2026:british_gp:mercedes:race_pace:8\",\n            \"source\": \"fastf1_team_strength_reestimate:2026:australian+...+austrian:8_races_recent_3\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Cutoff-valid FastF1 race results before British Grand Prix: team total points per race 33.50 vs field 9.18; recent window 27.67 vs field 9.18. Used as a bounded team/car strength reestimate so current-season results can move the race-pace prior without hand-writing a team order.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"fastf1-qualifying-result:2026:british_gp:mercedes:qualifying_pace:2026-07-04T15:00:00+00:00\",\n            \"source\": \"fastf1_qualifying_result:2026:british:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:33+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"qualifying_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Same-event FastF1 qualifying team average position before British Grand Prix: 2.50; used as a team-level qualifying form signal.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"team\",\n            \"feature_id\": \"f1-official-standings:2026:british_gp:mercedes:race_pace:2026-06-30T07:44:26+00:00\",\n            \"source\": \"f1_official_standings:2026:2026-06-30T07:44:26+00:00\",\n            \"target_type\": \"team\",\n            \"target_id\": \"mercedes\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Official constructor standings before British Grand Prix: P1, 302.0 points vs field average 83.3; used as a cutoff-safe team form prior.\"\n          },\n          {\n            \"kind\": \"feature_adjustment\",\n            \"scope\": \"driver\",\n            \"feature_id\": \"fastf1-session-laps:2026:british_gp:practice1:russell:race_pace:2026-07-03T11:30:00+00:00\",\n            \"source\": \"fastf1_session_laps:2026:british:practice1:2026-07-03T11:30:00+00:00:captured_at=2026-07-05T11:45:04+00:00:quality=retrospective_snapshot:path=data\\\\raw\\\\fastf1\\\\2026_British_Grand_Prix_Practice_1_laps\\\\2026-07-05\\\\2026_British_Grand_Prix_Practice_1_laps_2026-07-05T11_45_04_00_00.json\",\n            \"target_type\": \"driver\",\n            \"target_id\": \"russell\",\n            \"metric\": \"race_pace\",\n            \"direction\": \"positive\",\n            \"direction_label\": \"正向\",\n            \"explanation\": \"Practice 1 long-run proxy before British Grand Prix: 93.134s vs field 94.350s over 9 clean lap(s); used as a same-weekend race-pace signal.\"\n          }\n        ],\n        \"redaction_note\": \"公开解释只保留事实来源、指标方向和原始说明；归一化取值、置信度和加权影响不作为解释证据展示。\"\n      }\n    },\n    \"factor_trace_context\": [\n      {\n        \"claim_id\": \"seed-british-001\",\n        \"target_type\": \"team\",\n        \"target_id\": \"mercedes\",\n        \"claim_type\": \"ers\",\n        \"metric\": \"energy_recovery\",\n        \"direction\": \"positive\",\n        \"route\": \"track_contextual_pace\",\n        \"model_surface\": \"track-weighted pace score\",\n        \"route_status\": \"observed_probability_movement\",\n        \"quality_status\": \"weak_diagnostic\",\n        \"source_status\": \"source_log_missing\",\n        \"triangulation_status\": \"seed_or_test_only\",\n        \"conflict_status\": \"no_conflict\",\n        \"risk_flags\": [\n          \"claim_requires_review\",\n          \"seed_scenario_source\",\n          \"source_log_missing\",\n          \"seed_only_triangulation\"\n        ],\n        \"redaction_note\": \"公开解释不展示原始影响值、加权输入值、模型输入权重或上下文乘数；这些只能用于内部调试。\"\n      },\n      {\n        \"claim_id\": \"british_gp-weather-openmeteo-001\",\n        \"target_type\": \"event\",\n        \"target_id\": \"british_gp\",\n        \"claim_type\": \"weather_forecast\",\n        \"metric\": \"wet_skill\",\n        \"direction\": \"negative\",\n        \"route\": \"wet_weather\",\n        \"model_surface\": \"wet-race branch\",\n        \"route_status\": \"observed_probability_movement\",\n        \"quality_status\": \"usable_diagnostic\",\n        \"source_status\": \"within_cutoff\",\n        \"triangulation_status\": \"single_source\",\n        \"conflict_status\": \"no_conflict\",\n        \"risk_flags\": [\n          \"claim_requires_review\",\n          \"single_source_claim\"\n        ],\n        \"redaction_note\": \"公开解释不展示原始影响值、加权输入值、模型输入权重或上下文乘数；这些只能用于内部调试。\"\n      }\n    ],\n    \"evidence_impact_context\": [\n      {\n        \"claim_id\": \"seed-british-001\",\n        \"source\": \"Codex seed research packet\",\n        \"target_type\": \"team\",\n        \"target_id\": \"mercedes\",\n        \"metric\": \"energy_recovery\",\n        \"direction\": \"positive\",\n        \"attribution_method\": \"diagnostic_same_seed_leave_one_claim_comparison\",\n        \"affected_outcomes\": [\n          {\n            \"driver_id\": \"antonelli\",\n            \"direction_label\": \"正向\",\n            \"magnitude_label\": \"小幅\"\n          },\n          {\n            \"driver_id\": \"russell\",\n            \"direction_label\": \"正向\",\n            \"magnitude_label\": \"小幅\"\n          }\n        ],\n        \"interpretation\": \"small diagnostic sensitivity for energy_recovery; computed by comparing the full prediction with a same-seed run that removes this claim only.\",\n        \"redaction_note\": \"公开解释只展示同种子移除对比的方向和幅度等级，不展示原始概率差值或内部输入权重。\"\n      },\n      {\n        \"claim_id\": \"british_gp-weather-openmeteo-001\",\n        \"source\": \"Open-Meteo forecast API\",\n        \"target_type\": \"event\",\n        \"target_id\": \"british_gp\",\n        \"metric\": \"wet_skill\",\n        \"direction\": \"negative\",\n        \"attribution_method\": \"diagnostic_same_seed_leave_one_claim_comparison\",\n        \"affected_outcomes\": [\n          {\n            \"driver_id\": \"antonelli\",\n            \"direction_label\": \"正向\",\n            \"magnitude_label\": \"很小\"\n          },\n          {\n            \"driver_id\": \"hamilton\",\n            \"direction_label\": \"负向\",\n            \"magnitude_label\": \"很小\"\n          },\n          {\n            \"driver_id\": \"verstappen\",\n            \"direction_label\": \"负向\",\n            \"magnitude_label\": \"很小\"\n          },\n          {\n            \"driver_id\": \"russell\",\n            \"direction_label\": \"负向\",\n            \"magnitude_label\": \"很小\"\n          },\n          {\n            \"driver_id\": \"norris\",\n            \"direction_label\": \"正向\",\n            \"magnitude_label\": \"很小\"\n          }\n        ],\n        \"interpretation\": \"small diagnostic sensitivity for wet_skill; computed by comparing the full prediction with a same-seed run that removes this claim only.\",\n        \"redaction_note\": \"公开解释只展示同种子移除对比的方向和幅度等级，不展示原始概率差值或内部输入权重。\"\n      }\n    ],\n    \"qualifying_context\": {\n      \"source\": \"fastf1_qualifying_result\",\n      \"observed_at\": \"2026-07-04T15:00:00+00:00\",\n      \"captured_at\": \"2026-07-05T11:44:33+00:00\",\n      \"row_count\": 22,\n      \"selected_positions\": [\n        {\n          \"driver_id\": \"russell\",\n          \"qualifying_position\": 4,\n          \"driver_number\": \"63\",\n          \"team_id\": \"mercedes\"\n        }\n      ]\n    },\n    \"track_context\": {\n      \"track_type\": \"high_speed\",\n      \"corner_count\": 18,\n      \"high_speed_corner_count\": 6,\n      \"long_straight_count\": 5,\n      \"provenance\": {\n        \"circuit_source\": \"openf1_circuit_info_url\",\n        \"circuit_source_url\": \"https://api.multiviewer.app/api/v1/circuits/2/2026\",\n        \"weather_source\": \"open_meteo_historical_climate_profile\",\n        \"method\": \"v1:circuit_corner_angle_progress_weather_prior_proxy\",\n        \"geometry_proxy_note\": \"Corner speed classes and straight counts are derived from stored corner angle/progress fields; not official speed or DRS/deployment-zone data.\"\n      },\n      \"redaction_note\": \"公开解释不展示未经来源化解释的归一化赛道指数；赛道指数需要绑定弯角、直道、DRS/替代系统、天气和沥青来源后才能前端展示。\"\n    },\n    \"readiness\": {\n      \"status\": \"diagnostic_only\",\n      \"formal_edge_ready\": false,\n      \"blocker_codes\": [\n        \"codex_evidence_quality_review_required\",\n        \"probability_calibration_diagnostic_only\"\n      ],\n      \"warning_codes\": [\n        \"codex_claims_require_review\"\n      ]\n    },\n    \"codex_counts\": {\n      \"evidence_count\": 6,\n      \"factor_trace_count\": 6,\n      \"weak_evidence_quality_count\": 5,\n      \"strong_evidence_quality_count\": 0\n    },\n    \"model_prior_audit\": {\n      \"russell\": {\n        \"status\": \"unsupported_static_priors_redacted\",\n        \"unsupported_static_prior_labels\": [\n          \"车队和赛车基础强度先验\",\n          \"车手基础能力先验\",\n          \"正赛攻防和比赛执行先验\",\n          \"赛车与赛道类型适配\",\n          \"排位单圈能力先验\",\n          \"车队策略能力\",\n          \"湿地能力按天气概率折算\",\n          \"保胎能力\"\n        ],\n        \"note\": \"这些静态先验只能作为模型风险提示，不能作为解释证据；需要重新标定并绑定信息来源后才能用于回答用户为什么。\"\n      }\n    },\n    \"internal_fields_redacted\": [\n      \"内部能力分明细\",\n      \"特征归一化数值、置信度和加权影响\",\n      \"指标加权汇总\",\n      \"证据路线原始影响权重\",\n      \"同种子对比原始概率差值\",\n      \"未经来源化解释的归一化赛道指数\"\n    ]\n  }\n}\n",
   "codex_context": {
     "event_id": "british_gp",
     "event_name": "British Grand Prix",
@@ -1444,9 +1218,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "qualifying_pace",
-              "value": 0.1643,
-              "confidence": 0.78,
-              "weighted_value": 0.12815,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Same-event FastF1 qualifying classification before British Grand Prix: P4/22; used as a strong cutoff-valid qualifying/grid signal. It primarily affects sampled grid order and is not treated as direct race pace."
             },
             {
@@ -1457,9 +1230,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "race_pace",
-              "value": 0.1364,
-              "confidence": 0.62,
-              "weighted_value": 0.08457,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Cutoff-valid FastF1 race results before British Grand Prix: team total points per race 33.50 vs field 9.18; recent window 27.67 vs field 9.18. Used as a bounded team/car strength reestimate so current-season results can move the race-pace prior without hand-writing a team order."
             },
             {
@@ -1470,9 +1242,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "qualifying_pace",
-              "value": 0.1,
-              "confidence": 0.58,
-              "weighted_value": 0.058,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Same-event FastF1 qualifying team average position before British Grand Prix: 2.50; used as a team-level qualifying form signal."
             },
             {
@@ -1483,9 +1254,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "race_pace",
-              "value": 0.105,
-              "confidence": 0.384,
-              "weighted_value": 0.04032,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Official constructor standings before British Grand Prix: P1, 302.0 points vs field average 83.3; used as a cutoff-safe team form prior."
             },
             {
@@ -1496,9 +1266,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "race_pace",
-              "value": 0.085,
-              "confidence": 0.2856,
-              "weighted_value": 0.02428,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Practice 1 long-run proxy before British Grand Prix: 93.134s vs field 94.350s over 9 clean lap(s); used as a same-weekend race-pace signal."
             },
             {
@@ -1509,9 +1278,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "qualifying_pace",
-              "value": 0.044,
-              "confidence": 0.44,
-              "weighted_value": 0.01936,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Qualifying best valid lap before British Grand Prix: 88.481s vs field 89.500s; used as gap-aware qualifying pace, separate from the qualifying classification/grid-order feature."
             },
             {
@@ -1522,9 +1290,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "race_pace",
-              "value": 0.0599,
-              "confidence": 0.32,
-              "weighted_value": 0.01917,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Official driver standings before British Grand Prix: P2, 131.0 points vs field average 41.6; used as a cutoff-safe season form prior, not a manual team-strength override."
             },
             {
@@ -1535,9 +1302,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "qualifying_pace",
-              "value": 0.0442,
-              "confidence": 0.32,
-              "weighted_value": 0.01414,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Previous 3 race grid result(s) before British Grand Prix: average grid 2.67 vs field 11.50; used as point-in-time qualifying form prior."
             },
             {
@@ -1548,9 +1314,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "race_pace",
-              "value": 0.039,
-              "confidence": 0.36,
-              "weighted_value": 0.01404,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Previous 3 race result(s) before British Grand Prix: average points 14.33 vs field 4.59; used as point-in-time race form prior."
             },
             {
@@ -1561,9 +1326,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "qualifying_pace",
-              "value": 0.042,
-              "confidence": 0.294,
-              "weighted_value": 0.01235,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Official constructor standings before British Grand Prix: P1, 302.0 points; converted into a smaller qualifying prior because standings primarily reflect race outcomes."
             },
             {
@@ -1574,9 +1338,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "qualifying_pace",
-              "value": 0.0357,
-              "confidence": 0.34,
-              "weighted_value": 0.01214,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Qualifying team best-lap proxy before British Grand Prix: 88.296s vs team field 89.500s; used as same-weekend car qualifying pace."
             },
             {
@@ -1587,9 +1350,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "qualifying_pace",
-              "value": 0.05,
-              "confidence": 0.24,
-              "weighted_value": 0.012,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Historical OpenF1 analogue rank 1/10 in Qualifying_9554; used as low-confidence qualifying_pace prior."
             },
             {
@@ -1600,9 +1362,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "qualifying_pace",
-              "value": 0.0365,
-              "confidence": 0.29,
-              "weighted_value": 0.01059,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Season-to-date FastF1 grid results before British Grand Prix: average grid 2.38 vs field 11.50; used as a broader qualifying-form prior."
             },
             {
@@ -1613,9 +1374,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "race_pace",
-              "value": 0.0296,
-              "confidence": 0.33,
-              "weighted_value": 0.00977,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Team average driver points over previous 3 race(s): 13.83 vs field 4.59; used as point-in-time team form prior."
             },
             {
@@ -1626,9 +1386,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "race_pace",
-              "value": 0.0275,
-              "confidence": 0.34,
-              "weighted_value": 0.00935,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Season-to-date FastF1 race results before British Grand Prix: 8 race(s), driver average points 13.75 vs field 4.59; used as a broader form prior than the recent-window signal."
             },
             {
@@ -1639,9 +1398,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "race_pace",
-              "value": 0.0292,
-              "confidence": 0.32,
-              "weighted_value": 0.00934,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Team average driver points across 8 race(s) before British Grand Prix: 16.75 vs field 4.59; used as a season-to-date team form prior."
             },
             {
@@ -1652,9 +1410,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "race_pace",
-              "value": -0.0278,
-              "confidence": 0.28,
-              "weighted_value": -0.00778,
+              "direction": "negative",
+              "direction_label": "负向",
               "explanation": "Historical OpenF1 analogue rank 8/10 in Practice_2_9552; used as low-confidence race_pace prior."
             },
             {
@@ -1665,9 +1422,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "race_pace",
-              "value": 0.0278,
-              "confidence": 0.28,
-              "weighted_value": 0.00778,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Historical OpenF1 analogue rank 3/10 in Practice_3_9553; used as low-confidence race_pace prior."
             },
             {
@@ -1678,9 +1434,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "qualifying_pace",
-              "value": 0.027,
-              "confidence": 0.24,
-              "weighted_value": 0.00648,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Official driver standings before British Grand Prix: P2, 131.0 points; converted into a smaller qualifying prior because standings primarily reflect race outcomes."
             },
             {
@@ -1691,9 +1446,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "race_pace",
-              "value": 0.0275,
-              "confidence": 0.2312,
-              "weighted_value": 0.00636,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Practice 1 team long-run proxy before British Grand Prix: 93.134s vs team field 94.257s; used as same-weekend car race pace."
             },
             {
@@ -1704,9 +1458,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "race_pace",
-              "value": 0.0167,
-              "confidence": 0.28,
-              "weighted_value": 0.00468,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Historical OpenF1 analogue rank 4/10 in Practice_1_9551; used as low-confidence race_pace prior."
             },
             {
@@ -1717,9 +1470,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "straight_line_speed",
-              "value": 0.0211,
-              "confidence": 0.1632,
-              "weighted_value": 0.00344,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Practice 1 speed-trap average before British Grand Prix: 288.4 kph vs field 276.9 kph; used as a small straight-line signal."
             },
             {
@@ -1730,9 +1482,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "race_pace",
-              "value": -0.0093,
-              "confidence": 0.25,
-              "weighted_value": -0.00232,
+              "direction": "negative",
+              "direction_label": "负向",
               "explanation": "FastF1 recent-vs-older team form before British Grand Prix: relative points delta -4.67; used as team momentum signal."
             },
             {
@@ -1743,9 +1494,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "reliability",
-              "value": -0.006,
-              "confidence": 0.27,
-              "weighted_value": -0.00162,
+              "direction": "negative",
+              "direction_label": "负向",
               "explanation": "1 non-finished classification(s) across 8 cutoff-valid FastF1 result(s); used as a season reliability risk prior."
             },
             {
@@ -1756,9 +1506,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "wet_skill",
-              "value": 0.0048,
-              "confidence": 0.25,
-              "weighted_value": 0.0012,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Historical analogue race had meaningful rainfall; driver wet-skill prior gets a small confidence-weighted boost."
             },
             {
@@ -1769,9 +1518,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "tyre_deg",
-              "value": -0.0057,
-              "confidence": 0.204,
-              "weighted_value": -0.00116,
+              "direction": "negative",
+              "direction_label": "负向",
               "explanation": "Practice 1 tyre-degradation proxy before British Grand Prix: +0.0229s/lap vs field -0.2481s/lap; lower degradation improves strategy pace."
             },
             {
@@ -1782,9 +1530,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "race_execution",
-              "value": -0.0021,
-              "confidence": 0.3,
-              "weighted_value": -0.00063,
+              "direction": "negative",
+              "direction_label": "负向",
               "explanation": "Previous 3 finished race result(s) before British Grand Prix: average opportunity-normalized grid-to-finish conversion -0.14 vs field +0.28; used as point-in-time race execution prior."
             },
             {
@@ -1795,9 +1542,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "race_pace",
-              "value": 0.0022,
-              "confidence": 0.28,
-              "weighted_value": 0.00062,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "FastF1 recent-vs-older form before British Grand Prix: relative points delta 0.93; used as momentum signal so late-season improvement or decline can move the race-pace prior."
             },
             {
@@ -1808,9 +1554,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "race_execution",
-              "value": -0.0013,
-              "confidence": 0.29,
-              "weighted_value": -0.00038,
+              "direction": "negative",
+              "direction_label": "负向",
               "explanation": "Team opportunity-normalized finished-race grid-to-finish conversion over previous 3 race(s): -0.02 vs field +0.32; used as point-in-time team race execution prior."
             },
             {
@@ -1821,9 +1566,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "qualifying_pace",
-              "value": -0.0016,
-              "confidence": 0.23,
-              "weighted_value": -0.00037,
+              "direction": "negative",
+              "direction_label": "负向",
               "explanation": "FastF1 recent-vs-older grid form before British Grand Prix: relative grid delta -0.47; used as qualifying momentum signal."
             },
             {
@@ -1834,9 +1578,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "race_execution",
-              "value": -0.0012,
-              "confidence": 0.28,
-              "weighted_value": -0.00034,
+              "direction": "negative",
+              "direction_label": "负向",
               "explanation": "Season-to-date FastF1 finished races before British Grand Prix: average opportunity-normalized grid-to-finish conversion -0.04 vs field +0.24; used as a broader race execution prior."
             },
             {
@@ -1847,9 +1590,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "race_execution",
-              "value": -0.0013,
-              "confidence": 0.22,
-              "weighted_value": -0.00029,
+              "direction": "negative",
+              "direction_label": "负向",
               "explanation": "FastF1 recent-vs-older finished-race grid conversion before British Grand Prix: relative conversion delta -0.29; used as race execution momentum."
             },
             {
@@ -1860,9 +1602,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "race_execution",
-              "value": -0.001,
-              "confidence": 0.21,
-              "weighted_value": -0.00021,
+              "direction": "negative",
+              "direction_label": "负向",
               "explanation": "FastF1 recent-vs-older team grid conversion before British Grand Prix: relative conversion delta -0.28; used as team race execution momentum."
             },
             {
@@ -1873,9 +1614,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "race_execution",
-              "value": -0.0006,
-              "confidence": 0.27,
-              "weighted_value": -0.00016,
+              "direction": "negative",
+              "direction_label": "负向",
               "explanation": "Team average opportunity-normalized finished-race grid-to-finish conversion across 8 race(s) before British Grand Prix: +0.08 vs field +0.26; used as a season-to-date team race execution prior."
             }
           ],
@@ -1888,9 +1628,8 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "qualifying_pace",
-              "value": 0.1643,
-              "confidence": 0.78,
-              "weighted_value": 0.12815,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Same-event FastF1 qualifying classification before British Grand Prix: P4/22; used as a strong cutoff-valid qualifying/grid signal. It primarily affects sampled grid order and is not treated as direct race pace."
             },
             {
@@ -1901,9 +1640,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "race_pace",
-              "value": 0.1364,
-              "confidence": 0.62,
-              "weighted_value": 0.08457,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Cutoff-valid FastF1 race results before British Grand Prix: team total points per race 33.50 vs field 9.18; recent window 27.67 vs field 9.18. Used as a bounded team/car strength reestimate so current-season results can move the race-pace prior without hand-writing a team order."
             },
             {
@@ -1914,9 +1652,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "qualifying_pace",
-              "value": 0.1,
-              "confidence": 0.58,
-              "weighted_value": 0.058,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Same-event FastF1 qualifying team average position before British Grand Prix: 2.50; used as a team-level qualifying form signal."
             },
             {
@@ -1927,9 +1664,8 @@
               "target_type": "team",
               "target_id": "mercedes",
               "metric": "race_pace",
-              "value": 0.105,
-              "confidence": 0.384,
-              "weighted_value": 0.04032,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Official constructor standings before British Grand Prix: P1, 302.0 points vs field average 83.3; used as a cutoff-safe team form prior."
             },
             {
@@ -1940,34 +1676,12 @@
               "target_type": "driver",
               "target_id": "russell",
               "metric": "race_pace",
-              "value": 0.085,
-              "confidence": 0.2856,
-              "weighted_value": 0.02428,
+              "direction": "positive",
+              "direction_label": "正向",
               "explanation": "Practice 1 long-run proxy before British Grand Prix: 93.134s vs field 94.350s over 9 clean lap(s); used as a same-weekend race-pace signal."
-            },
-            {
-              "kind": "feature_adjustment",
-              "scope": "driver",
-              "feature_id": "fastf1-session-laps:2026:british_gp:qualifying:russell:qualifying_pace:2026-07-04T15:00:00+00:00",
-              "source": "fastf1_session_laps:2026:british:qualifying:2026-07-04T15:00:00+00:00:captured_at=2026-07-05T11:44:38+00:00:quality=retrospective_snapshot:path=data\\raw\\fastf1\\2026_British_Grand_Prix_Qualifying_laps\\2026-07-05\\2026_British_Grand_Prix_Qualifying_laps_2026-07-05T11_44_38_00_00.json",
-              "target_type": "driver",
-              "target_id": "russell",
-              "metric": "qualifying_pace",
-              "value": 0.044,
-              "confidence": 0.44,
-              "weighted_value": 0.01936,
-              "explanation": "Qualifying best valid lap before British Grand Prix: 88.481s vs field 89.500s; used as gap-aware qualifying pace, separate from the qualifying classification/grid-order feature."
             }
           ],
-          "metric_weighted_totals": {
-            "qualifying_pace": 0.27284,
-            "race_pace": 0.22018,
-            "straight_line_speed": 0.00344,
-            "race_execution": -0.00201,
-            "reliability": -0.00162,
-            "wet_skill": 0.0012,
-            "tyre_deg": -0.00116
-          }
+          "redaction_note": "公开解释只保留事实来源、指标方向和原始说明；归一化取值、置信度和加权影响不作为解释证据展示。"
         }
       },
       "factor_trace_context": [
@@ -1981,61 +1695,17 @@
           "route": "track_contextual_pace",
           "model_surface": "track-weighted pace score",
           "route_status": "observed_probability_movement",
-          "raw_signed_impact": 0.0472,
-          "weighted_input_impact": 0.0252,
-          "effective_race_input": 0.0128,
-          "effective_qualifying_input": 0.0134,
-          "signed_input_impact": 0.0252,
-          "max_win_probability_delta": 0.0083,
-          "affected_outcome_count": 2,
           "quality_status": "weak_diagnostic",
           "source_status": "source_log_missing",
           "triangulation_status": "seed_or_test_only",
           "conflict_status": "no_conflict",
-          "source_reliability": 0.3,
-          "model_input_weight": 0.5338,
-          "context_multiplier": 0.5082,
-          "context_multiplier_reason": "energy_recovery uses ERS deployment, recovery efficiency, and clipping exposure; track_type=high_speed, base=0.16, track_sensitivity=0.35, mode=race, context_multiplier=0.508, demand_component=ers_demand, demand_value=0.35, launch_importance=0.25, altitude_power_derate=0.00, profile_notes=Sustained high-speed load and repeated deployment make clipping, drag, and mass visible. | event_geometry_adjusted=true corners=18 high_angle_ratio=0.28 low_angle_ratio=0.22 avg_abs_angle=83.4 | low_altitude_air_density_adjusted=true elevation_m=119",
-          "track_demand_component": "ers_demand",
-          "track_demand_value": 0.3482,
-          "track_demand_profile": {
-            "track_type": "high_speed",
-            "power_demand": 0.5201,
-            "ers_demand": 0.3482,
-            "drag_demand": 0.4401,
-            "traction_demand": 0.1344,
-            "mass_sensitivity": 0.3497,
-            "launch_importance": 0.2498,
-            "braking_energy_demand": 0.3504,
-            "altitude_power_derate": 0.0,
-            "notes": [
-              "Sustained high-speed load and repeated deployment make clipping, drag, and mass visible.",
-              "event_geometry_adjusted=true corners=18 high_angle_ratio=0.28 low_angle_ratio=0.22 avg_abs_angle=83.4",
-              "low_altitude_air_density_adjusted=true elevation_m=119"
-            ]
-          },
           "risk_flags": [
             "claim_requires_review",
             "seed_scenario_source",
             "source_log_missing",
             "seed_only_triangulation"
           ],
-          "route_notes": [
-            "Scaled by circuit type; captures ERS deployment and clipping sensitivity.",
-            "target_scope=team:mercedes",
-            "track_type=high_speed",
-            "track_context_multiplier_applied=true",
-            "context_multiplier=0.5082",
-            "qualifying_context_multiplier=0.5336",
-            "effective_race_input=+0.0128",
-            "track_demand_component=ers_demand",
-            "track_demand_value=0.3482",
-            "energy_recovery uses ERS deployment, recovery efficiency, and clipping exposure; track_type=high_speed, base=0.16, track_sensitivity=0.35, mode=race, context_multiplier=0.508, demand_component=ers_demand, demand_value=0.35, launch_importance=0.25, altitude_power_derate=0.00, profile_notes=Sustained high-speed load and repeated deployment make clipping, drag, and mass visible. | event_geometry_adjusted=true corners=18 high_angle_ratio=0.28 low_angle_ratio=0.22 avg_abs_angle=83.4 | low_altitude_air_density_adjusted=true elevation_m=119",
-            "model_input_weight=0.53",
-            "raw_signed_impact=+0.0472",
-            "weighted_input_impact=+0.0252",
-            "same_seed_max_win_delta=+0.0083"
-          ]
+          "redaction_note": "公开解释不展示原始影响值、加权输入值、模型输入权重或上下文乘数；这些只能用于内部调试。"
         },
         {
           "claim_id": "british_gp-weather-openmeteo-001",
@@ -2047,37 +1717,15 @@
           "route": "wet_weather",
           "model_surface": "wet-race branch",
           "route_status": "observed_probability_movement",
-          "raw_signed_impact": -0.091,
-          "weighted_input_impact": -0.0639,
-          "effective_race_input": -0.0639,
-          "effective_qualifying_input": null,
-          "signed_input_impact": -0.0639,
-          "max_win_probability_delta": 0.0042,
-          "affected_outcome_count": 5,
           "quality_status": "usable_diagnostic",
           "source_status": "within_cutoff",
           "triangulation_status": "single_source",
           "conflict_status": "no_conflict",
-          "source_reliability": 0.7,
-          "model_input_weight": 0.7023,
-          "context_multiplier": null,
-          "context_multiplier_reason": null,
-          "track_demand_component": null,
-          "track_demand_value": null,
-          "track_demand_profile": null,
           "risk_flags": [
             "claim_requires_review",
             "single_source_claim"
           ],
-          "route_notes": [
-            "Changes wet probability or wet-performance contribution depending on target scope.",
-            "target_scope=event:british_gp",
-            "track_type=high_speed",
-            "model_input_weight=0.70",
-            "raw_signed_impact=-0.0910",
-            "weighted_input_impact=-0.0639",
-            "same_seed_max_win_delta=+0.0042"
-          ]
+          "redaction_note": "公开解释不展示原始影响值、加权输入值、模型输入权重或上下文乘数；这些只能用于内部调试。"
         }
       ],
       "evidence_impact_context": [
@@ -2088,26 +1736,21 @@
           "target_id": "mercedes",
           "metric": "energy_recovery",
           "direction": "positive",
-          "signed_input_impact": 0.0252,
-          "confidence": 0.72,
-          "uncertainty": 0.18,
           "attribution_method": "diagnostic_same_seed_leave_one_claim_comparison",
           "affected_outcomes": [
             {
               "driver_id": "antonelli",
-              "win_delta": 0.0083,
-              "podium_delta": 0.0067,
-              "expected_points_delta": 0.102
+              "direction_label": "正向",
+              "magnitude_label": "小幅"
             },
             {
               "driver_id": "russell",
-              "win_delta": 0.0058,
-              "podium_delta": 0.0083,
-              "expected_points_delta": 0.113
+              "direction_label": "正向",
+              "magnitude_label": "小幅"
             }
           ],
-          "max_win_probability_delta": 0.0083,
-          "interpretation": "small diagnostic sensitivity for energy_recovery; computed by comparing the full prediction with a same-seed run that removes this claim only."
+          "interpretation": "small diagnostic sensitivity for energy_recovery; computed by comparing the full prediction with a same-seed run that removes this claim only.",
+          "redaction_note": "公开解释只展示同种子移除对比的方向和幅度等级，不展示原始概率差值或内部输入权重。"
         },
         {
           "claim_id": "british_gp-weather-openmeteo-001",
@@ -2116,141 +1759,38 @@
           "target_id": "british_gp",
           "metric": "wet_skill",
           "direction": "negative",
-          "signed_input_impact": -0.0639,
-          "confidence": 0.7,
-          "uncertainty": 0.35,
           "attribution_method": "diagnostic_same_seed_leave_one_claim_comparison",
           "affected_outcomes": [
             {
               "driver_id": "antonelli",
-              "win_delta": 0.0042,
-              "podium_delta": 0.0033,
-              "expected_points_delta": 0.049
+              "direction_label": "正向",
+              "magnitude_label": "很小"
             },
             {
               "driver_id": "hamilton",
-              "win_delta": -0.0025,
-              "podium_delta": -0.0033,
-              "expected_points_delta": -0.062
+              "direction_label": "负向",
+              "magnitude_label": "很小"
             },
             {
               "driver_id": "verstappen",
-              "win_delta": -0.0017,
-              "podium_delta": -0.0025,
-              "expected_points_delta": -0.055
+              "direction_label": "负向",
+              "magnitude_label": "很小"
             },
             {
               "driver_id": "russell",
-              "win_delta": -0.0008,
-              "podium_delta": -0.0008,
-              "expected_points_delta": 0.002
+              "direction_label": "负向",
+              "magnitude_label": "很小"
             },
             {
               "driver_id": "norris",
-              "win_delta": 0.0008,
-              "podium_delta": -0.0008,
-              "expected_points_delta": 0.007
+              "direction_label": "正向",
+              "magnitude_label": "很小"
             }
           ],
-          "max_win_probability_delta": 0.0042,
-          "interpretation": "small diagnostic sensitivity for wet_skill; computed by comparing the full prediction with a same-seed run that removes this claim only."
+          "interpretation": "small diagnostic sensitivity for wet_skill; computed by comparing the full prediction with a same-seed run that removes this claim only.",
+          "redaction_note": "公开解释只展示同种子移除对比的方向和幅度等级，不展示原始概率差值或内部输入权重。"
         }
       ],
-      "score_breakdown": {
-        "russell": {
-          "race_total": 2.41414,
-          "qualifying_total": 2.80247,
-          "race_components": {
-            "team_base_strength": 1.24,
-            "driver_base_skill": 0.39,
-            "track_affinity": 0.18,
-            "racecraft": 0.19,
-            "wet_skill": 0.05606,
-            "team_strategy": 0.0888,
-            "tyre_management": 0.036,
-            "feature_race_pace": 0.22016,
-            "feature_race_execution": -0.002,
-            "evidence_energy_recovery": 0.01281,
-            "feature_straight_line_speed": 0.00231
-          },
-          "qualifying_components": {
-            "team_base_strength": 1.24,
-            "driver_base_skill": 0.39,
-            "track_affinity": 0.18,
-            "racecraft": 0.19,
-            "wet_skill": 0.05606,
-            "team_strategy": 0.0888,
-            "qualifying": 0.1485,
-            "feature_race_pace": 0.22016,
-            "feature_qualifying_pace": 0.27284,
-            "evidence_energy_recovery": 0.01345,
-            "feature_straight_line_speed": 0.00265
-          },
-          "race_top_components": [
-            {
-              "component": "team_base_strength",
-              "value": 1.24
-            },
-            {
-              "component": "driver_base_skill",
-              "value": 0.39
-            },
-            {
-              "component": "feature_race_pace",
-              "value": 0.22016
-            },
-            {
-              "component": "racecraft",
-              "value": 0.19
-            },
-            {
-              "component": "track_affinity",
-              "value": 0.18
-            },
-            {
-              "component": "team_strategy",
-              "value": 0.0888
-            },
-            {
-              "component": "wet_skill",
-              "value": 0.05606
-            },
-            {
-              "component": "tyre_management",
-              "value": 0.036
-            }
-          ],
-          "qualifying_top_components": [
-            {
-              "component": "team_base_strength",
-              "value": 1.24
-            },
-            {
-              "component": "driver_base_skill",
-              "value": 0.39
-            },
-            {
-              "component": "feature_qualifying_pace",
-              "value": 0.27284
-            },
-            {
-              "component": "feature_race_pace",
-              "value": 0.22016
-            },
-            {
-              "component": "racecraft",
-              "value": 0.19
-            },
-            {
-              "component": "track_affinity",
-              "value": 0.18
-            }
-          ],
-          "reliability": 0.96738,
-          "tyre_degradation_adjustment": -0.00116,
-          "launch_adjustment": 0.0
-        }
-      },
       "qualifying_context": {
         "source": "fastf1_qualifying_result",
         "observed_at": "2026-07-04T15:00:00+00:00",
@@ -2270,18 +1810,14 @@
         "corner_count": 18,
         "high_speed_corner_count": 6,
         "long_straight_count": 5,
-        "overtaking_index": 0.4175,
-        "track_position_value": 0.3856,
-        "safety_car_probability": 0.4198,
-        "wet_probability": 0.4143,
-        "tyre_degradation_index": 0.5356,
         "provenance": {
           "circuit_source": "openf1_circuit_info_url",
           "circuit_source_url": "https://api.multiviewer.app/api/v1/circuits/2/2026",
           "weather_source": "open_meteo_historical_climate_profile",
           "method": "v1:circuit_corner_angle_progress_weather_prior_proxy",
           "geometry_proxy_note": "Corner speed classes and straight counts are derived from stored corner angle/progress fields; not official speed or DRS/deployment-zone data."
-        }
+        },
+        "redaction_note": "公开解释不展示未经来源化解释的归一化赛道指数；赛道指数需要绑定弯角、直道、DRS/替代系统、天气和沥青来源后才能前端展示。"
       },
       "readiness": {
         "status": "diagnostic_only",
@@ -2299,7 +1835,31 @@
         "factor_trace_count": 6,
         "weak_evidence_quality_count": 5,
         "strong_evidence_quality_count": 0
-      }
+      },
+      "model_prior_audit": {
+        "russell": {
+          "status": "unsupported_static_priors_redacted",
+          "unsupported_static_prior_labels": [
+            "车队和赛车基础强度先验",
+            "车手基础能力先验",
+            "正赛攻防和比赛执行先验",
+            "赛车与赛道类型适配",
+            "排位单圈能力先验",
+            "车队策略能力",
+            "湿地能力按天气概率折算",
+            "保胎能力"
+          ],
+          "note": "这些静态先验只能作为模型风险提示，不能作为解释证据；需要重新标定并绑定信息来源后才能用于回答用户为什么。"
+        }
+      },
+      "internal_fields_redacted": [
+        "内部能力分明细",
+        "特征归一化数值、置信度和加权影响",
+        "指标加权汇总",
+        "证据路线原始影响权重",
+        "同种子对比原始概率差值",
+        "未经来源化解释的归一化赛道指数"
+      ]
     }
   }
 }
