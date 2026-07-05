@@ -10,7 +10,7 @@
 - 为什么 Leclerc 的胜率远低于同队 Hamilton？
 - 为什么 Alonso 在所有 podium 概率为 0 的车手里排第一？
 
-它不是重新预测，也不是自由发挥的聊天机器人。它必须先读取已经注册的 prediction run 和 prediction packet，再从里面抽取概率、特征、Codex evidence、factor trace、赛道上下文和 readiness 状态。
+它不是重新预测，也不是自由发挥的聊天机器人。它必须先读取已经注册的预测运行和预测包，再从里面抽取概率、特征、Codex 证据、因子追踪、赛道上下文和就绪状态。
 
 ## 2. 模块入口
 
@@ -52,10 +52,10 @@ POST /api/v2/prediction-explanations
 - `question_type`：问题类型，例如 `rank_explanation`、`driver_comparison`、`group_zero_podium`；
 - `detected_entities`：识别到的车手、车队、派生分组；
 - `evidence_context`：从 prediction packet 抽出的结构化上下文；
-- `supporting_evidence`：最关键的证据行；
+- `supporting_evidence`：最关键的证据行，面向人的说明必须尽量中文化；
 - `codex_prompt`：给 Codex/LLM 继续回答同一问题的提示词；
 - `codex_context`：Codex 只能使用的 JSON 上下文；
-- `limitations`：为什么当前解释仍然是 diagnostic-only。
+- `limitations`：为什么当前解释仍然只能诊断使用。
 
 ## 4. Codex 如何参与
 
@@ -64,7 +64,7 @@ Codex 在这里不是随便编解释，而是使用后端准备好的 `codex_con
 回答合同是：
 
 - 只能使用 `codex_context` 中的事实；
-- 不能声称已经证明稳定盈利 edge；
+- 不能声称已经证明稳定盈利优势；
 - 必须区分“模型机制解释”和“真实世界强结论”；
 - 如果上下文不足，必须说缺少哪类 artifact 或输入；
 - 可以根据用户追问继续组织语言、比较因素、指出缺失信息。
@@ -73,16 +73,18 @@ Codex 在这里不是随便编解释，而是使用后端准备好的 `codex_con
 
 ## 5. 当前能解释什么
 
-当前模块已经能从最新 British GP run 中解释：
+当前模块已经能从最新 British GP 预测运行中解释：
 
-- expected-rank 排序和 win-probability 排序不一致；
+- 平均完赛名次排序和冠军概率排序不一致；
 - 同队车手之间的差异；
-- podium=0 的分组排序；
+- 领奖台概率为 0 的分组排序；
 - driver/team/event 级 processed feature 的正负贡献；
-- Codex evidence impact 的 same-seed leave-one-claim 影响；
-- race score、qualifying score、reliability proxy；
-- 排位顺序、赛道类型、天气/安全车/轮胎退化 proxy；
-- 当前 prediction packet 的 diagnostic-only blocker。
+- Codex 证据影响的同种子移除单条证据影响；
+- 模型内部正赛能力分、排位能力分和可靠性估计值，并解释这些分数来自哪些事实、先验和特征；
+- 排位顺序、赛道类型、天气/安全车/轮胎退化估计值；
+- 当前预测包的诊断状态和阻塞项。
+
+尤其是同队车手对比时，解释模块必须说明哪些输入是同队共享的赛车/车队输入，哪些差距来自车手先验或近期特征。如果差距主要来自车手先验，而用户的赛前判断认为队友基本打平，模块要把这标成模型校准风险，而不是把内部分数包装成强事实。
 
 ## 6. 当前不足
 
@@ -90,11 +92,11 @@ Codex 在这里不是随便编解释，而是使用后端准备好的 `codex_con
 
 当前解释的限制：
 
-- feature contribution 是模型输入层的可解释分解，不是严格因果贡献；
-- Codex evidence impact 只覆盖 Codex claim，不覆盖每条结构化 feature；
-- Monte Carlo iterations 为 1200 时，0% 小概率事件可能只是采样分辨率不足；
-- 如果 prediction packet 没有注册 run 或没有 packet path，解释模块无法工作；
-- 当前 Codex evidence 仍有 weak/review-required 项，所以解释不能用于宣称 edge。
+- 特征贡献是模型输入层的可解释分解，不是严格因果贡献；
+- Codex 证据影响只覆盖 Codex claim，不覆盖每条结构化特征；
+- 蒙特卡洛采样次数为 1200 时，0% 小概率事件可能只是采样分辨率不足；
+- 如果预测包没有注册预测运行或没有预测包路径，解释模块无法工作；
+- 当前 Codex 证据仍有偏弱或待复核项，所以解释不能用于宣称稳定盈利优势。
 
 下一步应该做：
 

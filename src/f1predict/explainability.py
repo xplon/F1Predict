@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -59,6 +60,86 @@ TEAM_ALIASES: dict[str, tuple[str, ...]] = {
     "williams": ("威廉姆斯", "Williams"),
 }
 
+METRIC_LABELS: dict[str, str] = {
+    "race_pace": "正赛速度",
+    "race_execution": "正赛执行",
+    "qualifying_pace": "排位速度",
+    "tyre_deg": "轮胎衰退",
+    "reliability": "可靠性",
+    "wet_skill": "湿地能力",
+    "strategy": "策略",
+    "power_unit": "动力单元",
+    "energy_recovery": "能量回收",
+    "straight_line_speed": "直道速度",
+    "drag_efficiency": "低阻效率",
+    "low_speed_traction": "低速牵引",
+    "launch_performance": "发车表现",
+    "weight": "车重",
+    "upgrade_effect": "升级效果",
+}
+
+COMPONENT_LABELS: dict[str, str] = {
+    "team_base_strength": "车队和赛车基础强度先验",
+    "driver_base_skill": "车手基础能力先验",
+    "track_affinity": "赛车与赛道类型适配",
+    "racecraft": "正赛攻防和比赛执行先验",
+    "wet_skill": "湿地能力按天气概率折算",
+    "team_strategy": "车队策略能力",
+    "tyre_management": "保胎能力",
+    "qualifying": "排位单圈能力先验",
+    "evidence_race_pace": "非结构化证据给出的正赛速度修正",
+    "feature_race_pace": "结构化数据给出的正赛速度修正",
+    "evidence_race_execution": "非结构化证据给出的正赛执行修正",
+    "feature_race_execution": "结构化数据给出的正赛执行修正",
+    "evidence_qualifying_pace": "非结构化证据给出的排位速度修正",
+    "feature_qualifying_pace": "结构化数据给出的排位速度修正",
+    "evidence_wet_skill": "非结构化证据给出的湿地能力修正",
+    "evidence_strategy": "非结构化证据给出的策略修正",
+    "evidence_power_unit": "非结构化证据给出的动力单元修正",
+    "feature_power_unit": "结构化数据给出的动力单元修正",
+    "evidence_energy_recovery": "非结构化证据给出的能量回收修正",
+    "feature_energy_recovery": "结构化数据给出的能量回收修正",
+    "evidence_straight_line_speed": "非结构化证据给出的直道速度修正",
+    "feature_straight_line_speed": "结构化数据给出的直道速度修正",
+    "evidence_drag_efficiency": "非结构化证据给出的低阻效率修正",
+    "feature_drag_efficiency": "结构化数据给出的低阻效率修正",
+    "evidence_low_speed_traction": "非结构化证据给出的低速牵引修正",
+    "feature_low_speed_traction": "结构化数据给出的低速牵引修正",
+    "evidence_weight": "非结构化证据给出的车重修正",
+    "feature_weight": "结构化数据给出的车重修正",
+    "evidence_upgrade_effect": "非结构化证据给出的升级效果修正",
+    "feature_upgrade_effect": "结构化数据给出的升级效果修正",
+}
+
+SCOPE_LABELS = {
+    "driver": "车手",
+    "team": "车队",
+    "event": "比赛和赛道",
+}
+
+QUESTION_TYPE_LABELS = {
+    "rank_explanation": "排名解释",
+    "driver_comparison": "车手对比",
+    "group_zero_podium": "零领奖台概率分组解释",
+    "driver_explanation": "车手解释",
+    "general_explanation": "整体解释",
+}
+
+CONFIDENCE_LABELS = {
+    "diagnostic_medium_for_model_mechanics_low_for_real_world_edge": "模型机制解释可信度中等，真实世界盈利优势可信度较低",
+    "medium": "中等",
+}
+
+STATUS_LABELS = {
+    "diagnostic_only": "诊断专用",
+    "ready_for_paper_review": "可进入正式复核",
+}
+
+BLOCKER_LABELS = {
+    "codex_evidence_quality_review_required": "Codex 证据质量仍需复核",
+    "probability_calibration_diagnostic_only": "概率校准仍停留在诊断级",
+}
+
 
 @dataclass(frozen=True)
 class PredictionExplanation:
@@ -103,33 +184,33 @@ class PredictionExplanation:
 
     def to_markdown(self) -> str:
         lines = [
-            f"# Prediction Explanation: {self.event_name}",
+            f"# 预测解释：{self.event_name}",
             "",
-            f"- Run: `{self.run_id}`",
-            f"- Event: `{self.event_id}`",
-            f"- Generated at: `{self.generated_at}`",
-            f"- Question type: `{self.question_type}`",
-            f"- Confidence: `{self.confidence}`",
+            f"- 预测运行：`{self.run_id}`",
+            f"- 比赛：`{self.event_id}`",
+            f"- 生成时间：`{self.generated_at}`",
+            f"- 问题类型：{QUESTION_TYPE_LABELS.get(self.question_type, self.question_type)}",
+            f"- 可信度：{CONFIDENCE_LABELS.get(self.confidence, self.confidence)}",
             "",
-            "## Question",
+            "## 问题",
             "",
             self.question,
             "",
-            "## Answer",
+            "## 回答",
             "",
             self.answer,
             "",
-            "## Limitations",
+            "## 限制",
             "",
         ]
         for item in self.limitations:
             lines.append(f"- {item}")
-        lines.extend(["", "## Supporting Evidence", ""])
+        lines.extend(["", "## 支撑证据", ""])
         for row in self.supporting_evidence[:12]:
-            label = row.get("label") or row.get("kind") or "evidence"
+            label = row.get("label") or row.get("kind") or "证据"
             detail = row.get("detail") or row.get("explanation") or row.get("reason") or ""
             lines.append(f"- **{label}**: {detail}")
-        lines.extend(["", "## Codex Prompt", "", "```text", self.codex_prompt.rstrip(), "```", ""])
+        lines.extend(["", "## 机器追问上下文", "", "配套 JSON 中包含给 Codex 继续追问使用的结构化上下文。", ""])
         return "\n".join(lines).rstrip() + "\n"
 
 
@@ -182,7 +263,7 @@ class PredictionExplainer:
         )
         limitations = self._limitations(packet, context)
         confidence = self._confidence(packet, context)
-        supporting_evidence = self._supporting_evidence(context, max_evidence=max_evidence)
+        supporting_evidence = self._supporting_evidence(context, driver_lookup, max_evidence=max_evidence)
         explanation_id = self._explanation_id(run.run_id, question)
         codex_context = self._codex_context(packet, context)
         return PredictionExplanation(
@@ -441,6 +522,7 @@ class PredictionExplainer:
                 metric_totals[metric] = metric_totals.get(metric, 0.0) + float(row["weighted_value"])
             by_driver[driver_id] = {
                 "team_id": driver.team_id,
+                "features": relevant,
                 "top_features": relevant[:max_evidence],
                 "metric_weighted_totals": {
                     key: round(value, 5)
@@ -565,6 +647,8 @@ class PredictionExplainer:
             output[driver_id] = {
                 "race_total": round(race["total"], 5),
                 "qualifying_total": round(qualifying["total"], 5),
+                "race_components": _components_dict(race),
+                "qualifying_components": _components_dict(qualifying),
                 "race_top_components": _top_components(race, limit=8),
                 "qualifying_top_components": _top_components(qualifying, limit=6),
                 "reliability": round(pace.reliability(driver), 5),
@@ -619,19 +703,19 @@ class PredictionExplainer:
     ) -> str:
         rows = context["probability_rows"]
         if not rows:
-            return "当前 run 没有足够概率行来解释这个排名问题。"
+            return "当前预测没有足够概率行来解释这个排名问题。"
         ranked = sorted(rows, key=lambda row: row["expected_rank"] or 999)
         driver = ranked[0]
         driver_id = driver["driver_id"]
         name = driver_lookup.get(driver_id, driver_id)
         top_win = sorted(context["all_probability_rows"], key=lambda row: row["win"], reverse=True)[0]
-        feature_lines = self._driver_feature_lines(driver_id, context, team_lookup, limit=4)
+        feature_lines = self._driver_feature_lines(driver_id, context, team_lookup, driver_lookup, limit=4)
         score = context["score_breakdown"].get(driver_id, {})
         quali = self._qualifying_line(driver_id, context, driver_lookup)
         lines = [
-            f"这里要先区分两个口径：{name} 是按 expected finish/平均完赛名次排第一，"
-            f"不是按冠军概率排第一。当前 run 里 {name} 的平均完赛名次是 {driver['average_finish']:.3f}，"
-            f"expected rank 为 P{driver['expected_rank']}；冠军概率第一的是 "
+            f"这里要先区分两个口径：{name} 是按平均完赛名次排第一，"
+            f"不是按冠军概率排第一。当前预测里 {name} 的平均完赛名次是 {driver['average_finish']:.3f}，"
+            f"预计排名为第 {driver['expected_rank']}；冠军概率第一的是 "
             f"{driver_lookup.get(top_win['driver_id'], top_win['driver_id'])}（{_pct(top_win['win'])}）。",
             f"{name} 能在平均完赛名次上排到第一，主要因为模型给了他很高的领奖台概率 "
             f"({_pct(driver['podium'])}) 和积分区概率 ({_pct(driver['points'])})，坏结果尾部比其他争冠车手略低。",
@@ -639,10 +723,7 @@ class PredictionExplainer:
         if quali:
             lines.append(quali)
         if score:
-            lines.append(
-                f"模型分解里，{name} 的 race score 为 {score.get('race_total')}，"
-                f"qualifying score 为 {score.get('qualifying_total')}，可靠性 proxy 为 {score.get('reliability')}。"
-            )
+            lines.append(self._single_score_note(driver_id, context, driver_lookup))
         if feature_lines:
             lines.append("最直接支撑这个判断的输入包括：" + "；".join(feature_lines) + "。")
         lines.append(_diagnostic_sentence(packet))
@@ -662,15 +743,20 @@ class PredictionExplainer:
         high, low = rows[0], rows[-1]
         high_name = driver_lookup.get(high["driver_id"], high["driver_id"])
         low_name = driver_lookup.get(low["driver_id"], low["driver_id"])
-        high_features = self._driver_feature_lines(high["driver_id"], context, team_lookup, limit=3, polarity="positive")
-        low_features = self._driver_feature_lines(low["driver_id"], context, team_lookup, limit=3, polarity="negative")
+        high_features = self._driver_feature_lines(
+            high["driver_id"], context, team_lookup, driver_lookup, limit=3, polarity="positive"
+        )
+        low_features = self._driver_feature_lines(
+            low["driver_id"], context, team_lookup, driver_lookup, limit=3, polarity="negative"
+        )
         score_note = self._score_comparison_note(high["driver_id"], low["driver_id"], context, driver_lookup)
         same_team_note = self._same_team_note(high["driver_id"], low["driver_id"], context, team_lookup)
         impact_lines = self._impact_lines(context, driver_lookup, limit=3)
         lines = [
-            f"当前 run 中，{high_name} 的胜率是 {_pct(high['win'])}，{low_name} 的胜率是 {_pct(low['win'])}；"
+            f"当前预测中，{high_name} 的冠军概率是 {_pct(high['win'])}，{low_name} 的冠军概率是 {_pct(low['win'])}；"
             f"领奖台概率分别是 {_pct(high['podium'])} 和 {_pct(low['podium'])}。"
-            f"这不是同一个车队强弱项造成的全部差异，主要来自车手级别的排位、练习赛长距离和近期结果输入。",
+            f"两人同队，所以这不应该被解释成 Ferrari 赛车本身一边强一边弱；差距主要来自模型当前给两名车手的个人先验、"
+            f"同场排位、近期正赛速度特征和可靠性输入。",
         ]
         if same_team_note:
             lines.append(same_team_note)
@@ -683,7 +769,7 @@ class PredictionExplainer:
             f"{low_name} 这边最明显的弱项是：" + ("；".join(low_features) if low_features else "当前没有明显负向特征行。")
         )
         if impact_lines:
-            lines.append("Codex/证据层对这组对比的可见影响包括：" + "；".join(impact_lines) + "。")
+            lines.append("Codex 证据层对这组对比的可见影响包括：" + "；".join(impact_lines) + "。")
         lines.append(_diagnostic_sentence(packet))
         return "\n\n".join(lines)
 
@@ -700,33 +786,30 @@ class PredictionExplainer:
         ]
         zero_rows.sort(key=lambda row: (row["average_finish"], -row["expected_points"]))
         if not zero_rows:
-            return "当前 run 没有 podium 概率为 0 的车手，所以这个问题不适用于该预测包。"
+            return "当前预测没有领奖台概率为 0 的车手，所以这个问题不适用于该预测包。"
         leader = zero_rows[0]
         leader_name = driver_lookup.get(leader["driver_id"], leader["driver_id"])
         next_rows = zero_rows[1:4]
         comparison = "、".join(
-            f"{driver_lookup.get(row['driver_id'], row['driver_id'])} avg={row['average_finish']:.3f}, EP={row['expected_points']:.3f}"
+            f"{driver_lookup.get(row['driver_id'], row['driver_id'])} 平均完赛名次 {row['average_finish']:.3f}，期望积分 {row['expected_points']:.3f}"
             for row in next_rows
         )
-        feature_lines = self._driver_feature_lines(leader["driver_id"], context, team_lookup, limit=4)
+        feature_lines = self._driver_feature_lines(leader["driver_id"], context, team_lookup, driver_lookup, limit=4)
         score = context["score_breakdown"].get(leader["driver_id"], {})
         lines = [
-            f"{leader_name} 在 podium 概率为 0 的车手里排第一，是因为这个排序看的是整场完赛分布，"
-            f"不是看领奖台尾部的小概率。当前他 podium=0，但 average finish={leader['average_finish']:.3f}、"
-            f"expected points={leader['expected_points']:.3f}、积分区概率={_pct(leader['points'])}，"
+            f"{leader_name} 在领奖台概率为 0 的车手里排第一，是因为这个排序看的是整场完赛分布，"
+            f"不是看领奖台尾部的小概率。当前他没有在本次采样中抽到领奖台，但平均完赛名次是 {leader['average_finish']:.3f}、"
+            f"期望积分是 {leader['expected_points']:.3f}、积分区概率是 {_pct(leader['points'])}，"
             f"在零领奖台组里比后面的车手略好。",
         ]
         if comparison:
             lines.append(f"同组后续几名是：{comparison}。这个差距说明他更像是模型里的积分区边缘车手，而不是领奖台候选。")
         if score:
-            lines.append(
-                f"模型分解里，{leader_name} 的 race score={score.get('race_total')}、"
-                f"qualifying score={score.get('qualifying_total')}、可靠性 proxy={score.get('reliability')}。"
-            )
+            lines.append(self._single_score_note(leader["driver_id"], context, driver_lookup))
         if feature_lines:
             lines.append("相关输入包括：" + "；".join(feature_lines) + "。")
         lines.append(
-            "同时要注意：1200 次 Monte Carlo 下 podium=0 也可能是采样分辨率问题，"
+            "同时要注意：1200 次蒙特卡洛采样下，领奖台概率为 0 也可能是采样分辨率问题，"
             "它更准确的含义是“在当前采样和权重下没有抽到领奖台”，不是数学上的绝对不可能。"
         )
         lines.append(_diagnostic_sentence(packet))
@@ -744,17 +827,17 @@ class PredictionExplainer:
             return "我没有在问题中识别到可解释的车手。"
         driver_id = row["driver_id"]
         name = driver_lookup.get(driver_id, driver_id)
-        feature_lines = self._driver_feature_lines(driver_id, context, team_lookup, limit=5)
+        feature_lines = self._driver_feature_lines(driver_id, context, team_lookup, driver_lookup, limit=5)
         impact_lines = self._impact_lines(context, driver_lookup, limit=3)
         lines = [
-            f"{name} 当前预测：expected rank P{row['expected_rank']}，win={_pct(row['win'])}，"
-            f"podium={_pct(row['podium'])}，expected points={row['expected_points']:.3f}，"
-            f"average finish={row['average_finish']:.3f}。"
+            f"{name} 当前预测：预计排名第 {row['expected_rank']}，冠军概率 {_pct(row['win'])}，"
+            f"领奖台概率 {_pct(row['podium'])}，期望积分 {row['expected_points']:.3f}，"
+            f"平均完赛名次 {row['average_finish']:.3f}。"
         ]
         if feature_lines:
             lines.append("主要输入：" + "；".join(feature_lines) + "。")
         if impact_lines:
-            lines.append("Codex/证据影响：" + "；".join(impact_lines) + "。")
+            lines.append("Codex 证据影响：" + "；".join(impact_lines) + "。")
         lines.append(_diagnostic_sentence(packet))
         return "\n\n".join(lines)
 
@@ -766,16 +849,16 @@ class PredictionExplainer:
     ) -> str:
         rows = sorted(context["all_probability_rows"], key=lambda row: row["expected_rank"] or 999)[:5]
         top = "；".join(
-            f"P{row['expected_rank']} {driver_lookup.get(row['driver_id'], row['driver_id'])} "
-            f"win={_pct(row['win'])}, podium={_pct(row['podium'])}, EP={row['expected_points']:.2f}"
+            f"第 {row['expected_rank']} 名 {driver_lookup.get(row['driver_id'], row['driver_id'])}，"
+            f"冠军概率 {_pct(row['win'])}，领奖台概率 {_pct(row['podium'])}，期望积分 {row['expected_points']:.2f}"
             for row in rows
         )
         track = context.get("track_context") or {}
         lines = [
-            f"当前预测的前五名 expected-rank 口径是：{top}。",
-            f"本 run 的主要信息层包括 processed features、Codex factor trace、same-event qualifying/session laps、"
-            f"赛道向量和 race-time simulator。赛道类型为 {track.get('track_type')}，"
-            f"安全车概率 proxy={track.get('safety_car_probability')}，湿地概率 proxy={track.get('wet_probability')}。",
+            f"当前预测按平均完赛名次排序的前五名是：{top}。",
+            f"本次预测的主要信息层包括结构化特征、Codex 因子追踪、同场排位和练习赛圈速、"
+            f"赛道向量以及比赛时间模拟器。赛道类型为 {_track_type_label(track.get('track_type'))}，"
+            f"安全车概率估计值为 {track.get('safety_car_probability')}，湿地概率估计值为 {track.get('wet_probability')}。",
             _diagnostic_sentence(packet),
         ]
         return "\n\n".join(lines)
@@ -785,29 +868,50 @@ class PredictionExplainer:
         driver_id: str,
         context: dict[str, Any],
         team_lookup: dict[str, str],
+        driver_lookup: dict[str, str],
         limit: int,
         polarity: str = "strongest",
     ) -> list[str]:
-        features = (context.get("feature_context") or {}).get(driver_id, {}).get("top_features") or []
+        payload = (context.get("feature_context") or {}).get(driver_id, {})
+        features = payload.get("features") or payload.get("top_features") or []
         if polarity == "positive":
             features = [row for row in features if _as_float(row.get("weighted_value")) > 0.0]
             features = sorted(features, key=lambda row: _as_float(row.get("weighted_value")), reverse=True)
         elif polarity == "negative":
             features = [row for row in features if _as_float(row.get("weighted_value")) < 0.0]
             features = sorted(features, key=lambda row: abs(_as_float(row.get("weighted_value"))), reverse=True)
+        elif polarity == "strongest":
+            features = sorted(features, key=lambda row: abs(_as_float(row.get("weighted_value"))), reverse=True)
         lines = []
         for row in features[:limit]:
-            scope = row.get("scope")
-            target = row.get("target_id")
-            target_label = team_lookup.get(target, target) if scope == "team" else target
-            lines.append(
-                f"{scope}:{target_label} {row.get('metric')} 加权值 {row.get('weighted_value'):+.4f}"
-                f"（{row.get('explanation')}）"
-            )
+            lines.append(_feature_line(row, team_lookup, driver_lookup))
         return lines
 
-    @staticmethod
+    def _single_score_note(
+        self,
+        driver_id: str,
+        context: dict[str, Any],
+        driver_lookup: dict[str, str],
+    ) -> str:
+        scores = context.get("score_breakdown") or {}
+        score = scores.get(driver_id)
+        if not score:
+            return ""
+        name = driver_lookup.get(driver_id, driver_id)
+        race_total = _as_float(score.get("race_total"))
+        qualifying_total = _as_float(score.get("qualifying_total"))
+        reliability = _as_float(score.get("reliability"))
+        components = score.get("race_components") or {}
+        top_components = _component_lines(components, limit=5)
+        return (
+            f"这里的模型内部正赛能力分不是一条外部事实，而是模拟器把赛车/车队先验、车手先验、赛道适配、"
+            f"保胎、湿地折算、结构化速度特征和 Codex 证据修正相加后的内部输入。"
+            f"{name} 的内部正赛能力分为 {race_total:.5f}，内部排位能力分为 {qualifying_total:.5f}，"
+            f"可靠性估计值为 {reliability:.5f}。贡献最大的组成项是：{'；'.join(top_components)}。"
+        )
+
     def _score_comparison_note(
+        self,
         high_driver_id: str,
         low_driver_id: str,
         context: dict[str, Any],
@@ -826,13 +930,59 @@ class PredictionExplainer:
         low_quali = _as_float(low.get("qualifying_total"))
         high_rel = _as_float(high.get("reliability"))
         low_rel = _as_float(low.get("reliability"))
+        race_delta_lines = _component_delta_lines(
+            high.get("race_components") or {},
+            low.get("race_components") or {},
+            high_name,
+            low_name,
+            limit=6,
+        )
+        qualifying_delta_lines = _component_delta_lines(
+            high.get("qualifying_components") or {},
+            low.get("qualifying_components") or {},
+            high_name,
+            low_name,
+            limit=3,
+        )
+        caution = self._teammate_prior_caution(high, low, high_name, low_name)
+        lines = [
+            "这里必须先解释“内部正赛能力分”：它不是外部事实，也不是对车手真实强弱的直接断言，"
+            "而是模拟器把车队/赛车基础强度、车手基础能力、正赛攻防、保胎、湿地能力、赛道适配、"
+            "结构化速度特征和 Codex 证据修正相加后得到的内部输入。",
+            f"当前这项内部输入中，{high_name} 为 {high_race:.5f}，{low_name} 为 {low_race:.5f}，"
+            f"差值为 {high_race - low_race:+.5f}；内部排位能力分分别为 {high_quali:.5f} 和 {low_quali:.5f}，"
+            f"可靠性估计值分别为 {high_rel:.5f} 和 {low_rel:.5f}。",
+        ]
+        if race_delta_lines:
+            lines.append("正赛能力分差距主要来自：" + "；".join(race_delta_lines) + "。")
+        if qualifying_delta_lines:
+            lines.append("排位能力分差距主要来自：" + "；".join(qualifying_delta_lines) + "。")
+        if caution:
+            lines.append(caution)
+        return "\n\n".join(lines)
+
+    @staticmethod
+    def _teammate_prior_caution(
+        high: dict[str, Any],
+        low: dict[str, Any],
+        high_name: str,
+        low_name: str,
+    ) -> str:
+        high_components = high.get("race_components") or {}
+        low_components = low.get("race_components") or {}
+        prior_keys = ("driver_base_skill", "racecraft", "tyre_management", "wet_skill")
+        prior_gap = sum(_as_float(high_components.get(key)) - _as_float(low_components.get(key)) for key in prior_keys)
+        feature_gap = _as_float(high_components.get("feature_race_pace")) - _as_float(
+            low_components.get("feature_race_pace")
+        )
+        if abs(prior_gap) < 0.12:
+            return ""
         return (
-            f"更关键的是模型分解：{high_name} 的 race score={high_race:.5f}，"
-            f"{low_name} 的 race score={low_race:.5f}，差值 {high_race - low_race:+.5f}；"
-            f"qualifying score 分别是 {high_quali:.5f} / {low_quali:.5f}，"
-            f"可靠性 proxy 分别是 {high_rel:.5f} / {low_rel:.5f}。"
-            "所以即使较低胜率车手有很强排位输入，如果正赛速度、racecraft、近期 race form 或可靠性分解更弱，"
-            "胜率仍会被压低。"
+            f"这个差距需要谨慎看待：同队车手共享赛车和车队级输入，{high_name} 相对 {low_name} 的优势里，"
+            f"有 {prior_gap:+.5f} 来自车手基础能力、正赛攻防、保胎和湿地能力这些模型先验，"
+            f"另有 {feature_gap:+.5f} 来自结构化正赛速度特征。"
+            "如果你的赛前判断是两人在英国站前基本打平，那么这不是“证明 Leclerc 正赛能力显著更差”，"
+            "而是说明当前模型的车手先验或近期正赛特征映射可能把队内差距放大了，应该进入后续校准。"
         )
 
     @staticmethod
@@ -847,9 +997,11 @@ class PredictionExplainer:
                     continue
                 relevant.append(
                     f"{driver_lookup.get(str(item.get('driver_id')), str(item.get('driver_id')))} "
-                    f"win_delta={_signed_pct(item.get('win_delta'))}, EP_delta={item.get('expected_points_delta')}"
+                    f"冠军概率变化 {_signed_pct(item.get('win_delta'))}，期望积分变化 {item.get('expected_points_delta')}"
                 )
-            lines.append(f"{row.get('claim_id')} / {row.get('metric')}：{'; '.join(relevant)}")
+            lines.append(
+                f"{_metric_label(row.get('metric'))}证据的同种子移除对比：{'；'.join(relevant)}"
+            )
         return lines
 
     @staticmethod
@@ -865,9 +1017,9 @@ class PredictionExplainer:
         if not team_a or team_a != team_b:
             return None
         return (
-            f"两人同队，因此 {team_lookup.get(team_a, team_a)} 的车队级 race_pace/qualifying_pace/strategy "
-            "输入会同时作用到两人；两人的差距主要来自车手级排位结果、单圈/长距离 session 特征、"
-            "近期 race form 和基础车手属性。"
+            f"两人同队，因此 {team_lookup.get(team_a, team_a)} 的车队级正赛速度、排位速度和策略输入"
+            "会同时作用到两人；真正拉开两人的，是车手级排位结果、单圈/长距离练习赛特征、"
+            "近期正赛状态和基础车手先验。"
         )
 
     @staticmethod
@@ -876,8 +1028,8 @@ class PredictionExplainer:
         for row in rows:
             if row.get("driver_id") == driver_id:
                 return (
-                    f"排位输入方面，{driver_lookup.get(driver_id, driver_id)} 的 same-event qualifying position "
-                    f"是 P{row.get('qualifying_position')}，这个输入主要影响发车顺序和起步后的 track position。"
+                    f"排位输入方面，{driver_lookup.get(driver_id, driver_id)} 的同场排位名次是 "
+                    f"第 {row.get('qualifying_position')}，这个输入主要影响发车顺序和起步后的赛道位置。"
                 )
         return None
 
@@ -886,14 +1038,14 @@ class PredictionExplainer:
         readiness = context.get("readiness") or {}
         limitations = []
         if readiness.get("status") != "ready_for_paper_review":
-            limitations.append("当前 prediction packet 状态不是正式 edge-ready，只能用于诊断解释。")
+            limitations.append("当前预测包状态不是正式可用于盈利优势判断，只能用于诊断解释。")
         for code in readiness.get("blocker_codes") or []:
-            limitations.append(f"正式使用前需要解决 blocker：{code}。")
+            limitations.append(f"正式使用前需要解决阻塞项：{_blocker_label(code)}。")
         codex_counts = context.get("codex_counts") or {}
         if codex_counts.get("weak_evidence_quality_count"):
-            limitations.append("部分 Codex evidence 是 weak/review-required，解释中相关 claim 不能当作强事实。")
+            limitations.append("部分 Codex 证据仍然偏弱或需要复核，解释中相关判断不能当作强事实。")
         if int(packet.get("iterations") or 0) < 5000:
-            limitations.append("当前 Monte Carlo iterations 较低，小概率事件和 0% 概率可能受采样分辨率影响。")
+            limitations.append("当前蒙特卡洛采样次数较低，小概率事件和 0% 概率可能受采样分辨率影响。")
         return list(dict.fromkeys(limitations))
 
     @staticmethod
@@ -905,15 +1057,22 @@ class PredictionExplainer:
         return "medium"
 
     @staticmethod
-    def _supporting_evidence(context: dict[str, Any], max_evidence: int) -> list[dict[str, Any]]:
+    def _supporting_evidence(
+        context: dict[str, Any],
+        driver_lookup: dict[str, str],
+        max_evidence: int,
+    ) -> list[dict[str, Any]]:
         rows: list[dict[str, Any]] = []
         for driver_id, payload in (context.get("feature_context") or {}).items():
             for feature in payload.get("top_features") or []:
                 rows.append(
                     {
                         "kind": "feature_adjustment",
-                        "label": f"{driver_id}:{feature.get('metric')}:{feature.get('scope')}",
-                        "detail": feature.get("explanation"),
+                        "label": (
+                            f"{driver_lookup.get(driver_id, driver_id)}："
+                            f"{_metric_label(feature.get('metric'))}：{_scope_label(feature.get('scope'))}"
+                        ),
+                        "detail": _feature_explanation_zh(feature),
                         "weighted_value": feature.get("weighted_value"),
                         "source": feature.get("source"),
                     }
@@ -922,9 +1081,9 @@ class PredictionExplainer:
             rows.append(
                 {
                     "kind": "codex_evidence_impact",
-                    "label": row.get("claim_id"),
-                    "detail": row.get("interpretation"),
-                    "metric": row.get("metric"),
+                    "label": f"{_metric_label(row.get('metric'))}证据影响",
+                    "detail": "同种子移除该证据后，对相关车手的冠军概率、领奖台概率和期望积分变化进行比较。",
+                    "metric": _metric_label(row.get("metric")),
                     "max_win_probability_delta": row.get("max_win_probability_delta"),
                 }
             )
@@ -959,13 +1118,12 @@ class PredictionExplainer:
     @staticmethod
     def _codex_prompt(question: str, codex_context: dict[str, Any], language: str) -> str:
         return (
-            "You are Codex working with the F1Predict backend explainability module.\n"
-            "Answer the user's prediction-result question using only the JSON context below. "
-            "Do not invent sources, do not claim stable betting edge, and distinguish model mechanics from real-world truth. "
-            "If the context is insufficient, say exactly what artifact or input is missing.\n"
-            f"Language: {language}\n"
-            f"Question: {question}\n"
-            "Context JSON:\n"
+            "你是和 F1Predict 后端可解释性模块协作的 Codex。\n"
+            "请只使用下面 JSON 上下文回答用户关于预测结果的问题。不要编造来源，不要声称已经证明稳定盈利优势，"
+            "必须区分模型机制解释和真实世界强结论。如果上下文不足，请明确说明缺少哪类产物或输入。\n"
+            f"回答语言：{language}\n"
+            f"用户问题：{question}\n"
+            "上下文 JSON：\n"
             f"{json.dumps(codex_context, ensure_ascii=False, indent=2)}\n"
         )
 
@@ -1052,6 +1210,14 @@ def _team_display_lookup(season: Any) -> dict[str, str]:
     return {team_id: team.name for team_id, team in season.teams.items()}
 
 
+def _components_dict(breakdown: dict[str, float]) -> dict[str, float]:
+    return {
+        key: round(float(value), 5)
+        for key, value in breakdown.items()
+        if key != "total" and abs(float(value)) > 0.00001
+    }
+
+
 def _top_components(breakdown: dict[str, float], limit: int) -> list[dict[str, Any]]:
     rows = [
         {"component": key, "value": round(float(value), 5)}
@@ -1060,6 +1226,196 @@ def _top_components(breakdown: dict[str, float], limit: int) -> list[dict[str, A
     ]
     rows.sort(key=lambda row: abs(row["value"]), reverse=True)
     return rows[:limit]
+
+
+def _component_lines(components: dict[str, Any], limit: int) -> list[str]:
+    rows = [
+        (key, _as_float(value))
+        for key, value in components.items()
+        if abs(_as_float(value)) > 0.00001
+    ]
+    rows.sort(key=lambda item: abs(item[1]), reverse=True)
+    return [f"{_component_label(key)} {value:+.5f}" for key, value in rows[:limit]]
+
+
+def _component_delta_lines(
+    high_components: dict[str, Any],
+    low_components: dict[str, Any],
+    high_name: str,
+    low_name: str,
+    limit: int,
+) -> list[str]:
+    keys = set(high_components) | set(low_components)
+    rows = []
+    for key in keys:
+        high_value = _as_float(high_components.get(key))
+        low_value = _as_float(low_components.get(key))
+        diff = high_value - low_value
+        if abs(diff) > 0.005:
+            rows.append((key, high_value, low_value, diff))
+    rows.sort(key=lambda item: abs(item[3]), reverse=True)
+    return [
+        (
+            f"{_component_label(key)}：{high_name} {high_value:+.5f}，"
+            f"{low_name} {low_value:+.5f}，差值 {diff:+.5f}"
+        )
+        for key, high_value, low_value, diff in rows[:limit]
+    ]
+
+
+def _feature_line(row: dict[str, Any], team_lookup: dict[str, str], driver_lookup: dict[str, str]) -> str:
+    scope = str(row.get("scope") or "")
+    target = str(row.get("target_id") or "")
+    target_label = team_lookup.get(target, target) if scope == "team" else driver_lookup.get(target, target)
+    weighted = _as_float(row.get("weighted_value"))
+    return (
+        f"{_scope_label(scope)} {target_label} 的{_metric_label(row.get('metric'))}输入，"
+        f"加权影响 {weighted:+.4f}（{_feature_explanation_zh(row)}）"
+    )
+
+
+def _feature_explanation_zh(row: dict[str, Any]) -> str:
+    explanation = str(row.get("explanation") or "")
+    feature_id = str(row.get("feature_id") or "")
+    source = str(row.get("source") or "")
+    source_label = _source_label(feature_id, source)
+    parts = [source_label]
+    if "qualifying classification" in explanation:
+        position = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
+        parts.append(f"同场排位名次为 {position}，作为排位和发车位信号，不直接当作正赛速度")
+    elif "qualifying team average position" in explanation:
+        value = _clean_feature_phrase(_extract_after(explanation, "position before British Grand Prix: ", ";"))
+        parts.append(f"同场车队平均排位名次为 {value}，作为车队排位状态输入")
+    elif "team total points per race" in explanation:
+        value = _clean_feature_phrase(_extract_after(explanation, "team total points per race ", ";"))
+        parts.append(f"截止本场前车队每站积分对比为 {value}，作为赛车/车队强度重估")
+    elif "Official constructor standings" in explanation:
+        value = _clean_feature_phrase(
+            _extract_after(explanation, "Official constructor standings before British Grand Prix: ", ";")
+        )
+        parts.append(f"官方车队积分榜信息为 {value}，作为车队状态先验")
+    elif "Official driver standings" in explanation:
+        value = _clean_feature_phrase(
+            _extract_after(explanation, "Official driver standings before British Grand Prix: ", ";")
+        )
+        parts.append(f"官方车手积分榜信息为 {value}，作为车手状态先验")
+    elif "long-run proxy" in explanation:
+        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
+        parts.append(f"练习赛长距离速度代理值为 {value}，作为同一比赛周末的正赛速度信号")
+    elif "best valid lap" in explanation:
+        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
+        parts.append(f"排位最快有效圈速对比为 {value}，作为排位速度信号")
+    elif "speed-trap average" in explanation:
+        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
+        parts.append(f"测速点均速对比为 {value}，作为直道速度信号")
+    elif "tyre-degradation proxy" in explanation:
+        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
+        parts.append(f"轮胎衰退代理值为 {value}，数值方向会影响策略和长距离速度")
+    elif "non-finished classification" in explanation:
+        value = _clean_feature_phrase(explanation.split(";")[0])
+        parts.append(f"近期未完赛记录为 {value}，作为小幅可靠性风险输入")
+    elif "relative points delta" in explanation:
+        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
+        parts.append(f"近期与更早窗口的积分趋势差为 {value}，作为近期状态信号")
+    elif "average points" in explanation:
+        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
+        parts.append(f"近期平均积分对比为 {value}，作为正赛状态输入")
+    elif "analogue rank" in explanation:
+        value = _clean_feature_phrase(_extract_after(explanation, "analogue rank ", ";"))
+        parts.append(f"历史相似场景排名为 {value}，作为低置信度参考")
+    elif "grid-to-finish conversion" in explanation or "grid conversion" in explanation:
+        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
+        parts.append(f"发车位到完赛名次转换表现为 {value}，作为正赛执行输入")
+    elif "recent" in explanation.lower() or "window" in explanation.lower():
+        parts.append("近期窗口表现被压缩成有界输入，用于移动当前状态先验")
+    else:
+        parts.append("原始说明未能可靠翻译，已保留为结构化数值输入而非强事实")
+    return "；".join(part for part in parts if part)
+
+
+def _source_label(feature_id: str, source: str) -> str:
+    raw = f"{feature_id} {source}".lower()
+    if "fastf1-qualifying-result" in raw or "fastf1_qualifying_result" in raw:
+        return "来源：同场 FastF1 排位结果"
+    if "team-strength-reestimate" in raw:
+        return "来源：FastF1 本赛季车队强度重估"
+    if "official-standings" in raw:
+        return "来源：F1 官方积分榜"
+    if "season-form" in raw:
+        return "来源：FastF1 赛季累计状态"
+    if "momentum" in raw:
+        return "来源：FastF1 近期趋势"
+    if "fastf1-form" in raw:
+        return "来源：FastF1 最近几站表现"
+    if "openf1" in raw:
+        return "来源：OpenF1 圈速或天气特征"
+    return "来源：结构化特征"
+
+
+def _extract_after(text: str, start: str, end: str) -> str:
+    if start not in text:
+        return "未解析"
+    tail = text.split(start, 1)[1]
+    if end and end in tail:
+        tail = tail.split(end, 1)[0]
+    return tail.strip()
+
+
+def _clean_feature_phrase(value: str) -> str:
+    cleaned = value.strip()
+    if cleaned.startswith("P") and len(cleaned) > 1 and cleaned[1].isdigit():
+        rest = cleaned[1:]
+        if "," in rest:
+            rank, tail = rest.split(",", 1)
+            cleaned = f"第 {rank}，{tail.strip()}"
+        else:
+            cleaned = "第 " + rest
+    cleaned = cleaned.replace(" vs field average ", "，全场平均 ")
+    cleaned = cleaned.replace(" vs field ", "，全场平均 ")
+    cleaned = cleaned.replace(" vs team field ", "，车队样本平均 ")
+    cleaned = cleaned.replace("relative points delta", "相对积分变化")
+    cleaned = cleaned.replace("average points", "平均积分")
+    cleaned = cleaned.replace("average grid", "平均发车位")
+    cleaned = cleaned.replace("average opportunity-normalized grid-to-finish conversion", "机会归一化发车到完赛转换均值")
+    cleaned = cleaned.replace("non-finished classification(s)", "次未完赛记录")
+    cleaned = cleaned.replace("previous", "过去")
+    cleaned = cleaned.replace(" over ", "，样本圈数 ")
+    cleaned = cleaned.replace(" in ", "，范围为 ")
+    cleaned = cleaned.replace("race result(s)", "场正赛结果")
+    cleaned = cleaned.replace("finished race result(s)", "场已完赛正赛结果")
+    cleaned = cleaned.replace("clean lap(s)", "个干净圈")
+    cleaned = cleaned.replace("kph", "公里/小时")
+    cleaned = cleaned.replace("points", "分")
+    cleaned = cleaned.replace("recent window", "近期窗口")
+    cleaned = cleaned.replace("s/lap", " 秒/圈")
+    cleaned = re.sub(r"(?<=\d)s\b", " 秒", cleaned)
+    return cleaned
+
+
+def _metric_label(metric: Any) -> str:
+    return METRIC_LABELS.get(str(metric), _identifier_to_zh(str(metric)))
+
+
+def _component_label(component: Any) -> str:
+    return COMPONENT_LABELS.get(str(component), _identifier_to_zh(str(component)))
+
+
+def _scope_label(scope: Any) -> str:
+    return SCOPE_LABELS.get(str(scope), _identifier_to_zh(str(scope)))
+
+
+def _track_type_label(track_type: Any) -> str:
+    labels = {
+        "high_speed": "高速赛道",
+        "balanced": "均衡赛道",
+        "street": "街道赛道",
+        "low_speed": "低速赛道",
+    }
+    return labels.get(str(track_type), _identifier_to_zh(str(track_type)))
+
+
+def _identifier_to_zh(value: str) -> str:
+    return value.replace("_", " ")
 
 
 def _compact(value: str) -> str:
@@ -1095,15 +1451,23 @@ def _pct(value: Any) -> str:
 
 
 def _signed_pct(value: Any) -> str:
-    return f"{_as_float(value) * 100:+.2f}pp"
+    return f"{_as_float(value) * 100:+.2f} 个百分点"
 
 
 def _diagnostic_sentence(packet: dict[str, Any]) -> str:
     status = packet.get("status")
-    blockers = ", ".join(packet.get("blocker_codes") or [])
+    blockers = "、".join(_blocker_label(code) for code in (packet.get("blocker_codes") or []))
     if status == "ready_for_paper_review":
-        return "这个解释基于当前 prediction packet；仍应结合 replay 和市场快照验证。"
+        return "这个解释基于当前预测包；仍应结合历史回放和市场快照验证。"
     return (
-        f"注意：这个 run 的状态是 {status}，blocker={blockers or 'none'}。"
-        "因此这是一份模型机制解释，不是稳定盈利 edge 证明。"
+        f"注意：这次预测的状态是{_status_label(status)}，阻塞项为：{blockers or '无'}。"
+        "因此这是一份模型机制解释，不是稳定盈利优势证明。"
     )
+
+
+def _status_label(status: Any) -> str:
+    return STATUS_LABELS.get(str(status), _identifier_to_zh(str(status)))
+
+
+def _blocker_label(code: Any) -> str:
+    return BLOCKER_LABELS.get(str(code), _identifier_to_zh(str(code)))

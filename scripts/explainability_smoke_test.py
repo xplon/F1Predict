@@ -37,8 +37,10 @@ def main() -> None:
         {"hamilton", "leclerc"}.issubset(set(ferrari.detected_entities["drivers"])),
         "Hamilton and Leclerc should be detected",
     )
-    _assert("race score" in ferrari.answer, "Comparison should include score decomposition")
-    _assert("最明显的弱项" in ferrari.answer, "Comparison should separate weak inputs from support inputs")
+    _assert("内部正赛能力分" in ferrari.answer, "Comparison should explain the internal race-capability concept")
+    _assert("race" + " score" not in ferrari.answer, "User-facing answer should not expose raw English labels")
+    _assert("最明显的弱项" in ferrari.answer, "Comparison should separate weak inputs from supporting inputs")
+    _assert("队内差距放大" in ferrari.answer, "Comparison should flag amplified teammate-prior risk")
 
     zero_podium = explainer.answer(
         "为什么阿隆索在所有podium概率为0的车手中排第一？",
@@ -47,7 +49,7 @@ def main() -> None:
     )
     _assert(zero_podium.question_type == "group_zero_podium", "Zero podium question should route as group explanation")
     _assert(zero_podium.detected_entities["derived_groups"], "Zero podium derived group should be present")
-    _assert("采样分辨率" in zero_podium.answer, "Zero podium answer should warn about Monte Carlo resolution")
+    _assert("采样分辨率" in zero_podium.answer, "Zero podium answer should warn about sampling resolution")
 
     api = BackendApiV2(ROOT)
     openapi = api.handle_get("/api/v2/openapi.json", {}).payload
