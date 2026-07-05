@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 Metric = Literal[
     "race_pace",
+    "race_execution",
     "qualifying_pace",
     "tyre_deg",
     "reliability",

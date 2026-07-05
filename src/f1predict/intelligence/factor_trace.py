@@ -37,6 +37,11 @@ FACTOR_ROUTES: dict[str, FactorRoute] = {
         model_surface="race pace score",
         notes=("Adds to driver/team race score before race-time sampling.",),
     ),
+    "race_execution": FactorRoute(
+        route="race_execution_score",
+        model_surface="race execution score",
+        notes=("Adds to the race score as grid-to-finish conversion, racecraft, and clean-race execution signal.",),
+    ),
     "qualifying_pace": FactorRoute(
         route="qualifying_grid_score",
         model_surface="qualifying grid sampler",
@@ -210,7 +215,14 @@ class FactorTraceBuilder:
                 notes.append(context_multiplier_reason)
         elif route.route == "qualifying_grid_score":
             effective_qualifying_input = weighted_input_impact
-        elif route.route in {"race_pace_score", "tyre_degradation", "reliability", "pit_strategy", "wet_weather"}:
+        elif route.route in {
+            "race_pace_score",
+            "race_execution_score",
+            "tyre_degradation",
+            "reliability",
+            "pit_strategy",
+            "wet_weather",
+        }:
             effective_race_input = weighted_input_impact
         if quality is not None:
             notes.append(f"model_input_weight={quality.model_input_weight:.2f}")

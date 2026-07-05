@@ -295,7 +295,7 @@ class CodexResearchPlanBuilder:
                 ),
                 acceptance_checks=(
                     "Prefer team releases, named team principal quotes, or established outlets quoting named staff.",
-                    "Tie every claimed effect to a metric such as race_pace, power_unit, energy_recovery, straight_line_speed, drag_efficiency, low_speed_traction, launch_performance, weight, upgrade_effect, tyre_deg, strategy, or reliability.",
+                    "Tie every claimed effect to a metric such as race_pace, race_execution, power_unit, energy_recovery, straight_line_speed, drag_efficiency, low_speed_traction, launch_performance, weight, upgrade_effect, tyre_deg, strategy, or reliability.",
                     "Use small magnitude unless the source says the part or issue is event-specific and already run-tested.",
                 ),
                 rejection_rules=(
@@ -304,6 +304,7 @@ class CodexResearchPlanBuilder:
                 ),
                 model_metrics=(
                     "race_pace",
+                    "race_execution",
                     "qualifying_pace",
                     "power_unit",
                     "energy_recovery",
@@ -363,6 +364,7 @@ class CodexResearchPlanBuilder:
                 ),
                 model_metrics=(
                     "race_pace",
+                    "race_execution",
                     "qualifying_pace",
                     "straight_line_speed",
                     "energy_recovery",
@@ -418,6 +420,7 @@ class CodexResearchPlanBuilder:
                 ),
                 model_metrics=(
                     "race_pace",
+                    "race_execution",
                     "qualifying_pace",
                     "power_unit",
                     "energy_recovery",

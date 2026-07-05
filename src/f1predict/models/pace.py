@@ -51,6 +51,8 @@ class PaceModel:
                 self._feature_impact[(driver.driver_id, "race_pace")]
                 + self._feature_impact[(driver.team_id, "race_pace")]
             ),
+            "evidence_race_execution": 0.0,
+            "feature_race_execution": 0.0,
             "evidence_qualifying_pace": 0.0,
             "feature_qualifying_pace": 0.0,
             "evidence_wet_skill": self._impact[(driver.driver_id, "wet_skill")] * weather_wet,
@@ -94,6 +96,14 @@ class PaceModel:
             )
         else:
             components["tyre_management"] = driver.tyre_management * 0.20
+            components["evidence_race_execution"] = (
+                self._impact[(driver.driver_id, "race_execution")]
+                + self._impact[(driver.team_id, "race_execution")]
+            )
+            components["feature_race_execution"] = (
+                self._feature_impact[(driver.driver_id, "race_execution")]
+                + self._feature_impact[(driver.team_id, "race_execution")]
+            )
         total = sum(components.values())
         return {**components, "total": total}
 

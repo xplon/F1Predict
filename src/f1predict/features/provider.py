@@ -374,6 +374,8 @@ class ProcessedFeatureProvider:
             for driver_id, rows in driver_results.items()
         }
         field_avg_grid = mean(driver_avg_grid.values()) if driver_avg_grid else 10.5
+        driver_avg_conversion = self._average_grid_conversion(driver_results)
+        field_avg_conversion = mean(driver_avg_conversion.values()) if driver_avg_conversion else 0.0
         adjustments: list[FeatureAdjustment] = []
 
         confidence = min(0.36, 0.18 + 0.06 * len(result_rows))
@@ -423,6 +425,33 @@ class ProcessedFeatureProvider:
                     )
                 )
 
+            avg_conversion = driver_avg_conversion.get(driver_id)
+            if avg_conversion is not None:
+                execution_delta = avg_conversion - field_avg_conversion
+                execution_value = round(self._clamp(execution_delta / 8.0 * 0.04, -0.035, 0.035), 4)
+                if execution_value:
+                    adjustments.append(
+                        FeatureAdjustment(
+                            feature_id=(
+                                f"fastf1-form:{season.season}:{event.event_id}:"
+                                f"{driver_id}:race_execution:{len(result_rows)}"
+                            ),
+                            event_id=event.event_id,
+                            source=source,
+                            target_type="driver",
+                            target_id=driver_id,
+                            metric="race_execution",
+                            value=execution_value,
+                            confidence=max(0.12, confidence - 0.06),
+                            observed_at=observed_at,
+                            explanation=(
+                                f"Previous {len(rows)} finished race result(s) before {event.name}: "
+                                f"average opportunity-normalized grid-to-finish conversion {avg_conversion:+.2f} vs field "
+                                f"{field_avg_conversion:+.2f}; used as point-in-time race execution prior."
+                            ),
+                        )
+                    )
+
             dnf_count = sum(1 for item in rows if not self._finished_status(str(item.get("status") or "")))
             if dnf_count:
                 adjustments.append(
@@ -469,6 +498,37 @@ class ProcessedFeatureProvider:
                         f"Team average driver points over previous {len(result_rows)} race(s): "
                         f"{avg_points:.2f} vs field {field_team_points:.2f}; "
                         "used as point-in-time team form prior."
+                    ),
+                )
+            )
+
+        team_avg_conversion = self._team_average_grid_conversion(season, driver_results)
+        field_team_conversion = mean(team_avg_conversion.values()) if team_avg_conversion else 0.0
+        for team_id, avg_conversion in sorted(team_avg_conversion.items()):
+            if team_id not in season.teams:
+                continue
+            execution_delta = avg_conversion - field_team_conversion
+            team_execution_value = round(self._clamp(execution_delta / 8.0 * 0.03, -0.03, 0.03), 4)
+            if not team_execution_value:
+                continue
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-form:{season.season}:{event.event_id}:"
+                        f"{team_id}:race_execution:{len(result_rows)}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="race_execution",
+                    value=team_execution_value,
+                    confidence=max(0.12, confidence - 0.07),
+                    observed_at=observed_at,
+                    explanation=(
+                        f"Team opportunity-normalized finished-race grid-to-finish conversion over previous {len(result_rows)} race(s): "
+                        f"{avg_conversion:+.2f} vs field {field_team_conversion:+.2f}; "
+                        "used as point-in-time team race execution prior."
                     ),
                 )
             )
@@ -535,6 +595,8 @@ class ProcessedFeatureProvider:
             if any(item["grid_position"] > 0 for item in rows)
         }
         field_avg_grid = mean(driver_avg_grid.values()) if driver_avg_grid else 10.5
+        driver_avg_conversion = self._average_grid_conversion(all_driver_results)
+        field_avg_conversion = mean(driver_avg_conversion.values()) if driver_avg_conversion else 0.0
         season_confidence = min(0.34, 0.14 + 0.025 * race_count)
 
         for driver_id, rows in sorted(all_driver_results.items()):
@@ -590,6 +652,35 @@ class ProcessedFeatureProvider:
                     )
                 )
 
+            avg_conversion = driver_avg_conversion.get(driver_id)
+            if avg_conversion is not None:
+                execution_value = round(
+                    self._clamp((avg_conversion - field_avg_conversion) / 8.0 * 0.035, -0.03, 0.03),
+                    4,
+                )
+                if execution_value:
+                    adjustments.append(
+                        FeatureAdjustment(
+                            feature_id=(
+                                f"fastf1-season-form:{season.season}:{event.event_id}:"
+                                f"{driver_id}:race_execution:{race_count}"
+                            ),
+                            event_id=event.event_id,
+                            source=source,
+                            target_type="driver",
+                            target_id=driver_id,
+                            metric="race_execution",
+                            value=execution_value,
+                            confidence=max(0.11, season_confidence - 0.06),
+                            observed_at=observed_at,
+                            explanation=(
+                                f"Season-to-date FastF1 finished races before {event.name}: "
+                                f"average opportunity-normalized grid-to-finish conversion {avg_conversion:+.2f} vs field "
+                                f"{field_avg_conversion:+.2f}; used as a broader race execution prior."
+                            ),
+                        )
+                    )
+
             dnf_count = sum(1 for item in rows if not self._finished_status(str(item.get("status") or "")))
             if dnf_count:
                 adjustments.append(
@@ -639,6 +730,18 @@ class ProcessedFeatureProvider:
                 feature_namespace="fastf1-season-form",
             )
         )
+        adjustments.extend(
+            self._fastf1_team_execution_adjustments(
+                season,
+                event,
+                all_driver_results,
+                field_label=f"{race_count} race(s)",
+                source=source,
+                observed_at=observed_at,
+                confidence=max(0.11, season_confidence - 0.07),
+                feature_namespace="fastf1-season-form",
+            )
+        )
         return adjustments
 
     def _fastf1_momentum_adjustments(
@@ -672,6 +775,10 @@ class ProcessedFeatureProvider:
         older_avg_grid = self._average_positive_metric(older_driver_results, "grid_position")
         recent_field_grid = mean(recent_avg_grid.values()) if recent_avg_grid else 10.5
         older_field_grid = mean(older_avg_grid.values()) if older_avg_grid else 10.5
+        recent_avg_conversion = self._average_grid_conversion(recent_driver_results)
+        older_avg_conversion = self._average_grid_conversion(older_driver_results)
+        recent_field_conversion = mean(recent_avg_conversion.values()) if recent_avg_conversion else 0.0
+        older_field_conversion = mean(older_avg_conversion.values()) if older_avg_conversion else 0.0
 
         for driver_id in sorted(set(recent_driver_results) & set(older_driver_results)):
             recent_relative = recent_avg_points.get(driver_id, 0.0) - recent_field_points
@@ -726,6 +833,33 @@ class ProcessedFeatureProvider:
                     )
                 )
 
+            if driver_id in recent_avg_conversion and driver_id in older_avg_conversion:
+                recent_conversion_relative = recent_avg_conversion[driver_id] - recent_field_conversion
+                older_conversion_relative = older_avg_conversion[driver_id] - older_field_conversion
+                conversion_delta = recent_conversion_relative - older_conversion_relative
+                execution_value = round(self._clamp(conversion_delta / 8.0 * 0.035, -0.03, 0.03), 4)
+                if execution_value:
+                    adjustments.append(
+                        FeatureAdjustment(
+                            feature_id=(
+                                f"fastf1-momentum:{season.season}:{event.event_id}:"
+                                f"{driver_id}:race_execution:{race_count}"
+                            ),
+                            event_id=event.event_id,
+                            source=source,
+                            target_type="driver",
+                            target_id=driver_id,
+                            metric="race_execution",
+                            value=execution_value,
+                            confidence=max(0.10, confidence - 0.06),
+                            observed_at=observed_at,
+                            explanation=(
+                                f"FastF1 recent-vs-older finished-race grid conversion before {event.name}: "
+                                f"relative conversion delta {conversion_delta:+.2f}; used as race execution momentum."
+                            ),
+                        )
+                    )
+
         recent_team_avg = {
             team_id: mean(points)
             for team_id, points in recent_team_points.items()
@@ -762,6 +896,40 @@ class ProcessedFeatureProvider:
                     explanation=(
                         f"FastF1 recent-vs-older team form before {event.name}: relative points delta "
                         f"{team_delta:.2f}; used as team momentum signal."
+                    ),
+                )
+            )
+
+        recent_team_conversion = self._team_average_grid_conversion(season, recent_driver_results)
+        older_team_conversion = self._team_average_grid_conversion(season, older_driver_results)
+        recent_team_field_conversion = mean(recent_team_conversion.values()) if recent_team_conversion else 0.0
+        older_team_field_conversion = mean(older_team_conversion.values()) if older_team_conversion else 0.0
+        for team_id in sorted(set(recent_team_conversion) & set(older_team_conversion)):
+            if team_id not in season.teams:
+                continue
+            recent_relative = recent_team_conversion[team_id] - recent_team_field_conversion
+            older_relative = older_team_conversion[team_id] - older_team_field_conversion
+            conversion_delta = recent_relative - older_relative
+            value = round(self._clamp(conversion_delta / 8.0 * 0.03, -0.025, 0.025), 4)
+            if not value:
+                continue
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-momentum:{season.season}:{event.event_id}:"
+                        f"{team_id}:race_execution:{race_count}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="race_execution",
+                    value=value,
+                    confidence=max(0.10, confidence - 0.07),
+                    observed_at=observed_at,
+                    explanation=(
+                        f"FastF1 recent-vs-older team grid conversion before {event.name}: "
+                        f"relative conversion delta {conversion_delta:+.2f}; used as team race execution momentum."
                     ),
                 )
             )
@@ -808,6 +976,49 @@ class ProcessedFeatureProvider:
                         f"Team average driver points across {field_label} before {event.name}: "
                         f"{avg_points:.2f} vs field {field_team_points:.2f}; "
                         "used as a season-to-date team form prior."
+                    ),
+                )
+            )
+        return adjustments
+
+    def _fastf1_team_execution_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        driver_results: defaultdict[str, list[dict[str, Any]]],
+        field_label: str,
+        source: str,
+        observed_at: str,
+        confidence: float,
+        feature_namespace: str,
+    ) -> list[FeatureAdjustment]:
+        team_avg_conversion = self._team_average_grid_conversion(season, driver_results)
+        field_team_conversion = mean(team_avg_conversion.values()) if team_avg_conversion else 0.0
+        adjustments: list[FeatureAdjustment] = []
+        for team_id, avg_conversion in sorted(team_avg_conversion.items()):
+            if team_id not in season.teams:
+                continue
+            value = round(self._clamp((avg_conversion - field_team_conversion) / 8.0 * 0.025, -0.025, 0.025), 4)
+            if not value:
+                continue
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"{feature_namespace}:{season.season}:{event.event_id}:"
+                        f"{team_id}:race_execution:{field_label.replace(' ', '_')}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="race_execution",
+                    value=value,
+                    confidence=confidence,
+                    observed_at=observed_at,
+                    explanation=(
+                        f"Team average opportunity-normalized finished-race grid-to-finish conversion across {field_label} before "
+                        f"{event.name}: {avg_conversion:+.2f} vs field {field_team_conversion:+.2f}; "
+                        "used as a season-to-date team race execution prior."
                     ),
                 )
             )
@@ -866,6 +1077,62 @@ class ProcessedFeatureProvider:
             if values:
                 output[item_id] = mean(values)
         return output
+
+    @classmethod
+    def _average_grid_conversion(
+        cls,
+        rows_by_id: defaultdict[str, list[dict[str, Any]]],
+    ) -> dict[str, float]:
+        output: dict[str, float] = {}
+        for item_id, rows in rows_by_id.items():
+            values = []
+            for row in rows:
+                grid_position = float(row.get("grid_position") or 0.0)
+                finish_position = float(row.get("position") or 0.0)
+                status = str(row.get("status") or "")
+                if grid_position <= 0 or finish_position <= 0:
+                    continue
+                if not cls._finished_status(status):
+                    continue
+                values.append(cls._normalized_grid_conversion(grid_position, finish_position))
+            if values:
+                output[item_id] = mean(values)
+        return output
+
+    @classmethod
+    def _team_average_grid_conversion(
+        cls,
+        season: SeasonState,
+        driver_results: defaultdict[str, list[dict[str, Any]]],
+    ) -> dict[str, float]:
+        values_by_team: defaultdict[str, list[float]] = defaultdict(list)
+        for driver_id, rows in driver_results.items():
+            driver = season.drivers.get(driver_id)
+            if driver is None:
+                continue
+            for row in rows:
+                grid_position = float(row.get("grid_position") or 0.0)
+                finish_position = float(row.get("position") or 0.0)
+                status = str(row.get("status") or "")
+                if grid_position <= 0 or finish_position <= 0:
+                    continue
+                if not cls._finished_status(status):
+                    continue
+                values_by_team[driver.team_id].append(cls._normalized_grid_conversion(grid_position, finish_position))
+        return {
+            team_id: mean(values)
+            for team_id, values in values_by_team.items()
+            if values
+        }
+
+    @staticmethod
+    def _normalized_grid_conversion(grid_position: float, finish_position: float) -> float:
+        delta = grid_position - finish_position
+        if delta > 0:
+            return delta / max(grid_position - 1.0, 1.0)
+        if delta < 0:
+            return delta / max(22.0 - grid_position, 1.0)
+        return 0.0
 
     @staticmethod
     def _source_span(source_parts: list[str]) -> str:

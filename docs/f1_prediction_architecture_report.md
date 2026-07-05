@@ -260,6 +260,7 @@ LLM 不应直接负责：
   "uncertainty": 0.12,
   "affected_metrics": [
     "race_pace",
+    "race_execution",
     "qualifying_pace",
     "power_unit",
     "energy_recovery",

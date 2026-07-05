@@ -36,6 +36,12 @@ class ReplayCoverageRow:
     top_pick: str | None = None
     actual_winner: str | None = None
     hit: bool | None = None
+    actual_winner_rank: int | None = None
+    full_field_driver_count: int = 0
+    mean_abs_rank_error: float | None = None
+    mean_abs_points_error: float | None = None
+    podium_overlap_rate: float | None = None
+    points_overlap_rate: float | None = None
     evidence_count: int = 0
     feature_adjustment_count: int = 0
     market_snapshot_count: int = 0
@@ -183,6 +189,12 @@ class ReplayCoverageBuilder:
                     top_pick=replay.top_pick if replay else None,
                     actual_winner=actual_winner,
                     hit=replay.hit if replay else None,
+                    actual_winner_rank=replay.actual_winner_rank if replay else None,
+                    full_field_driver_count=replay.full_field_driver_count if replay else 0,
+                    mean_abs_rank_error=replay.mean_abs_rank_error if replay else None,
+                    mean_abs_points_error=replay.mean_abs_points_error if replay else None,
+                    podium_overlap_rate=replay.podium_overlap_rate if replay else None,
+                    points_overlap_rate=replay.points_overlap_rate if replay else None,
                     evidence_count=replay.evidence_count if replay else 0,
                     feature_adjustment_count=replay.feature_adjustment_count if replay else 0,
                     market_snapshot_count=replay.market_snapshot_count if replay else 0,

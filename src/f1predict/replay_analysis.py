@@ -127,6 +127,11 @@ class ReplayEventDiagnostic:
     top_probability: float | None
     actual_winner_probability: float | None
     actual_winner_rank: int | None
+    full_field_driver_count: int
+    mean_abs_rank_error: float | None
+    mean_abs_points_error: float | None
+    podium_overlap_rate: float | None
+    points_overlap_rate: float | None
     evidence_count: int
     evidence_impact_count: int
     evidence_quality_count: int
@@ -217,6 +222,10 @@ class ReplayAnalysisReport:
             f"- Replayed events: {self.replay_coverage['replayed_events']}",
             f"- Result-available events: {self.replay_coverage['result_available_events']}",
             f"- Diagnostic top-pick hit rate: {self.diagnostic_metrics['top_pick_hit_rate']}",
+            f"- Mean absolute rank error: {self.diagnostic_metrics.get('mean_abs_rank_error')}",
+            f"- Mean absolute points error: {self.diagnostic_metrics.get('mean_abs_points_error')}",
+            f"- Mean podium overlap rate: {self.diagnostic_metrics.get('mean_podium_overlap_rate')}",
+            f"- Mean points-position overlap rate: {self.diagnostic_metrics.get('mean_points_overlap_rate')}",
             f"- Events with Codex evidence: {self.diagnostic_metrics['events_with_evidence']}",
             f"- Events with Codex evidence impact diagnostics: {self.diagnostic_metrics['events_with_evidence_impact']}",
             f"- Events with Codex evidence quality diagnostics: {self.diagnostic_metrics['events_with_evidence_quality']}",
@@ -315,13 +324,16 @@ class ReplayAnalysisReport:
         lines.extend(f"1. {action}" for action in self.next_actions)
         lines.extend(["", "## Event Diagnostics", ""])
         lines.append(
-            "| Round | Race Seq | Event | Input | Quality | Result Source | Pick | Actual | Hit | Actual P | Actual Rank | Issues |"
+            "| Round | Race Seq | Event | Input | Quality | Result Source | Pick | Actual | Hit | Actual P | Actual Rank | Rank MAE | Points MAE | Top10 | Issues |"
         )
-        lines.append("|---:|---:|---|---|---|---|---|---|---|---:|---:|---|")
+        lines.append("|---:|---:|---|---|---|---|---|---|---|---:|---:|---:|---:|---:|---|")
         for row in self.event_diagnostics:
             hit = "" if row.hit is None else "yes" if row.hit else "no"
             actual_probability = "" if row.actual_winner_probability is None else f"{row.actual_winner_probability:.3f}"
             actual_rank = "" if row.actual_winner_rank is None else str(row.actual_winner_rank)
+            rank_mae = "" if row.mean_abs_rank_error is None else f"{row.mean_abs_rank_error:.2f}"
+            points_mae = "" if row.mean_abs_points_error is None else f"{row.mean_abs_points_error:.2f}"
+            top10 = "" if row.points_overlap_rate is None else f"{row.points_overlap_rate:.2f}"
             issues = ", ".join(row.issue_codes)
             race_sequence = "" if row.racing_sequence_number is None else str(row.racing_sequence_number)
             lines.append(
@@ -329,7 +341,7 @@ class ReplayAnalysisReport:
                 f"{row.round_number} | {race_sequence} | {row.event_name} | {row.prediction_input_source or ''} | "
                 f"{row.event_input_quality or ''} | {row.result_source or ''} | {row.top_pick or ''} | "
                 f"{row.actual_winner or ''} | {hit} | "
-                f"{actual_probability} | {actual_rank} | {issues} |"
+                f"{actual_probability} | {actual_rank} | {rank_mae} | {points_mae} | {top10} | {issues} |"
             )
         lines.append("")
         return "\n".join(lines)
@@ -471,6 +483,11 @@ class ReplayAnalysisBuilder:
                     top_probability=top_probability,
                     actual_winner_probability=actual_probability,
                     actual_winner_rank=actual_rank,
+                    full_field_driver_count=row.full_field_driver_count,
+                    mean_abs_rank_error=row.mean_abs_rank_error,
+                    mean_abs_points_error=row.mean_abs_points_error,
+                    podium_overlap_rate=row.podium_overlap_rate,
+                    points_overlap_rate=row.points_overlap_rate,
                     evidence_count=row.evidence_count,
                     evidence_impact_count=evidence_impact_count,
                     evidence_quality_count=evidence_quality_count,
@@ -859,12 +876,24 @@ class ReplayAnalysisBuilder:
         max_evidence_delta = None
         if evidence_deltas:
             max_evidence_delta = round(max(evidence_deltas, key=abs), 4)
+        rank_errors = [row.mean_abs_rank_error for row in scored if row.mean_abs_rank_error is not None]
+        points_errors = [row.mean_abs_points_error for row in scored if row.mean_abs_points_error is not None]
+        podium_overlaps = [row.podium_overlap_rate for row in scored if row.podium_overlap_rate is not None]
+        points_overlaps = [row.points_overlap_rate for row in scored if row.points_overlap_rate is not None]
         return {
             "diagnostic_scored_events": len(scored),
             "top_pick_hits": hits,
             "top_pick_misses": len(scored) - hits,
             "top_pick_hit_rate": None if hit_rate is None else round(hit_rate, 4),
             "median_actual_winner_rank": median_actual_rank,
+            "mean_abs_rank_error": round(sum(rank_errors) / len(rank_errors), 4) if rank_errors else None,
+            "mean_abs_points_error": round(sum(points_errors) / len(points_errors), 4) if points_errors else None,
+            "mean_podium_overlap_rate": round(sum(podium_overlaps) / len(podium_overlaps), 4)
+            if podium_overlaps
+            else None,
+            "mean_points_overlap_rate": round(sum(points_overlaps) / len(points_overlaps), 4)
+            if points_overlaps
+            else None,
             "events_with_evidence_impact": sum(1 for row in scored if row.evidence_impact_count > 0),
             "events_with_evidence_quality": sum(1 for row in scored if row.evidence_quality_count > 0),
             "events_with_weak_evidence_quality": sum(1 for row in scored if row.weak_evidence_quality_count > 0),

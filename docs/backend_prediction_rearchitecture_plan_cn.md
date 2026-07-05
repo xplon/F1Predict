@@ -138,6 +138,7 @@ CarPerformanceVector:
     overall_pace
     qualifying_pace
     race_pace
+    race_execution
     high_speed_corner
     medium_speed_corner
     low_speed_corner
@@ -197,6 +198,7 @@ DriverPerformanceVector:
     qualifying_ceiling
     qualifying_consistency
     race_pace
+    race_execution
     long_run_consistency
     tyre_management
     tyre_warmup

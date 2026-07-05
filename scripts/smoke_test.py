@@ -938,6 +938,36 @@ def main() -> None:
     assert (
         fastf1_season_lookup[("driver", "antonelli", "race_pace")].value > 0
     ), "season-to-date FastF1 form should lift the strongest points scorer"
+    fastf1_race_execution_features = [
+        adjustment
+        for adjustment in fastf1_season_features
+        if adjustment.metric == "race_execution"
+    ]
+    assert (
+        fastf1_race_execution_features
+    ), "season-to-date FastF1 grid-to-finish conversion should enter as race_execution"
+    assert (
+        fastf1_season_lookup[("driver", "alonso", "race_execution")].value > 0
+    ), "FastF1 race_execution should reward strong finished-race grid-to-finish conversion"
+    assert (
+        fastf1_season_lookup[("team", "mercedes", "race_execution")].value < 0
+    ), "FastF1 race_execution should distinguish grid conversion from raw Mercedes race pace"
+    alonso_race_score = PaceModel(season, report.evidence, report.feature_adjustments).score_breakdown(
+        season.drivers["alonso"],
+        british_event,
+        mode="race",
+    )
+    alonso_qualifying_score = PaceModel(season, report.evidence, report.feature_adjustments).score_breakdown(
+        season.drivers["alonso"],
+        british_event,
+        mode="qualifying",
+    )
+    assert (
+        alonso_race_score["feature_race_execution"] > 0
+    ), "race_execution features should feed the race score surface"
+    assert (
+        alonso_qualifying_score["feature_race_execution"] == 0
+    ), "race_execution should not leak into the qualifying grid sampler"
     fastf1_momentum_features = [
         adjustment
         for adjustment in report.feature_adjustments
@@ -956,6 +986,9 @@ def main() -> None:
     assert (
         fastf1_momentum_lookup[("team", "mercedes", "race_pace")].value < 0
     ), "FastF1 momentum should distinguish Mercedes season strength from recent relative softening"
+    assert any(
+        adjustment.metric == "race_execution" for adjustment in fastf1_momentum_features
+    ), "FastF1 momentum should include recent-vs-older race_execution signals"
     assert report.market_edges, "market comparison should be produced"
     season_forecast = pipeline.forecast_season("2026-06-30T00:00:00+00:00", iterations=80)
     assert season_forecast.rows, "season forecast should produce driver rows"

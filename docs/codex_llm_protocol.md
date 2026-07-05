@@ -57,7 +57,7 @@ affects probabilities.
 
 Supported MVP metrics are intentionally normalized and bounded:
 
-- `race_pace`, `qualifying_pace`, `tyre_deg`, `reliability`, `wet_skill`, `strategy`
+- `race_pace`, `race_execution`, `qualifying_pace`, `tyre_deg`, `reliability`, `wet_skill`, `strategy`
 - `power_unit`, `energy_recovery`, `straight_line_speed`, `drag_efficiency`
 - `low_speed_traction`, `launch_performance`, `weight`, `upgrade_effect`
 
@@ -68,8 +68,10 @@ overweight car to `weight` with negative direction, a launch/clutch/turbo
 response start claim to `launch_performance`, and a validated floor or sidepod
 package to `upgrade_effect`. The simulator applies track-specific weights, so a
 high-speed Silverstone-style claim should not affect a low-speed street race in
-the same way. `launch_performance` is intentionally separate from generic pace:
-it changes start and first-lap race-time conversion after the sampled grid.
+the same way. `race_execution` is intentionally separate from generic pace:
+it captures grid-to-finish conversion, overtaking/defending, traffic handling,
+and clean-race execution after the sampled grid. `launch_performance` changes
+start and first-lap race-time conversion after the sampled grid.
 
 ## Evidence Impact Diagnostics
 
@@ -161,6 +163,7 @@ The route vocabulary is intentionally small:
   and `upgrade_effect`
 - `race_start_launch`: `launch_performance`
 - `race_pace_score`: `race_pace`
+- `race_execution_score`: `race_execution`
 - `qualifying_grid_score`: `qualifying_pace`
 - `tyre_degradation`: `tyre_deg`
 - `reliability`: `reliability`

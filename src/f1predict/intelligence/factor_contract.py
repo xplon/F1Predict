@@ -100,6 +100,25 @@ _CONTRACTS: dict[str, FactorMetricContract] = {
         ),
         notes="Use for clean-air or long-run speed. Do not use headline practice fastest laps alone.",
     ),
+    "race_execution": FactorMetricContract(
+        metric="race_execution",
+        targets=("team", "driver"),
+        valid_claim_types=(
+            "racecraft",
+            "overtaking",
+            "start",
+            "traffic",
+            "strategy_execution",
+            "clean_race",
+            "form",
+            "race_week_pace_signal",
+            *GENERIC_CLAIM_TYPES,
+        ),
+        notes=(
+            "Use for sourced grid-to-finish conversion, overtaking/defending, traffic handling, "
+            "or clean-race execution. Keep separate from raw race pace and qualifying pace."
+        ),
+    ),
     "qualifying_pace": FactorMetricContract(
         metric="qualifying_pace",
         targets=("team", "driver"),

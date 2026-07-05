@@ -33,6 +33,10 @@ class ChronologicalReplayTimelineRow:
     hit: bool | None
     actual_winner_probability: float | None
     actual_winner_rank: int | None
+    mean_abs_rank_error: float | None
+    mean_abs_points_error: float | None
+    podium_overlap_rate: float | None
+    points_overlap_rate: float | None
     evidence_count: int
     evidence_quality_count: int
     weak_evidence_quality_count: int
@@ -59,6 +63,10 @@ class ChronologicalReplayTimelineRow:
             "hit": self.hit,
             "actual_winner_probability": self.actual_winner_probability,
             "actual_winner_rank": self.actual_winner_rank,
+            "mean_abs_rank_error": self.mean_abs_rank_error,
+            "mean_abs_points_error": self.mean_abs_points_error,
+            "podium_overlap_rate": self.podium_overlap_rate,
+            "points_overlap_rate": self.points_overlap_rate,
             "evidence_count": self.evidence_count,
             "evidence_quality_count": self.evidence_quality_count,
             "weak_evidence_quality_count": self.weak_evidence_quality_count,
@@ -134,6 +142,10 @@ class ChronologicalReplayBundle:
             "diagnostic_scored_events",
             "top_pick_hit_rate",
             "median_actual_winner_rank",
+            "mean_abs_rank_error",
+            "mean_abs_points_error",
+            "mean_podium_overlap_rate",
+            "mean_points_overlap_rate",
             "events_with_evidence_quality",
             "events_with_weak_evidence_quality",
             "events_with_market_snapshots",
@@ -170,9 +182,9 @@ class ChronologicalReplayBundle:
             lines.append("")
         lines.extend(["## Timeline", ""])
         lines.append(
-            "| Round | Race Seq | Event | Status | Pick | Actual | Hit | Actual P | Rank | Blockers | Issues |"
+            "| Round | Race Seq | Event | Status | Pick | Actual | Hit | Actual P | Rank | Rank MAE | Points MAE | Top10 | Blockers | Issues |"
         )
-        lines.append("|---:|---:|---|---|---|---|---|---:|---:|---|---|")
+        lines.append("|---:|---:|---|---|---|---|---|---:|---:|---:|---:|---:|---|---|")
         for row in self.timeline:
             hit = "" if row.hit is None else "yes" if row.hit else "no"
             race_sequence = "" if row.racing_sequence_number is None else str(row.racing_sequence_number)
@@ -180,13 +192,17 @@ class ChronologicalReplayBundle:
                 "" if row.actual_winner_probability is None else f"{row.actual_winner_probability:.4f}"
             )
             actual_rank = "" if row.actual_winner_rank is None else str(row.actual_winner_rank)
+            rank_mae = "" if row.mean_abs_rank_error is None else f"{row.mean_abs_rank_error:.2f}"
+            points_mae = "" if row.mean_abs_points_error is None else f"{row.mean_abs_points_error:.2f}"
+            top10 = "" if row.points_overlap_rate is None else f"{row.points_overlap_rate:.2f}"
             blockers = ", ".join(row.blocking_action_categories)
             issues = ", ".join(row.issue_codes)
             lines.append(
                 "| "
                 f"{row.round_number} | {race_sequence} | {row.event_name} | {row.status} | "
                 f"{row.top_pick or ''} | {row.actual_winner or ''} | {hit} | "
-                f"{actual_probability} | {actual_rank} | {blockers} | {issues} |"
+                f"{actual_probability} | {actual_rank} | {rank_mae} | {points_mae} | {top10} | "
+                f"{blockers} | {issues} |"
             )
         if self.artifact_refs:
             lines.extend(["", "## Artifact Refs", ""])
@@ -341,6 +357,10 @@ class ChronologicalReplayBundleBuilder:
             hit=row.hit,
             actual_winner_probability=row.actual_winner_probability,
             actual_winner_rank=row.actual_winner_rank,
+            mean_abs_rank_error=row.mean_abs_rank_error,
+            mean_abs_points_error=row.mean_abs_points_error,
+            podium_overlap_rate=row.podium_overlap_rate,
+            points_overlap_rate=row.points_overlap_rate,
             evidence_count=row.evidence_count,
             evidence_quality_count=row.evidence_quality_count,
             weak_evidence_quality_count=row.weak_evidence_quality_count,
