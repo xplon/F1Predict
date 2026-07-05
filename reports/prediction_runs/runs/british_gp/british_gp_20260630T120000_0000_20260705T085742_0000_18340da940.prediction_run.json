@@ -1,0 +1,272 @@
+{
+  "run_id": "british_gp_20260630T120000_0000_20260705T085742_0000_18340da940",
+  "event_id": "british_gp",
+  "event_name": "British Grand Prix",
+  "created_at": "2026-07-05T08:57:42+00:00",
+  "generated_at": "2026-07-05T08:57:42+00:00",
+  "knowledge_cutoff": "2026-06-30T12:00:00+00:00",
+  "iterations": 600,
+  "status": "diagnostic_only",
+  "formal_edge_ready": false,
+  "prediction_packet_path": "E:\\1.study\\code\\AI_Projects\\F1Predict\\reports\\prediction_packets_v2\\british_gp\\2026-07-05T08_57_36_00_00\\british_gp\\british_gp_20260630T120000_0000.prediction_packet.json",
+  "packet_payload_sha256": "18340da940e9ce4db6af9e5ccf10a34e19353e97e1edfd59a67238d6ce995879",
+  "input_fingerprint": "fa6aa10208e51cffe6e5aedc6b29069ad72440431b10f583c39d7ff6b9db4d4f",
+  "evidence_fingerprint": "0169ce6bcb874276d4d811458459f004a71763fb3376ab566c3160a0964f7bec",
+  "probability_fingerprint": "49501d171c06ddc2a5a40b22e67095eca854e61558fd4ead25a6c9886e556478",
+  "information_intake_id": "british_gp_20260630T120000_0000_c6e0a66a08_5952150b7d",
+  "information_intake_path": "E:\\1.study\\code\\AI_Projects\\F1Predict\\data\\intake\\british_gp\\british_gp_20260630T120000_0000_c6e0a66a08_5952150b7d.information_intake.json",
+  "summary": {
+    "driver_probabilities": {
+      "antonelli": {
+        "driver_id": "antonelli",
+        "win": 0.33,
+        "podium": 0.755,
+        "points": 0.941667,
+        "expected_points": 17.441667,
+        "average_finish": 3.433333,
+        "expected_rank": 2
+      },
+      "russell": {
+        "driver_id": "russell",
+        "win": 0.28,
+        "podium": 0.661667,
+        "points": 0.975,
+        "expected_points": 16.585,
+        "average_finish": 3.255,
+        "expected_rank": 1
+      },
+      "verstappen": {
+        "driver_id": "verstappen",
+        "win": 0.216667,
+        "podium": 0.631667,
+        "points": 0.943333,
+        "expected_points": 15.413333,
+        "average_finish": 3.983333,
+        "expected_rank": 3
+      },
+      "hamilton": {
+        "driver_id": "hamilton",
+        "win": 0.135,
+        "podium": 0.463333,
+        "points": 0.943333,
+        "expected_points": 13.648333,
+        "average_finish": 4.52,
+        "expected_rank": 4
+      },
+      "norris": {
+        "driver_id": "norris",
+        "win": 0.016667,
+        "podium": 0.198333,
+        "points": 0.938333,
+        "expected_points": 9.705,
+        "average_finish": 5.978333,
+        "expected_rank": 5
+      },
+      "piastri": {
+        "driver_id": "piastri",
+        "win": 0.015,
+        "podium": 0.173333,
+        "points": 0.95,
+        "expected_points": 9.106667,
+        "average_finish": 6.103333,
+        "expected_rank": 6
+      },
+      "leclerc": {
+        "driver_id": "leclerc",
+        "win": 0.006667,
+        "podium": 0.098333,
+        "points": 0.918333,
+        "expected_points": 7.65,
+        "average_finish": 7.066667,
+        "expected_rank": 7
+      },
+      "hadjar": {
+        "driver_id": "hadjar",
+        "win": 0.0,
+        "podium": 0.015,
+        "points": 0.806667,
+        "expected_points": 4.03,
+        "average_finish": 9.098333,
+        "expected_rank": 8
+      },
+      "alonso": {
+        "driver_id": "alonso",
+        "win": 0.0,
+        "podium": 0.003333,
+        "points": 0.668333,
+        "expected_points": 2.52,
+        "average_finish": 10.445,
+        "expected_rank": 9
+      },
+      "stroll": {
+        "driver_id": "stroll",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.115,
+        "expected_points": 0.245,
+        "average_finish": 15.09,
+        "expected_rank": 13
+      },
+      "albon": {
+        "driver_id": "albon",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.391667,
+        "expected_points": 1.098333,
+        "average_finish": 12.335,
+        "expected_rank": 11
+      },
+      "sainz": {
+        "driver_id": "sainz",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.505,
+        "expected_points": 1.565,
+        "average_finish": 11.446667,
+        "expected_rank": 10
+      },
+      "gasly": {
+        "driver_id": "gasly",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.26,
+        "expected_points": 0.66,
+        "average_finish": 13.653333,
+        "expected_rank": 12
+      },
+      "colapinto": {
+        "driver_id": "colapinto",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.046667,
+        "expected_points": 0.063333,
+        "average_finish": 16.905,
+        "expected_rank": 21
+      },
+      "ocon": {
+        "driver_id": "ocon",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.125,
+        "expected_points": 0.27,
+        "average_finish": 15.093333,
+        "expected_rank": 14
+      },
+      "bearman": {
+        "driver_id": "bearman",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.053333,
+        "expected_points": 0.115,
+        "average_finish": 16.518333,
+        "expected_rank": 19
+      },
+      "hulkenberg": {
+        "driver_id": "hulkenberg",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.083333,
+        "expected_points": 0.171667,
+        "average_finish": 16.165,
+        "expected_rank": 18
+      },
+      "bortoleto": {
+        "driver_id": "bortoleto",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.036667,
+        "expected_points": 0.066667,
+        "average_finish": 17.568333,
+        "expected_rank": 22
+      },
+      "lawson": {
+        "driver_id": "lawson",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.068333,
+        "expected_points": 0.136667,
+        "average_finish": 16.12,
+        "expected_rank": 17
+      },
+      "lindblad": {
+        "driver_id": "lindblad",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.06,
+        "expected_points": 0.123333,
+        "average_finish": 16.571667,
+        "expected_rank": 20
+      },
+      "bottas": {
+        "driver_id": "bottas",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.078333,
+        "expected_points": 0.185,
+        "average_finish": 16.035,
+        "expected_rank": 16
+      },
+      "perez": {
+        "driver_id": "perez",
+        "win": 0.0,
+        "podium": 0.0,
+        "points": 0.091667,
+        "expected_points": 0.2,
+        "average_finish": 15.615,
+        "expected_rank": 15
+      }
+    },
+    "ranked_driver_ids": [
+      "russell",
+      "antonelli",
+      "verstappen",
+      "hamilton",
+      "norris",
+      "piastri",
+      "leclerc",
+      "hadjar",
+      "alonso",
+      "sainz",
+      "albon",
+      "gasly",
+      "stroll",
+      "ocon",
+      "perez",
+      "bottas",
+      "lawson",
+      "hulkenberg",
+      "bearman",
+      "lindblad",
+      "colapinto",
+      "bortoleto"
+    ],
+    "top_win_driver_ids": [
+      "antonelli",
+      "russell",
+      "verstappen",
+      "hamilton",
+      "norris",
+      "piastri",
+      "leclerc",
+      "hadjar"
+    ],
+    "evidence_count": 6,
+    "factor_trace_count": 6,
+    "factor_route_counts": {
+      "race_start_launch": 1,
+      "track_contextual_pace": 3,
+      "tyre_degradation": 1,
+      "wet_weather": 1
+    },
+    "market_snapshot_count": 1,
+    "market_edge_count": 7,
+    "blocker_codes": [
+      "codex_evidence_quality_review_required",
+      "probability_calibration_diagnostic_only"
+    ],
+    "warning_codes": [
+      "codex_claims_require_review"
+    ]
+  },
+  "notes": null
+}

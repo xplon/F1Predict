@@ -881,6 +881,33 @@ def main() -> None:
         "win_delta" in probability_impact.affected_outcomes[0]
     ), "evidence impact should include target-scope probability deltas"
     assert report.feature_adjustments, "processed data features should be loaded"
+    official_feature_adjustments = [
+        adjustment
+        for adjustment in report.feature_adjustments
+        if adjustment.source.startswith("f1_official_standings:")
+    ]
+    assert (
+        official_feature_adjustments
+    ), "official standings should enter the single-race pace model as structured feature adjustments"
+    official_feature_lookup = {
+        (adjustment.target_type, adjustment.target_id, adjustment.metric): adjustment
+        for adjustment in official_feature_adjustments
+    }
+    assert (
+        official_feature_lookup[("team", "mercedes", "race_pace")].value > 0
+    ), "constructor standings should give Mercedes a positive team form prior"
+    assert (
+        official_feature_lookup[("team", "ferrari", "race_pace")].value > 0
+    ), "constructor standings should give Ferrari a positive team form prior"
+    assert (
+        official_feature_lookup[("team", "cadillac", "race_pace")].value < 0
+    ), "constructor standings should give the zero-point Cadillac team a negative team form prior"
+    assert (
+        official_feature_lookup[("driver", "antonelli", "race_pace")].value > 0
+    ), "driver standings should give the championship leader a positive driver form prior"
+    assert (
+        official_feature_lookup[("driver", "perez", "race_pace")].value < 0
+    ), "driver standings should penalize zero-point drivers in the driver form prior"
     assert report.market_edges, "market comparison should be produced"
     season_forecast = pipeline.forecast_season("2026-06-30T00:00:00+00:00", iterations=80)
     assert season_forecast.rows, "season forecast should produce driver rows"
