@@ -326,6 +326,7 @@ class ProcessedFeatureProvider:
                 continue
             result_rows.append((key, result, observed_at))
         result_rows.sort(key=lambda item: parse_dt(item[2]) or target_cutoff)
+        all_result_rows = list(result_rows)
         result_rows = result_rows[-window:]
         if not result_rows:
             return []
@@ -472,7 +473,408 @@ class ProcessedFeatureProvider:
                 )
             )
 
+        adjustments.extend(
+            self._fastf1_season_trend_adjustments(
+                season,
+                event,
+                all_result_rows,
+                result_rows,
+                driver_lookup,
+                target_cutoff,
+            )
+        )
         return adjustments
+
+    def _fastf1_season_trend_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        all_result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        recent_result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        driver_lookup: dict[str, str],
+        target_cutoff,
+    ) -> list[FeatureAdjustment]:
+        if len(all_result_rows) < 2:
+            return []
+
+        all_driver_results, all_team_points, all_source_parts = self._collect_fastf1_form_inputs(
+            season,
+            all_result_rows,
+            driver_lookup,
+        )
+        recent_driver_results, recent_team_points, recent_source_parts = self._collect_fastf1_form_inputs(
+            season,
+            recent_result_rows,
+            driver_lookup,
+        )
+        older_result_rows = all_result_rows[: -len(recent_result_rows)] if recent_result_rows else []
+        older_driver_results, older_team_points, _ = self._collect_fastf1_form_inputs(
+            season,
+            older_result_rows,
+            driver_lookup,
+        )
+        if not all_driver_results:
+            return []
+
+        observed_at = max(item[2] for item in all_result_rows)
+        race_count = len(all_result_rows)
+        source = (
+            f"fastf1_season_form:{season.season}:"
+            f"{self._source_span(all_source_parts)}:{race_count}_races"
+        )
+        adjustments: list[FeatureAdjustment] = []
+
+        driver_avg_points = {
+            driver_id: mean([item["points"] for item in rows])
+            for driver_id, rows in all_driver_results.items()
+        }
+        field_avg_points = mean(driver_avg_points.values()) if driver_avg_points else 0.0
+        driver_avg_grid = {
+            driver_id: mean([item["grid_position"] for item in rows if item["grid_position"] > 0])
+            for driver_id, rows in all_driver_results.items()
+            if any(item["grid_position"] > 0 for item in rows)
+        }
+        field_avg_grid = mean(driver_avg_grid.values()) if driver_avg_grid else 10.5
+        season_confidence = min(0.34, 0.14 + 0.025 * race_count)
+
+        for driver_id, rows in sorted(all_driver_results.items()):
+            avg_points = driver_avg_points.get(driver_id, 0.0)
+            value = round(self._clamp((avg_points - field_avg_points) / 25.0 * 0.075, -0.06, 0.06), 4)
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-season-form:{season.season}:{event.event_id}:"
+                        f"{driver_id}:race_pace:{race_count}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="driver",
+                    target_id=driver_id,
+                    metric="race_pace",
+                    value=value,
+                    confidence=season_confidence,
+                    observed_at=observed_at,
+                    explanation=(
+                        f"Season-to-date FastF1 race results before {event.name}: "
+                        f"{race_count} race(s), driver average points {avg_points:.2f} vs field "
+                        f"{field_avg_points:.2f}; used as a broader form prior than the recent-window signal."
+                    ),
+                )
+            )
+
+            avg_grid = driver_avg_grid.get(driver_id)
+            if avg_grid is not None:
+                qualifying_value = round(
+                    self._clamp((field_avg_grid - avg_grid) / 10.0 * 0.04, -0.04, 0.04),
+                    4,
+                )
+                adjustments.append(
+                    FeatureAdjustment(
+                        feature_id=(
+                            f"fastf1-season-form:{season.season}:{event.event_id}:"
+                            f"{driver_id}:qualifying_pace:{race_count}"
+                        ),
+                        event_id=event.event_id,
+                        source=source,
+                        target_type="driver",
+                        target_id=driver_id,
+                        metric="qualifying_pace",
+                        value=qualifying_value,
+                        confidence=max(0.12, season_confidence - 0.05),
+                        observed_at=observed_at,
+                        explanation=(
+                            f"Season-to-date FastF1 grid results before {event.name}: "
+                            f"average grid {avg_grid:.2f} vs field {field_avg_grid:.2f}; "
+                            "used as a broader qualifying-form prior."
+                        ),
+                    )
+                )
+
+            dnf_count = sum(1 for item in rows if not self._finished_status(str(item.get("status") or "")))
+            if dnf_count:
+                adjustments.append(
+                    FeatureAdjustment(
+                        feature_id=(
+                            f"fastf1-season-form:{season.season}:{event.event_id}:"
+                            f"{driver_id}:reliability:{race_count}"
+                        ),
+                        event_id=event.event_id,
+                        source=source,
+                        target_type="driver",
+                        target_id=driver_id,
+                        metric="reliability",
+                        value=round(-0.006 * dnf_count, 4),
+                        confidence=max(0.12, season_confidence - 0.07),
+                        observed_at=observed_at,
+                        explanation=(
+                            f"{dnf_count} non-finished classification(s) across {race_count} "
+                            "cutoff-valid FastF1 result(s); used as a season reliability risk prior."
+                        ),
+                    )
+                )
+
+        adjustments.extend(
+            self._fastf1_momentum_adjustments(
+                season,
+                event,
+                recent_driver_results,
+                older_driver_results,
+                recent_team_points,
+                older_team_points,
+                recent_source_parts,
+                observed_at,
+                race_count,
+                target_cutoff,
+            )
+        )
+        adjustments.extend(
+            self._fastf1_team_season_adjustments(
+                season,
+                event,
+                all_team_points,
+                field_label=f"{race_count} race(s)",
+                source=source,
+                observed_at=observed_at,
+                confidence=max(0.14, season_confidence - 0.02),
+                feature_namespace="fastf1-season-form",
+            )
+        )
+        return adjustments
+
+    def _fastf1_momentum_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        recent_driver_results: defaultdict[str, list[dict[str, Any]]],
+        older_driver_results: defaultdict[str, list[dict[str, Any]]],
+        recent_team_points: defaultdict[str, list[float]],
+        older_team_points: defaultdict[str, list[float]],
+        recent_source_parts: list[str],
+        observed_at: str,
+        race_count: int,
+        target_cutoff,
+    ) -> list[FeatureAdjustment]:
+        if not older_driver_results or not recent_driver_results:
+            return []
+
+        source = (
+            f"fastf1_momentum:{season.season}:"
+            f"{self._source_span(recent_source_parts)}:cutoff_{target_cutoff.isoformat()}"
+        )
+        confidence = min(0.28, 0.12 + 0.02 * race_count)
+        adjustments: list[FeatureAdjustment] = []
+
+        recent_avg_points = self._average_metric(recent_driver_results, "points")
+        older_avg_points = self._average_metric(older_driver_results, "points")
+        recent_field_points = mean(recent_avg_points.values()) if recent_avg_points else 0.0
+        older_field_points = mean(older_avg_points.values()) if older_avg_points else 0.0
+        recent_avg_grid = self._average_positive_metric(recent_driver_results, "grid_position")
+        older_avg_grid = self._average_positive_metric(older_driver_results, "grid_position")
+        recent_field_grid = mean(recent_avg_grid.values()) if recent_avg_grid else 10.5
+        older_field_grid = mean(older_avg_grid.values()) if older_avg_grid else 10.5
+
+        for driver_id in sorted(set(recent_driver_results) & set(older_driver_results)):
+            recent_relative = recent_avg_points.get(driver_id, 0.0) - recent_field_points
+            older_relative = older_avg_points.get(driver_id, 0.0) - older_field_points
+            momentum_delta = recent_relative - older_relative
+            value = round(self._clamp(momentum_delta / 25.0 * 0.06, -0.045, 0.045), 4)
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-momentum:{season.season}:{event.event_id}:"
+                        f"{driver_id}:race_pace:{race_count}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="driver",
+                    target_id=driver_id,
+                    metric="race_pace",
+                    value=value,
+                    confidence=confidence,
+                    observed_at=observed_at,
+                    explanation=(
+                        f"FastF1 recent-vs-older form before {event.name}: relative points delta "
+                        f"{momentum_delta:.2f}; used as momentum signal so late-season improvement or decline "
+                        "can move the race-pace prior."
+                    ),
+                )
+            )
+
+            if driver_id in recent_avg_grid and driver_id in older_avg_grid:
+                recent_grid_relative = recent_field_grid - recent_avg_grid[driver_id]
+                older_grid_relative = older_field_grid - older_avg_grid[driver_id]
+                grid_delta = recent_grid_relative - older_grid_relative
+                qualifying_value = round(self._clamp(grid_delta / 10.0 * 0.035, -0.035, 0.035), 4)
+                adjustments.append(
+                    FeatureAdjustment(
+                        feature_id=(
+                            f"fastf1-momentum:{season.season}:{event.event_id}:"
+                            f"{driver_id}:qualifying_pace:{race_count}"
+                        ),
+                        event_id=event.event_id,
+                        source=source,
+                        target_type="driver",
+                        target_id=driver_id,
+                        metric="qualifying_pace",
+                        value=qualifying_value,
+                        confidence=max(0.10, confidence - 0.05),
+                        observed_at=observed_at,
+                        explanation=(
+                            f"FastF1 recent-vs-older grid form before {event.name}: relative grid delta "
+                            f"{grid_delta:.2f}; used as qualifying momentum signal."
+                        ),
+                    )
+                )
+
+        recent_team_avg = {
+            team_id: mean(points)
+            for team_id, points in recent_team_points.items()
+            if points
+        }
+        older_team_avg = {
+            team_id: mean(points)
+            for team_id, points in older_team_points.items()
+            if points
+        }
+        recent_team_field = mean(recent_team_avg.values()) if recent_team_avg else 0.0
+        older_team_field = mean(older_team_avg.values()) if older_team_avg else 0.0
+        for team_id in sorted(set(recent_team_avg) & set(older_team_avg)):
+            if team_id not in season.teams:
+                continue
+            recent_relative = recent_team_avg[team_id] - recent_team_field
+            older_relative = older_team_avg[team_id] - older_team_field
+            team_delta = recent_relative - older_relative
+            value = round(self._clamp(team_delta / 25.0 * 0.05, -0.04, 0.04), 4)
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-momentum:{season.season}:{event.event_id}:"
+                        f"{team_id}:race_pace:{race_count}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="race_pace",
+                    value=value,
+                    confidence=max(0.12, confidence - 0.03),
+                    observed_at=observed_at,
+                    explanation=(
+                        f"FastF1 recent-vs-older team form before {event.name}: relative points delta "
+                        f"{team_delta:.2f}; used as team momentum signal."
+                    ),
+                )
+            )
+
+        return adjustments
+
+    def _fastf1_team_season_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        team_points: defaultdict[str, list[float]],
+        field_label: str,
+        source: str,
+        observed_at: str,
+        confidence: float,
+        feature_namespace: str,
+    ) -> list[FeatureAdjustment]:
+        team_avg_points = {
+            team_id: mean(points)
+            for team_id, points in team_points.items()
+            if points
+        }
+        field_team_points = mean(team_avg_points.values()) if team_avg_points else 0.0
+        adjustments: list[FeatureAdjustment] = []
+        for team_id, avg_points in sorted(team_avg_points.items()):
+            if team_id not in season.teams:
+                continue
+            value = round(self._clamp((avg_points - field_team_points) / 25.0 * 0.06, -0.05, 0.05), 4)
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"{feature_namespace}:{season.season}:{event.event_id}:"
+                        f"{team_id}:race_pace:{field_label.replace(' ', '_')}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="race_pace",
+                    value=value,
+                    confidence=confidence,
+                    observed_at=observed_at,
+                    explanation=(
+                        f"Team average driver points across {field_label} before {event.name}: "
+                        f"{avg_points:.2f} vs field {field_team_points:.2f}; "
+                        "used as a season-to-date team form prior."
+                    ),
+                )
+            )
+        return adjustments
+
+    def _collect_fastf1_form_inputs(
+        self,
+        season: SeasonState,
+        result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        driver_lookup: dict[str, str],
+    ) -> tuple[defaultdict[str, list[dict[str, Any]]], defaultdict[str, list[float]], list[str]]:
+        driver_results: defaultdict[str, list[dict[str, Any]]] = defaultdict(list)
+        team_points: defaultdict[str, list[float]] = defaultdict(list)
+        source_parts: list[str] = []
+        for _, result, _ in result_rows:
+            source_parts.append(normalize_event_name(result.event_name))
+            for row in result.classified:
+                driver_id = self._result_driver_id(row, driver_lookup)
+                if driver_id is None or driver_id not in season.drivers:
+                    continue
+                points = float(row.get("points") or 0.0)
+                position = int(row.get("position") or 99)
+                grid_position = int(row.get("grid_position") or position or 99)
+                status = str(row.get("status") or "")
+                team_id = season.drivers[driver_id].team_id
+                driver_results[driver_id].append(
+                    {
+                        "points": points,
+                        "position": position,
+                        "grid_position": grid_position,
+                        "status": status,
+                    }
+                )
+                team_points[team_id].append(points)
+        return driver_results, team_points, source_parts
+
+    @staticmethod
+    def _average_metric(
+        rows_by_id: defaultdict[str, list[dict[str, Any]]],
+        metric: str,
+    ) -> dict[str, float]:
+        return {
+            item_id: mean([float(row.get(metric) or 0.0) for row in rows])
+            for item_id, rows in rows_by_id.items()
+            if rows
+        }
+
+    @staticmethod
+    def _average_positive_metric(
+        rows_by_id: defaultdict[str, list[dict[str, Any]]],
+        metric: str,
+    ) -> dict[str, float]:
+        output: dict[str, float] = {}
+        for item_id, rows in rows_by_id.items():
+            values = [float(row.get(metric) or 0.0) for row in rows if float(row.get(metric) or 0.0) > 0]
+            if values:
+                output[item_id] = mean(values)
+        return output
+
+    @staticmethod
+    def _source_span(source_parts: list[str]) -> str:
+        unique = list(dict.fromkeys(source_parts))
+        if not unique:
+            return "none"
+        if len(unique) <= 3:
+            return "+".join(unique)
+        return f"{unique[0]}+...+{unique[-1]}"
 
     @staticmethod
     def _driver_by_openf1_number(season: SeasonState) -> dict[str, str]:

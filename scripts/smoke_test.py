@@ -908,6 +908,48 @@ def main() -> None:
     assert (
         official_feature_lookup[("driver", "perez", "race_pace")].value < 0
     ), "driver standings should penalize zero-point drivers in the driver form prior"
+    fastf1_season_features = [
+        adjustment
+        for adjustment in report.feature_adjustments
+        if adjustment.source.startswith("fastf1_season_form:")
+    ]
+    assert (
+        fastf1_season_features
+    ), "season-to-date FastF1 form should enter the single-race pace model"
+    fastf1_season_lookup = {
+        (adjustment.target_type, adjustment.target_id, adjustment.metric): adjustment
+        for adjustment in fastf1_season_features
+    }
+    assert (
+        fastf1_season_lookup[("team", "mercedes", "race_pace")].value > 0
+    ), "season-to-date FastF1 form should give Mercedes a positive team prior"
+    assert (
+        fastf1_season_lookup[("team", "ferrari", "race_pace")].value > 0
+    ), "season-to-date FastF1 form should give Ferrari a positive team prior"
+    assert (
+        fastf1_season_lookup[("team", "cadillac", "race_pace")].value < 0
+    ), "season-to-date FastF1 form should penalize zero-point teams"
+    assert (
+        fastf1_season_lookup[("driver", "antonelli", "race_pace")].value > 0
+    ), "season-to-date FastF1 form should lift the strongest points scorer"
+    fastf1_momentum_features = [
+        adjustment
+        for adjustment in report.feature_adjustments
+        if adjustment.source.startswith("fastf1_momentum:")
+    ]
+    assert (
+        fastf1_momentum_features
+    ), "recent-vs-older FastF1 momentum should enter the single-race pace model"
+    fastf1_momentum_lookup = {
+        (adjustment.target_type, adjustment.target_id, adjustment.metric): adjustment
+        for adjustment in fastf1_momentum_features
+    }
+    assert (
+        fastf1_momentum_lookup[("team", "red_bull", "race_pace")].value > 0
+    ), "FastF1 momentum should detect Red Bull's recent relative improvement"
+    assert (
+        fastf1_momentum_lookup[("team", "mercedes", "race_pace")].value < 0
+    ), "FastF1 momentum should distinguish Mercedes season strength from recent relative softening"
     assert report.market_edges, "market comparison should be produced"
     season_forecast = pipeline.forecast_season("2026-06-30T00:00:00+00:00", iterations=80)
     assert season_forecast.rows, "season forecast should produce driver rows"
