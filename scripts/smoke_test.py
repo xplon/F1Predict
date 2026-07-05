@@ -67,6 +67,7 @@ from f1predict.source_replacements import (
 )
 from f1predict.storage import RawSnapshotStore
 from f1predict.track_assets import TrackAssetAuditor
+from f1predict.track_features import track_feature_vector
 from f1predict.weather_profiles import WeatherForecastProvider
 
 
@@ -230,6 +231,25 @@ def main() -> None:
     ), "simulation replay should include pit-stop laps across the selected drivers"
     season = pipeline.data_source.load()
     british_event = next(event for event in season.events if event.event_id == "british_gp")
+    british_track_vector = track_feature_vector(british_event)
+    assert (
+        british_track_vector.source_status == "source_backed_derived_proxy"
+        and british_track_vector.corner_count == 18
+        and british_track_vector.aero_efficiency_index > british_track_vector.traction_index
+    ), "British GP track feature vector should use sourced Silverstone geometry as a high-speed/aero-sensitive layout"
+    assert (
+        0.0 < british_track_vector.overtaking_index < 1.0
+        and 17.5 <= british_track_vector.pit_loss_seconds <= 24.5
+    ), "track feature vector should expose bounded overtaking and pit-loss simulator inputs"
+    monaco_event = next(event for event in season.events if event.event_id == "monaco_gp")
+    monaco_track_vector = track_feature_vector(monaco_event)
+    assert (
+        monaco_track_vector.altitude_m is None
+        and "weather_profile_altitude_out_of_model_bounds" in monaco_track_vector.warning_codes
+    ), "obviously invalid weather-profile altitude should be excluded from track features instead of entering the model"
+    assert (
+        track_demand_profile(monaco_event.track_type, monaco_event.feature_refs).altitude_power_derate == 0.0
+    ), "invalid weather-profile altitude should not create a fake high-altitude power derate"
     british_event_technical_profile = track_demand_profile(british_event.track_type, british_event.feature_refs)
     static_british_profile = track_demand_profile(british_event.track_type)
     assert any(
@@ -242,6 +262,9 @@ def main() -> None:
     assert "/api/v2/prediction-runs" in api_v2.handle_get("/api/v2/openapi.json", {}).payload[
         "paths"
     ], "API v2 should publish prediction-run endpoint definitions"
+    assert "/api/v2/track-features" in api_v2.handle_get("/api/v2/openapi.json", {}).payload[
+        "paths"
+    ], "API v2 should publish track-feature endpoint definitions"
     api_health = api_v2.handle_get("/api/v2/health", {}).payload
     assert (
         api_health["driver_count"] == len(season.drivers) == 22
@@ -250,6 +273,14 @@ def main() -> None:
     assert (
         api_season["team_count"] == len(season.teams) == 11
     ), "API v2 season-state should expose the verified 2026 11-team roster"
+    api_track_features = api_v2.handle_get(
+        "/api/v2/track-features",
+        {"event_id": ["british_gp"], "knowledge_cutoff": ["2026-06-30T12:00:00+00:00"]},
+    ).payload
+    assert (
+        api_track_features["event_id"] == "british_gp"
+        and api_track_features["corner_count"] == british_track_vector.corner_count
+    ), "API v2 should expose the backend track feature vector for audit without running a full prediction"
     api_intake = api_v2.handle_get(
         "/api/v2/information-intake",
         {

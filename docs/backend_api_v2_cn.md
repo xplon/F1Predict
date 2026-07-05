@@ -34,6 +34,7 @@ GET /api/v2/openapi.json
 GET /api/v2/health
 GET /api/v2/verified-facts
 GET /api/v2/season-state
+GET /api/v2/track-features
 GET /api/v2/information-intake
 POST /api/v2/information-intake
 GET /api/v2/prediction-runs
@@ -83,6 +84,32 @@ GET /api/v2/prediction-diffs/{diff_id}
 - `teams`
 - `events`
 - `verified_fact_refs`
+
+### GET /api/v2/track-features
+
+用途：返回某一站的后端赛道/环境特征向量，不写 artifact。
+
+参数：
+
+```text
+event_id=british_gp
+knowledge_cutoff=2026-06-30T12:00:00+00:00
+```
+
+当前字段包括：
+
+- 弯角数量和按角度 proxy 划分的低速/中速/高速弯；
+- 长直道 proxy、straightness index；
+- braking、traction、aero、mechanical grip demand；
+- overtaking index、track position value；
+- pit loss、safety car probability、red flag probability；
+- tyre degradation index、wet probability、历史降水 p90、海拔质量检查。
+
+边界：
+
+- 这些字段来自本地已摄取的 OpenF1/Multiviewer circuit profile、F1 官方 race profile、Open-Meteo 天气 profile；
+- 弯速、长直道、超车、部署区目前是 derived proxy，不是 FIA 官方逐弯速度或 2026 替代 DRS/部署区定义；
+- 明显异常的天气地理字段，例如超过模型可信范围的海拔，不进入模型，并会出现在 `warning_codes`。
 
 ## 4. 信息摄取接口
 

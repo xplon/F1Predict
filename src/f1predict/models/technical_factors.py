@@ -493,6 +493,8 @@ def _elevation_m(feature_refs: Mapping[str, Any]) -> float | None:
     for candidate in candidates:
         value = _float_value(candidate)
         if value is not None:
+            if value < -500.0 or value > 3000.0:
+                continue
             return value
     return None
 

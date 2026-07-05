@@ -11,6 +11,7 @@ from typing import Any
 from f1predict.domain import Driver, DriverRaceProbability, RaceEvent, SeasonState
 from f1predict.market_outcomes import driver_h2h_outcome_id
 from f1predict.models.pace import PaceModel
+from f1predict.track_features import TrackFeatureVector, track_feature_vector
 
 
 POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
@@ -96,6 +97,7 @@ class SingleRaceSimulator:
         self.iterations = iterations
         self.random = random.Random(seed)
         self.config = config or SimulatorConfig()
+        self._track_feature_cache: dict[str, TrackFeatureVector] = {}
 
     def simulate(self, event: RaceEvent) -> tuple[list[DriverRaceProbability], list[dict[str, Any]]]:
         summary = self.simulate_summary(event)
@@ -504,15 +506,7 @@ class SingleRaceSimulator:
         return launch_adjustment * self.config.launch_time_scale * grid_factor
 
     def _degradation_rate(self, event: RaceEvent, driver: Driver) -> float:
-        track_deg = {
-            "high_speed": 0.057,
-            "street": 0.036,
-            "street_low_speed": 0.034,
-            "low_speed": 0.043,
-            "balanced": 0.049,
-            "power": 0.050,
-            "technical": 0.052,
-        }.get(event.track_type, 0.047)
+        track_deg = 0.028 + self._track_features(event).tyre_degradation_index * 0.041
         wet_offset = self._wet_probability(event) * 0.008
         codex_tyre_adjustment = self.pace_model.degradation_adjustment(driver, event) * 0.06
         return max(0.018, track_deg + wet_offset - driver.tyre_management * 0.006 - codex_tyre_adjustment)
@@ -526,29 +520,11 @@ class SingleRaceSimulator:
             previous = stop_lap
         return total
 
-    @staticmethod
-    def _pit_loss(event: RaceEvent) -> float:
-        return {
-            "street": 21.5,
-            "street_low_speed": 22.8,
-            "low_speed": 20.5,
-            "high_speed": 19.2,
-            "balanced": 20.0,
-            "power": 20.1,
-            "technical": 20.6,
-        }.get(event.track_type, 20.0)
+    def _pit_loss(self, event: RaceEvent) -> float:
+        return self._track_features(event).pit_loss_seconds
 
-    @staticmethod
-    def _track_position_penalty(event: RaceEvent) -> float:
-        return {
-            "street": 0.22,
-            "street_low_speed": 0.24,
-            "low_speed": 0.18,
-            "balanced": 0.13,
-            "high_speed": 0.09,
-            "power": 0.12,
-            "technical": 0.16,
-        }.get(event.track_type, 0.13)
+    def _track_position_penalty(self, event: RaceEvent) -> float:
+        return 0.055 + self._track_features(event).track_position_value * 0.20
 
     def _wet_probability(self, event: RaceEvent) -> float:
         return min(1.0, max(0.0, event.weather_prior.get("wet_probability", 0.0)))
@@ -572,16 +548,7 @@ class SingleRaceSimulator:
         return 1.45 * intensity - driver.wet_skill * 0.42
 
     def _sample_safety_car_lap(self, event: RaceEvent, wet_race: bool) -> int | None:
-        probability = {
-            "street": 0.42,
-            "street_low_speed": 0.45,
-            "low_speed": 0.25,
-            "balanced": 0.20,
-            "high_speed": 0.16,
-            "power": 0.22,
-            "technical": 0.26,
-        }.get(event.track_type, 0.20)
-        probability += 0.12 if wet_race else 0.0
+        probability = self._track_features(event).safety_car_probability + (0.08 if wet_race else 0.0)
         if self.random.random() >= min(0.65, probability):
             return None
         return self.random.randint(max(4, event.laps // 5), max(5, event.laps - 5))
@@ -593,3 +560,11 @@ class SingleRaceSimulator:
         if wet_race:
             return max(4, round(event.laps * 0.35))
         return None
+
+    def _track_features(self, event: RaceEvent) -> TrackFeatureVector:
+        cached = self._track_feature_cache.get(event.event_id)
+        if cached is not None:
+            return cached
+        features = track_feature_vector(event)
+        self._track_feature_cache[event.event_id] = features
+        return features

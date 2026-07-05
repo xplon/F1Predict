@@ -12,12 +12,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from f1predict.domain import utc_now
+from f1predict.domain import parse_dt, utc_now
 from f1predict.intelligence.codex import CodexEvidenceProvider
 from f1predict.pipeline import PredictionPipeline
 from f1predict.prediction_packet import PredictionPacketBuilder
 from f1predict.run_tracking import InformationIntakeStore, MatchedPredictionDiff, PredictionRunRegistry
 from f1predict.storage import safe_name
+from f1predict.track_features import track_feature_vector
 
 
 API_VERSION = "v2"
@@ -59,6 +60,10 @@ class BackendApiV2:
             return ApiResponse(self.verified_facts())
         if route == "/season-state":
             return ApiResponse(self.season_state())
+        if route == "/track-features":
+            event_id = _first(query, "event_id", "british_gp")
+            cutoff = _first(query, "knowledge_cutoff", None)
+            return ApiResponse(self.track_features(str(event_id), cutoff))
         if route == "/information-intake":
             event_id = _first(query, "event_id", "british_gp")
             cutoff = _first(query, "knowledge_cutoff", None)
@@ -273,6 +278,17 @@ class BackendApiV2:
             "verified_fact_refs": ["2026_f1_roster_11_teams_22_drivers"],
         }
 
+    def track_features(self, event_id: str, knowledge_cutoff: str | None = None) -> dict[str, Any]:
+        pipeline = PredictionPipeline(iterations=1)
+        season = pipeline.data_source.load()
+        event = next((item for item in season.events if item.event_id == event_id), None)
+        if event is None:
+            return {"error": "event_not_found", "event_id": event_id}
+        cutoff_dt = pipeline._normalize_cutoff(parse_dt(knowledge_cutoff)) if knowledge_cutoff else None
+        event = pipeline._event_with_cutoff_weather_forecast(event, cutoff_dt)
+        event = pipeline._event_with_track_feature_vector(event)
+        return track_feature_vector(event).to_dict()
+
     def openapi(self) -> dict[str, Any]:
         return {
             "openapi": "3.0.3",
@@ -285,6 +301,7 @@ class BackendApiV2:
                 "/api/v2/health": {"get": {"summary": "Backend health and roster counts"}},
                 "/api/v2/verified-facts": {"get": {"summary": "Verified real-world facts used by the backend"}},
                 "/api/v2/season-state": {"get": {"summary": "Current local season roster and event state"}},
+                "/api/v2/track-features": {"get": {"summary": "Source-backed track/environment feature vector"}},
                 "/api/v2/information-intake": {
                     "get": {"summary": "Preview structured information available for an event"},
                     "post": {"summary": "Build and persist an information intake artifact"},

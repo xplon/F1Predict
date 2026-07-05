@@ -21,6 +21,7 @@ from f1predict.models.simulator import SimulatorConfig, SingleRaceSimulator
 from f1predict.models.simulator import POINTS
 from f1predict.official_standings import OfficialStandingsRepository
 from f1predict.results import FastF1ResultRepository, normalize_event_name
+from f1predict.track_features import track_feature_vector
 from f1predict.weather_profiles import WeatherForecastProvider
 
 
@@ -69,6 +70,7 @@ class PredictionPipeline:
 
         cutoff_dt = self._normalize_cutoff(parse_dt(knowledge_cutoff))
         event = self._event_with_cutoff_weather_forecast(event, cutoff_dt)
+        event = self._event_with_track_feature_vector(event)
         evidence = self.evidence_provider.load_event_evidence(event_id, cutoff_dt)
         feature_adjustments = self.feature_provider.load_event_features(season, event, cutoff_dt)
         pre_model_quality = self.evidence_quality_scorer.score_event(event_id, evidence, [], cutoff_dt)
@@ -200,6 +202,24 @@ class PredictionPipeline:
             feature_refs=feature_refs,
         )
 
+    @staticmethod
+    def _event_with_track_feature_vector(event: RaceEvent) -> RaceEvent:
+        vector = track_feature_vector(event)
+        feature_refs = dict(event.feature_refs)
+        feature_refs["track_feature_vector"] = vector.to_dict()
+        event_input_provenance = feature_refs.get("event_input_provenance")
+        if isinstance(event_input_provenance, dict):
+            updated_provenance = dict(event_input_provenance)
+            updated_provenance["track_feature_vector"] = {
+                "source": "track_feature_vector_v1",
+                "quality": "derived",
+                "source_status": vector.source_status,
+                "warning_codes": list(vector.warning_codes),
+                "method": vector.provenance.get("method"),
+            }
+            feature_refs["event_input_provenance"] = updated_provenance
+        return replace(event, feature_refs=feature_refs)
+
     def forecast_season(
         self,
         knowledge_cutoff: str | None = None,
@@ -218,7 +238,10 @@ class PredictionPipeline:
             cutoff_dt,
             self.result_repository.latest_results_by_event(season.season),
         )
-        remaining_events = self._remaining_events_for_forecast(season, cutoff_dt)
+        remaining_events = [
+            self._event_with_track_feature_vector(self._event_with_cutoff_weather_forecast(event, cutoff_dt))
+            for event in self._remaining_events_for_forecast(season, cutoff_dt)
+        ]
         pace_models = {}
         missing_evidence = 0
         missing_features = 0

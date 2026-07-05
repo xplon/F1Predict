@@ -13,6 +13,7 @@ from f1predict.event_inputs import audit_event_input
 from f1predict.market import after_cutoff_market_count, event_market_snapshots
 from f1predict.pipeline import PredictionPipeline
 from f1predict.storage import safe_name
+from f1predict.track_features import track_feature_vector
 
 
 @dataclass(frozen=True)
@@ -171,7 +172,7 @@ class PredictionPacketBuilder:
         usable_markets = event_market_snapshots(season.markets, event_id, cutoff_dt, market_type="winner")
         after_cutoff_markets = after_cutoff_market_count(season.markets, event_id, cutoff_dt, market_type="winner")
         event_input_audit = audit_event_input(report.event).to_dict()
-        model_context = self._model_context(pipeline)
+        model_context = self._model_context(pipeline, report.event)
         codex_context = self._codex_context(report)
         codex_context["intake"] = self._codex_intake_context(event_id)
         market_context = self._market_context(report, usable_markets, after_cutoff_markets)
@@ -225,10 +226,14 @@ class PredictionPacketBuilder:
         )
 
     @staticmethod
-    def _model_context(pipeline: PredictionPipeline) -> dict[str, Any]:
+    def _model_context(pipeline: PredictionPipeline, event: Any | None = None) -> dict[str, Any]:
+        track_vector = None
+        if event is not None:
+            track_vector = track_feature_vector(event).to_dict()
         return {
             "pipeline_class": pipeline.__class__.__name__,
             "simulator_config": pipeline.simulator_config.to_dict(),
+            "track_feature_vector": track_vector,
         }
 
     def write(
