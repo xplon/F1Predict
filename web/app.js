@@ -2,6 +2,9 @@ const state = {
   events: [],
   report: null,
   packet: null,
+  predictionExplanation: null,
+  predictionExplanationLoading: false,
+  predictionExplanationError: null,
   impactTraceSidecar: null,
   researchPlan: null,
   sourceCandidates: null,
@@ -122,6 +125,18 @@ async function getJson(url) {
   return response.json();
 }
 
+async function postJson(url, body) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+  return response.json();
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
@@ -141,6 +156,13 @@ async function init() {
   select.value = "british_gp";
   document.getElementById("refreshButton").addEventListener("click", refreshAll);
   document.getElementById("loadDiagnosticsButton").addEventListener("click", toggleDiagnostics);
+  document.getElementById("predictionExplanationButton").addEventListener("click", askPredictionExplanation);
+  document.querySelectorAll("[data-question]").forEach(button => {
+    button.addEventListener("click", () => {
+      document.getElementById("predictionExplanationQuestion").value = button.dataset.question || "";
+      askPredictionExplanation();
+    });
+  });
   select.addEventListener("change", loadPrediction);
   document.getElementById("replayPlayButton").addEventListener("click", toggleReplayPlayback);
   document.getElementById("replayLapSlider").addEventListener("input", event => {
@@ -268,6 +290,9 @@ async function loadPrediction() {
   state.predictionError = null;
   state.report = null;
   state.packet = null;
+  state.predictionExplanation = null;
+  state.predictionExplanationLoading = false;
+  state.predictionExplanationError = null;
   state.impactTraceSidecar = null;
   state.researchPlan = null;
   state.sourceCandidates = null;
@@ -693,6 +718,7 @@ function render() {
   renderProbabilityTable(report.race_probabilities);
   renderCoreDecisionSummary();
   renderPredictionAnomalyAudit();
+  renderPredictionExplanation();
   renderEdgeTable(report.market_edges);
   renderPredictionPacket();
   renderAiJudgement(report.ai_judgement);
@@ -723,6 +749,34 @@ function render() {
 
 function currentTraceablePrediction(fallbackReport = state.report) {
   return state.packet?.prediction || fallbackReport || {};
+}
+
+async function askPredictionExplanation() {
+  const input = document.getElementById("predictionExplanationQuestion");
+  const question = String(input?.value || "").trim();
+  if (!question) {
+    state.predictionExplanationError = new Error("请输入要解释的问题。");
+    state.predictionExplanation = null;
+    renderPredictionExplanation();
+    return;
+  }
+  const eventId = document.getElementById("eventSelect").value || state.report?.event?.event_id || "british_gp";
+  state.predictionExplanationLoading = true;
+  state.predictionExplanationError = null;
+  renderPredictionExplanation();
+  try {
+    state.predictionExplanation = await postJson("/api/v2/prediction-explanations", {
+      event_id: eventId,
+      question,
+      max_evidence: 6
+    });
+  } catch (error) {
+    state.predictionExplanation = null;
+    state.predictionExplanationError = error;
+  } finally {
+    state.predictionExplanationLoading = false;
+    renderPredictionExplanation();
+  }
 }
 
 function renderPredictionPending(eventId) {
@@ -1004,6 +1058,102 @@ function renderPredictionAnomalyCard(row) {
       <p>${escapeHtml(row.recommended_action_zh || "")}</p>
       <div class="quality-flags">${sources || "<span class=\"pill\">来源摘要不足</span>"}</div>
       <div class="anomaly-chain">${chain}</div>
+    </article>
+  `;
+}
+
+function renderPredictionExplanation() {
+  const statusElement = document.getElementById("predictionExplanationStatus");
+  const resultElement = document.getElementById("predictionExplanationResult");
+  if (!statusElement || !resultElement) {
+    return;
+  }
+  if (state.predictionExplanationLoading) {
+    statusElement.textContent = "正在生成解释";
+    resultElement.innerHTML = `<article class="explanation-card"><p>正在读取注册预测包、BeliefState、状态更新账本和同种子影响 trace。</p></article>`;
+    return;
+  }
+  if (state.predictionExplanationError) {
+    statusElement.textContent = "解释生成失败";
+    resultElement.innerHTML = `<article class="explanation-card warning"><p>${escapeHtml(state.predictionExplanationError.message || "解释接口返回错误。")}</p></article>`;
+    return;
+  }
+  const explanation = state.predictionExplanation;
+  if (!explanation) {
+    statusElement.textContent = "按问题筛选直接/间接影响 trace";
+    resultElement.innerHTML = `
+      <article class="explanation-card">
+        <p>选择示例问题或输入中文问题后，系统会只用当前注册预测包回答，并标出哪些影响 trace 直接作用于所问对象，哪些只是竞争格局的间接影响。</p>
+      </article>
+    `;
+    return;
+  }
+  statusElement.textContent = `${questionTypeLabel(explanation.question_type)} | ${escapeHtml(shortHash(explanation.run_id))}`;
+  const answer = String(explanation.answer || "")
+    .split(/\n{2,}/)
+    .filter(Boolean)
+    .map(paragraph => `<p>${escapeHtml(paragraph)}</p>`)
+    .join("");
+  const limitations = (explanation.limitations || [])
+    .slice(0, 4)
+    .map(item => `<span class="pill">${escapeHtml(item)}</span>`)
+    .join("");
+  const context = explanation.evidence_context || {};
+  const impact = context.prediction_impact_trace_context || {};
+  const traces = (impact.top_traces || []).slice(0, 5);
+  const traceCards = traces.length
+    ? traces.map(trace => renderExplanationTraceCard(trace)).join("")
+    : `<article class="explanation-trace-card"><p>当前问题没有匹配到可展示的影响 trace。</p></article>`;
+  const counts = [
+    ["原始来源", context.belief_state_context?.raw_source_count || 0],
+    ["状态更新", context.belief_state_context?.state_update_count || 0],
+    ["影响记录", impact.total_prediction_impact_trace_count || 0],
+    ["问题相关", impact.selected_prediction_impact_trace_count || 0]
+  ].map(([label, value]) => `
+    <div class="metric-card">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </div>
+  `).join("");
+  resultElement.innerHTML = `
+    <article class="explanation-card">
+      <div class="explanation-head">
+        <h3>${escapeHtml(explanation.question || "预测解释")}</h3>
+        <span class="pill">${escapeHtml(questionTypeLabel(explanation.question_type))}</span>
+        <span class="pill">${escapeHtml(explanation.confidence || "diagnostic")}</span>
+      </div>
+      <div class="explanation-answer">${answer}</div>
+      <div class="quality-flags">${limitations || "<span class=\"pill\">无额外限制说明</span>"}</div>
+    </article>
+    <div class="metric-grid">${counts}</div>
+    <div class="explanation-trace-list">${traceCards}</div>
+  `;
+}
+
+function renderExplanationTraceCard(trace) {
+  const changed = (trace.changed_factors || [])
+    .slice(0, 3)
+    .map(factor => `${factor.target_label || targetDisplay(factor.target_type, factor.target_id)} ${factor.factor_label || factorLabel(factor.factor)} ${factor.direction_label || ""}`)
+    .join("；");
+  const points = (trace.points_changes || [])
+    .slice(0, 3)
+    .map(row => `${row.driver_name || driverNames[row.driver_id] || row.driver_id}${row.direction_label || ""}${row.magnitude_label || ""}`)
+    .join("；");
+  const ranks = (trace.rank_changes || [])
+    .slice(0, 3)
+    .map(row => `${row.driver_name || driverNames[row.driver_id] || row.driver_id}${row.direction_label || ""}${row.magnitude_label || ""}`)
+    .join("；");
+  const relevance = trace.relevance_scope_label || traceRelevanceLabel(trace.relevance_scope);
+  return `
+    <article class="explanation-trace-card ${trace.relevance_scope === "indirect_competition" ? "indirect" : ""}">
+      <div class="explanation-head">
+        <h3>${escapeHtml(trace.trace_type_label || traceTypeLabel(trace.trace_type))}</h3>
+        <span class="pill">${escapeHtml(relevance)}</span>
+        <span class="pill">${escapeHtml(trace.probability_delta_label || magnitudeLabel(trace.probability_delta_bucket))}</span>
+      </div>
+      <p>${escapeHtml(changed || "整体状态对比")}</p>
+      <p>${escapeHtml(points || ranks || "该 trace 对所选车手没有显著点数/排名变化。")}</p>
+      <p>${escapeHtml(trace.claim_id || trace.update_id_or_group_id || trace.impact_trace_id || "")}</p>
     </article>
   `;
 }
@@ -3685,6 +3835,27 @@ function impactLevelLabel(level) {
     not_modeled: "尚未建模"
   };
   return labels[String(level)] || magnitudeLabel(level);
+}
+
+function questionTypeLabel(type) {
+  const labels = {
+    rank_explanation: "排名解释",
+    driver_comparison: "车手对比",
+    group_zero_podium: "零领奖台组解释",
+    driver_explanation: "车手解释",
+    general_explanation: "整体解释"
+  };
+  return labels[String(type)] || String(type || "解释");
+}
+
+function traceRelevanceLabel(scope) {
+  const labels = {
+    direct_target: "直接作用于所问对象",
+    event_context: "本场比赛环境影响",
+    global_baseline: "整体状态基线对比",
+    indirect_competition: "竞争格局间接影响，不是直接证据"
+  };
+  return labels[String(scope)] || String(scope || "相关性未标注");
 }
 
 function sourceStatusLabel(status) {

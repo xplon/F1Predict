@@ -831,3 +831,33 @@ average_finish 从小到大
 - `scripts/explainability_smoke_test.py` 增加断言，确保 Hamilton/Leclerc 对比时 Ferrari/Leclerc/Hamilton 直接 trace 排在 Mercedes 间接竞争 trace 前面。
 
 这项修正不改变预测概率，也不改变 sidecar。它修正的是解释语义：影响到了某个车手，不等于该来源就是解释这个车手/车队状态的直接证据。以后前端如果展示一条 Mercedes 来源影响 Leclerc/Hamilton 的 trace，必须明确这是竞争格局间接影响，而不是 Ferrari 或 Leclerc 的事实来源。
+
+## 18. 2026-07-07：明确阻断“用户反馈作为证据”
+
+用户再次指出一个底线：用户举例只能说明当前预测哪里不合理，不能被系统偷偷当成标签或人工强约束。比如“Leclerc 不该这么低”“Aston Martin 不该这么高”只能触发系统去检查真实来源、状态更新和模拟映射，不能直接写成某个车手/车队的数值修正。
+
+本轮补上代码级约束：
+
+- `EvidenceQualityScorer` 现在识别 `user://`、`user-feedback://`、`codex-feedback://`、`prompt://` 这类来源；
+- 这类 claim 会被标记为 `user_feedback_source`；
+- `model_input_weight = 0.0`，也就是不会进入模型输入；
+- `BeliefStateBuilder` 会把这类来源的状态更新权限设为 `blocked`；
+- 中文解释中会显示“用户反馈只能触发审计，不能更新预测”；
+- `scripts/source_driven_contract_test.py` 增加契约测试，验证用户反馈 claim 即使有很高置信度和很大幅度，也必须保持零权重。
+
+因此，当前规则是：
+
+```text
+用户指出问题
+-> 允许创建审计任务/异常检查/来源补全需求
+-> 必须重新获取或归档真实来源
+-> 真实来源经过质量审计后才能更新状态
+-> 只有状态或来源链条改变，预测才允许改变
+
+用户指出问题
+-> 不允许直接改某个车手/车队分数
+-> 不允许把用户提示伪装成 evidence
+-> 不允许把这种变化注册成 latest
+```
+
+这项修正仍然不改变当前 British GP 预测数值。它改变的是系统边界：以后即使我误把你的话写成 evidence，也会被质量门控压成 0 权重，并在解释层明确标出它不是预测依据。

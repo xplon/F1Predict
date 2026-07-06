@@ -774,7 +774,9 @@ class BeliefStateBuilder:
             permission = "normal_update"
         elif quality.quality_status in {"weak_diagnostic", "review_required"}:
             permission = "weak_update"
-        if "seed_scenario_source" in quality.risk_flags:
+        if "user_feedback_source" in quality.risk_flags:
+            permission = "blocked"
+        elif "seed_scenario_source" in quality.risk_flags:
             permission = "blocked"
         elif "source_log_missing" in quality.risk_flags:
             permission = "weak_update"

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>F1Predict MVP</title>
-    <link rel="stylesheet" href="/styles.css?v=20260703-replay-load-order" />
+    <link rel="stylesheet" href="/styles.css?v=20260707-explanation-panel" />
   </head>
   <body>
     <header class="topbar">
@@ -52,6 +52,24 @@
         </div>
         <div id="predictionAnomalySummary" class="metric-grid"></div>
         <div id="predictionAnomalyList" class="anomaly-list"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
+          <h2>预测解释问答</h2>
+          <span id="predictionExplanationStatus">按问题筛选直接/间接影响 trace</span>
+        </div>
+        <div class="explanation-controls">
+          <input id="predictionExplanationQuestion" type="text" value="为什么勒克莱尔比汉密尔顿低？" aria-label="预测解释问题" />
+          <button id="predictionExplanationButton" type="button">解释</button>
+        </div>
+        <div class="explanation-examples">
+          <button type="button" data-question="为什么勒克莱尔比汉密尔顿低？">Leclerc / Hamilton</button>
+          <button type="button" data-question="为什么阿隆索在零领奖台组里这么靠前？">Alonso 零领奖台组</button>
+          <button type="button" data-question="为什么 Russell 排第一？">Russell 排名</button>
+          <button type="button" data-question="法拉利现在为什么这么排？">Ferrari</button>
+        </div>
+        <div id="predictionExplanationResult" class="explanation-result"></div>
       </section>
 
       <section class="panel diagnostic-panel">
@@ -292,6 +310,6 @@
       </section>
     </main>
 
-    <script src="/app.js?v=20260706-impact-trace-sidecar"></script>
+    <script src="/app.js?v=20260707-explanation-panel"></script>
   </body>
 </html>

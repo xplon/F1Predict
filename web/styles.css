@@ -57,6 +57,7 @@ span {
 }
 
 select,
+input,
 button {
   height: 38px;
   border: 1px solid var(--line);
@@ -467,6 +468,86 @@ canvas {
   gap: 6px;
   border-top: 1px solid var(--line);
   padding-top: 8px;
+}
+
+.explanation-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.explanation-controls input {
+  width: 100%;
+}
+
+.explanation-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.explanation-examples button {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.explanation-result {
+  display: grid;
+  gap: 10px;
+}
+
+.explanation-card,
+.explanation-trace-card {
+  display: grid;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  padding: 12px;
+}
+
+.explanation-card.warning {
+  border-left: 4px solid var(--bad);
+}
+
+.explanation-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+.explanation-head h3 {
+  flex: 1 0 100%;
+  margin: 0 0 3px;
+  font-size: 15px;
+}
+
+.explanation-answer {
+  display: grid;
+  gap: 8px;
+}
+
+.explanation-card p,
+.explanation-trace-card p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.explanation-trace-list {
+  display: grid;
+  gap: 10px;
+}
+
+.explanation-trace-card {
+  border-left: 4px solid var(--accent);
+}
+
+.explanation-trace-card.indirect {
+  border-left-color: var(--warn);
 }
 
 .impact-score {
@@ -1582,6 +1663,14 @@ canvas {
   }
 
   .replay-controls button {
+    width: 100%;
+  }
+
+  .explanation-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .explanation-controls button {
     width: 100%;
   }
 

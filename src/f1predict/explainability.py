@@ -1977,6 +1977,7 @@ def _quality_reason_label(reason: Any) -> str:
         "low_confidence_context_feature": "低置信度背景特征",
         "unscored_codex_claim": "Codex 证据尚未完整质量评分",
         "seed_scenario_source": "种子场景来源，不能更新预测",
+        "user_feedback_source": "用户反馈只能触发审计，不能更新预测",
         "source_log_missing": "缺少来源日志，需要复核",
     }
     return labels.get(str(reason), _identifier_to_zh(str(reason)))

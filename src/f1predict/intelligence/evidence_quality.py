@@ -68,6 +68,13 @@ _NO_CONFLICT = _ConflictContext(
     reasons=(),
 )
 
+_USER_FEEDBACK_SOURCE_PREFIXES = (
+    "user://",
+    "user-feedback://",
+    "codex-feedback://",
+    "prompt://",
+)
+
 
 class EvidenceQualityScorer:
     """Scores LLM-produced evidence after source and impact normalization.
@@ -150,6 +157,11 @@ class EvidenceQualityScorer:
         if claim.review_required:
             flags.append("claim_requires_review")
             reasons.append("Claim is explicitly marked review_required.")
+        if self._is_user_feedback_source(claim, selected):
+            flags.append("user_feedback_source")
+            reasons.append(
+                "User feedback or prompt text is an audit signal, not evidence that may update predictions."
+            )
         if claim.source_url.startswith("seed://"):
             flags.append("seed_scenario_source")
             reasons.append("Seed scenario evidence is useful for plumbing but not formal edge evidence.")
@@ -460,6 +472,8 @@ class EvidenceQualityScorer:
             return ("seed",)
         if claim.source_url.startswith("test://"):
             return ("test",)
+        if EvidenceQualityScorer._is_user_feedback_source(claim, None):
+            return ("user_feedback",)
         return ()
 
     @staticmethod
@@ -468,11 +482,15 @@ class EvidenceQualityScorer:
             return "seed"
         if url.startswith("test://"):
             return "test"
+        if EvidenceQualityScorer._is_user_feedback_url(url):
+            return "user_feedback"
         parsed = urlparse(url)
         return parsed.netloc.lower()
 
     @staticmethod
     def _source_reliability(claim: EvidenceClaim, record: _SourceRecord | None) -> float | None:
+        if EvidenceQualityScorer._is_user_feedback_source(claim, record):
+            return 0.0
         if record and record.reliability is not None:
             return _clamp(record.reliability)
         if record and record.source_class:
@@ -482,6 +500,23 @@ class EvidenceQualityScorer:
         if claim.source_url.startswith("test://"):
             return 0.20
         return None
+
+    @staticmethod
+    def _is_user_feedback_url(url: str) -> bool:
+        return url.strip().lower().startswith(_USER_FEEDBACK_SOURCE_PREFIXES)
+
+    @staticmethod
+    def _is_user_feedback_source(claim: EvidenceClaim, record: _SourceRecord | None) -> bool:
+        source_text = f"{claim.source} {claim.source_url}".strip().lower()
+        if EvidenceQualityScorer._is_user_feedback_url(claim.source_url):
+            return True
+        if record and EvidenceQualityScorer._is_user_feedback_url(record.url):
+            return True
+        if "user feedback" in source_text or "user prompt" in source_text:
+            return True
+        if "用户反馈" in claim.source or "用户提示" in claim.source:
+            return True
+        return False
 
     @staticmethod
     def _text_factor(claim: EvidenceClaim) -> float:
@@ -560,6 +595,8 @@ class EvidenceQualityScorer:
         conflict: _ConflictContext,
     ) -> float:
         if "claim_after_cutoff" in flags or "source_after_cutoff" in flags:
+            return 0.0
+        if "user_feedback_source" in flags:
             return 0.0
         if "seed_scenario_source" in flags:
             return 0.0

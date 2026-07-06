@@ -21,6 +21,8 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from f1predict.domain import EvidenceClaim  # noqa: E402
+from f1predict.intelligence.evidence_quality import EvidenceQualityScorer  # noqa: E402
 from f1predict.run_tracking import PredictionRunRegistry  # noqa: E402
 
 
@@ -234,6 +236,37 @@ def _assert_registration_gate_contract() -> None:
             raise AssertionError("Explicit model-revision proof should allow a diagnostic model-revision registration")
 
 
+def _assert_user_feedback_cannot_update_predictions() -> None:
+    claim = EvidenceClaim(
+        claim_id="contract-user-feedback-001",
+        event_id="contract_gp",
+        source="User feedback from project chat",
+        source_url="user-feedback://project-chat/leclerc-hamilton-example",
+        published_at="2026-06-30T00:00:00+00:00",
+        observed_at="2026-06-30T00:00:00+00:00",
+        target_type="driver",
+        target_id="driver_a",
+        claim_type="race_pace",
+        metric="race_pace",
+        direction="positive",
+        magnitude=0.10,
+        confidence=0.99,
+        uncertainty=0.01,
+        evidence_text="A user says the current prediction looks wrong.",
+        reasoning="This must trigger source/reasoning audit only, not a model update.",
+        review_required=True,
+    )
+    [quality] = EvidenceQualityScorer(research_root=Path("__missing_research_root__")).score_event(
+        "contract_gp",
+        [claim],
+        [],
+    )
+    if "user_feedback_source" not in quality.risk_flags:
+        raise AssertionError("User feedback claims must be explicitly flagged as non-evidence")
+    if quality.model_input_weight != 0.0:
+        raise AssertionError("User feedback must have zero model input weight")
+
+
 def main() -> None:
     violations: list[str] = []
     for path in PREDICTION_UPDATE_FILES:
@@ -250,6 +283,7 @@ def main() -> None:
             f"{details}"
         )
     _assert_registration_gate_contract()
+    _assert_user_feedback_cannot_update_predictions()
     print("source-driven contract ok")
 
 
