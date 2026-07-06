@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import datetime, timezone
 from typing import Protocol
+from urllib.parse import urlparse
 
 from f1predict.belief_state import BeliefStateBuilder, PredictionImpactTraceBuilder
 from f1predict.data_sources.augmented import CalendarAugmentedDataSource
@@ -46,6 +47,7 @@ class PredictionPipeline:
         iterations: int = 5000,
         simulator_config: SimulatorConfig | None = None,
         isolated_impact_limit: int = 0,
+        isolated_source_group_limit: int = 4,
     ) -> None:
         self.data_source = data_source or CalendarAugmentedDataSource()
         self.evidence_provider = evidence_provider or CodexEvidenceProvider()
@@ -60,6 +62,7 @@ class PredictionPipeline:
         self.iterations = iterations
         self.simulator_config = simulator_config or SimulatorConfig()
         self.isolated_impact_limit = isolated_impact_limit
+        self.isolated_source_group_limit = isolated_source_group_limit
 
     def list_events(self) -> list[dict[str, object]]:
         season = self.data_source.load()
@@ -298,6 +301,91 @@ class PredictionPipeline:
                     updates,
                 )
             )
+        rows.extend(
+            self._isolated_source_group_impacts(
+                season,
+                event,
+                evidence,
+                feature_adjustments,
+                evidence_quality,
+                probabilities,
+                belief_state,
+                knowledge_cutoff,
+                set(),
+            )
+        )
+        return rows
+
+    def _isolated_source_group_impacts(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        evidence: list[EvidenceClaim],
+        feature_adjustments,
+        evidence_quality: list[EvidenceQuality],
+        probabilities: list[DriverRaceProbability],
+        belief_state,
+        knowledge_cutoff: str | None,
+        already_isolated_groups: set[str],
+    ) -> list[dict[str, object]]:
+        if self.isolated_source_group_limit <= 0:
+            return []
+        group_lookup = self._source_group_lookup(evidence, feature_adjustments)
+        selected_groups = self._selected_isolated_source_groups(
+            belief_state.update_ledger,
+            group_lookup,
+            self.isolated_source_group_limit,
+            already_isolated_groups,
+        )
+        if not selected_groups:
+            return []
+
+        rows: list[dict[str, object]] = []
+        for group_id, updates in selected_groups:
+            counterfactual_evidence = [
+                row for row in evidence
+                if self._source_group_key(row.source_url or row.source) != group_id
+            ]
+            counterfactual_features = [
+                row for row in feature_adjustments
+                if self._source_group_key(row.source) != group_id
+            ]
+            counterfactual_evidence_ids = {claim.claim_id for claim in counterfactual_evidence}
+            counterfactual_quality = [
+                row for row in evidence_quality
+                if row.claim_id in counterfactual_evidence_ids
+            ]
+            counterfactual_weights = self._evidence_input_weights(counterfactual_quality)
+            counterfactual_belief_state = self.belief_state_builder.build(
+                season,
+                event,
+                counterfactual_evidence,
+                counterfactual_features,
+                counterfactual_quality,
+                knowledge_cutoff=knowledge_cutoff,
+            )
+            counterfactual_pace = PaceModel(
+                season,
+                counterfactual_evidence,
+                counterfactual_features,
+                evidence_weights=counterfactual_weights,
+                belief_state=counterfactual_belief_state,
+            )
+            counterfactual_probabilities = SingleRaceSimulator(
+                season,
+                counterfactual_pace,
+                iterations=self.iterations,
+                config=self.simulator_config,
+            ).simulate_summary(event).race_probabilities
+            rows.append(
+                self.impact_trace_builder.isolated_source_group_row(
+                    counterfactual_probabilities,
+                    probabilities,
+                    belief_state,
+                    group_id,
+                    updates,
+                )
+            )
         return rows
 
     @staticmethod
@@ -314,6 +402,70 @@ class PredictionPipeline:
             scored.append((score, claim_id, updates))
         scored.sort(key=lambda item: item[0], reverse=True)
         return [(claim_id, updates) for _, claim_id, updates in scored[: max(0, limit)]]
+
+    @classmethod
+    def _selected_isolated_source_groups(
+        cls,
+        update_ledger,
+        group_lookup: dict[str, str],
+        limit: int,
+        excluded_groups: set[str],
+    ):
+        groups: dict[str, list[object]] = {}
+        for update in update_ledger:
+            claim_id = str(getattr(update, "claim_id", "") or "")
+            group_id = group_lookup.get(claim_id)
+            if not group_id or group_id in excluded_groups:
+                continue
+            groups.setdefault(group_id, []).append(update)
+        scored = []
+        for group_id, updates in groups.items():
+            if len({str(getattr(update, "claim_id", "") or "") for update in updates}) < 2:
+                continue
+            score = sum(abs(float(getattr(update, "delta", 0.0))) for update in updates)
+            scored.append((score, group_id, updates))
+        scored.sort(key=lambda item: item[0], reverse=True)
+        return [(group_id, updates) for _, group_id, updates in scored[: max(0, limit)]]
+
+    @classmethod
+    def _source_group_lookup(cls, evidence: list[EvidenceClaim], feature_adjustments) -> dict[str, str]:
+        output = {
+            row.claim_id: cls._source_group_key(row.source_url or row.source)
+            for row in evidence
+        }
+        output.update(
+            {
+                row.feature_id: cls._source_group_key(row.source)
+                for row in feature_adjustments
+            }
+        )
+        return output
+
+    @classmethod
+    def _claim_source_group_key(cls, claim_id: str, evidence: list[EvidenceClaim], feature_adjustments) -> str:
+        for row in evidence:
+            if row.claim_id == claim_id:
+                return cls._source_group_key(row.source_url or row.source)
+        for row in feature_adjustments:
+            if row.feature_id == claim_id:
+                return cls._source_group_key(row.source)
+        return ""
+
+    @staticmethod
+    def _source_group_key(source: str | None) -> str:
+        raw = str(source or "").strip().lower()
+        if not raw:
+            return "unknown_source_group"
+        parsed = urlparse(raw)
+        if parsed.scheme and parsed.netloc:
+            host = parsed.netloc
+            if parsed.scheme not in {"http", "https"}:
+                host = f"{parsed.scheme}_{host}"
+            cleaned_host = "".join(char if char.isalnum() else "_" for char in host).strip("_")
+            return cleaned_host or parsed.scheme
+        first = raw.split(":", 1)[0].replace("-", "_")
+        cleaned = "".join(char if char.isalnum() or char == "_" else "_" for char in first).strip("_")
+        return cleaned or "unknown_source_group"
 
     def _event_with_cutoff_weather_forecast(
         self,

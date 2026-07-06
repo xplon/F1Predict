@@ -259,6 +259,7 @@ class PredictionPacketBuilder:
             "track_feature_vector": track_vector,
             "belief_state_enabled": True,
             "isolated_impact_limit": pipeline.isolated_impact_limit,
+            "isolated_source_group_limit": pipeline.isolated_source_group_limit,
         }
 
     def write(
@@ -301,6 +302,11 @@ class PredictionPacketBuilder:
             for row in report.prediction_impact_trace
             if row.get("trace_type") == "isolated_same_seed_leave_one_information"
         )
+        isolated_source_group_count = sum(
+            1
+            for row in report.prediction_impact_trace
+            if row.get("trace_type") == "isolated_same_seed_leave_source_group"
+        )
         return {
             "evidence_count": len(report.evidence),
             "evidence_quality_count": len(report.evidence_quality),
@@ -312,6 +318,7 @@ class PredictionPacketBuilder:
             "state_update_count": len(report.state_update_ledger),
             "prediction_impact_trace_count": len(report.prediction_impact_trace),
             "isolated_prediction_impact_count": isolated_impact_count,
+            "isolated_source_group_impact_count": isolated_source_group_count,
             "factor_observed_movement_count": factor_status_counts.get("observed_probability_movement", 0),
             "factor_route_counts": dict(sorted(factor_route_counts.items())),
             "factor_route_status_counts": dict(sorted(factor_status_counts.items())),
@@ -482,6 +489,7 @@ class PredictionPacketBuilder:
             iterations=iterations,
             simulator_config=self.pipeline.simulator_config,
             isolated_impact_limit=self.pipeline.isolated_impact_limit,
+            isolated_source_group_limit=self.pipeline.isolated_source_group_limit,
         )
 
     def _codex_intake_context(self, event_id: str) -> dict[str, Any]:

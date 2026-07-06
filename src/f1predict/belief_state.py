@@ -1143,6 +1143,85 @@ class PredictionImpactTraceBuilder:
             ),
         }
 
+    def isolated_source_group_row(
+        self,
+        counterfactual_probabilities: list[Any],
+        candidate_probabilities: list[Any],
+        belief_state: BeliefState,
+        group_id: str,
+        updates: list[StateUpdateLedgerRow],
+    ) -> dict[str, Any]:
+        counterfactual_by_driver = {row.driver_id: row for row in counterfactual_probabilities}
+        candidate_by_driver = {row.driver_id: row for row in candidate_probabilities}
+        driver_ids = sorted(set(counterfactual_by_driver) | set(candidate_by_driver))
+        counterfactual_rank = rank_by_average_finish(counterfactual_by_driver)
+        candidate_rank = rank_by_average_finish(candidate_by_driver)
+        deltas = []
+        for driver_id in driver_ids:
+            counterfactual = counterfactual_by_driver.get(driver_id)
+            candidate = candidate_by_driver.get(driver_id)
+            if counterfactual is None or candidate is None:
+                continue
+            deltas.append(
+                {
+                    "driver_id": driver_id,
+                    "win_delta": round(candidate.win - counterfactual.win, 6),
+                    "podium_delta": round(candidate.podium - counterfactual.podium, 6),
+                    "expected_points_delta": round(candidate.expected_points - counterfactual.expected_points, 4),
+                    "average_finish_delta": round(candidate.average_finish - counterfactual.average_finish, 4),
+                    "expected_rank_delta": candidate_rank.get(driver_id, 0) - counterfactual_rank.get(driver_id, 0),
+                }
+            )
+        material = [
+            row for row in deltas
+            if abs(row["expected_points_delta"]) >= 0.05
+            or abs(row["podium_delta"]) >= 0.005
+            or abs(row["expected_rank_delta"]) >= 1
+        ]
+        max_delta = max(
+            (
+                max(
+                    abs(row["podium_delta"]),
+                    abs(row["win_delta"]),
+                    abs(row["expected_points_delta"]) / 25.0,
+                )
+                for row in deltas
+            ),
+            default=0.0,
+        )
+        return {
+            "impact_trace_id": safe_name(f"trace_{belief_state.state_id}_{group_id}_source_group"),
+            "update_id_or_group_id": group_id,
+            "claim_id": None,
+            "claim_ids": sorted({update.claim_id for update in updates if update.claim_id})[:24],
+            "source_id": None,
+            "source_ids": sorted({update.source_id for update in updates if update.source_id})[:24],
+            "trace_type": "isolated_same_seed_leave_source_group",
+            "base_run_id": f"without_source_group_{safe_name(group_id)}",
+            "candidate_run_id": belief_state.state_id,
+            "changed_factors": [
+                {
+                    "target_type": update.target_type,
+                    "target_id": update.target_id,
+                    "factor": update.factor,
+                    "direction": update.direction,
+                    "magnitude_bucket": update.magnitude_bucket,
+                    "old_value_bucket": update.old_value_bucket,
+                    "new_value_bucket": update.new_value_bucket,
+                }
+                for update in sorted(updates, key=lambda row: abs(row.delta), reverse=True)[:24]
+            ],
+            "affected_drivers": sorted({row["driver_id"] for row in material}),
+            "finish_distribution_delta": sorted(deltas, key=lambda row: abs(row["average_finish_delta"]), reverse=True)[:12],
+            "expected_points_delta": sorted(deltas, key=lambda row: abs(row["expected_points_delta"]), reverse=True)[:12],
+            "rank_delta": sorted(deltas, key=lambda row: abs(row["expected_rank_delta"]), reverse=True)[:12],
+            "probability_delta_bucket": bucket_delta(max_delta),
+            "interpretation_zh": (
+                "同种子来源组隔离对比：完整 BeliefState 与移除这一组同源信息后的 BeliefState。"
+                "该记录用于说明一类来源整体对预测分布的边际影响，单条信息仍需查看 isolated 单条记录。"
+            ),
+        }
+
     @staticmethod
     def _affected_driver_hint(update: StateUpdateLedgerRow) -> list[str]:
         if update.target_type == "driver":

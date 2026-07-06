@@ -83,13 +83,13 @@ scripts/explainability_smoke_test.py
 最新诊断预测包：
 
 ```text
-reports/prediction_packets_v2/british_gp/2026-07-06T08_19_17_00_00/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+reports/prediction_packets_v2/british_gp/2026-07-06T09_07_01_00_00/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
 ```
 
 注册 run：
 
 ```text
-reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260706T082018_0000_fb34cfc5b2.prediction_run.json
+reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260706T090822_0000_81e31b24ea.prediction_run.json
 ```
 
 本次预测状态：
@@ -97,8 +97,9 @@ reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260706
 ```text
 belief_state_id = british_gp_6b6cbfd62d_142a1a9878
 state_update_count = 453
-prediction_impact_trace_count = 23
+prediction_impact_trace_count = 27
 isolated_prediction_impact_count = 12
+isolated_source_group_impact_count = 4
 status = diagnostic_only
 blocker_codes = codex_evidence_quality_review_required, probability_calibration_diagnostic_only
 ```
@@ -176,6 +177,31 @@ max_abs_expected_points_delta = 0.335
 
 这次修正后，异常审计从上一版 4 个降到 2 个：Williams 的负向未反映、Alonso/Stroll 的同队顺序张力已经消失；剩余风险是 Alpine 仍被标记为模型复核项，以及 isolated 影响追踪仍未全量覆盖。
 
+2026-07-06 09:08 UTC 追加修正后，预测排名基本没有被重新手调，主要变化是解释链路更可审计：
+
+```text
+run = british_gp_20260705T000000_0000_20260706T090822_0000_81e31b24ea
+prediction_impact_trace_count = 27
+isolated_prediction_impact_count = 12
+isolated_source_group_impact_count = 4
+anomaly_count = 2
+```
+
+这次不是因为用户说了某个车队应该强或弱而调整数值，而是新增了“来源组同种子隔离重跑”：例如把同一类 FastF1 排位、练习赛圈速或车队强度重估来源整体移除，再用相同随机种子重跑，查看预测分布如何变化。它用于证明“这一组来源整体是否真的改变预测”，不是用于把排名推向某个预设答案。
+
+与 08:20 run 的 matched diff 显示：
+
+```text
+base_run = british_gp_20260705T000000_0000_20260706T082018_0000_fb34cfc5b2
+candidate_run = british_gp_20260705T000000_0000_20260706T090822_0000_81e31b24ea
+evidence_changed = False
+information_intake_changed = False
+changed_driver_count = 0
+rank_change_count = 0
+```
+
+也就是说，09:08 这次主要是在补“如何证明来源影响预测”的审计链路，而不是改车手排序。
+
 示例来源：
 
 - Aston Martin 被压低：FastF1 同场车队平均排位 P21.5、赛前每站积分 0.12 vs 全场 9.18、F1 官方车队积分榜 P10/1 分；
@@ -185,10 +211,11 @@ max_abs_expected_points_delta = 0.335
 
 ## 5. 部分完成：单条信息的 isolated 影响追踪
 
-当前 `PredictionImpactTrace` 已经实现三类记录：
+当前 `PredictionImpactTrace` 已经实现四类记录：
 
 - 弱 seed 初始状态 vs 完整 BeliefState 的同种子整体前后对比；
 - 影响最大的 12 条来源化信息的单条 isolated same-seed 重跑；
+- 影响最大的 4 组同源来源的 source-group isolated same-seed 重跑；
 - 其他高影响状态更新进入哪个模型表面的路由记录。
 
 新增 CLI 参数：
@@ -201,6 +228,7 @@ max_abs_expected_points_delta = 0.335
 
 ```text
 --isolated-impact-limit 12
+--isolated-source-group-limit 4
 ```
 
 这使系统能对 top-N 信息严格回答：
@@ -213,6 +241,7 @@ max_abs_expected_points_delta = 0.335
 仍未完成的部分是：还没有对全部 453 条状态更新都做 isolated rerun。原因不是架构不支持，而是全量运行会显著增加生成预测包的时间。当前实现必须在解释中明确区分：
 
 - `isolated_same_seed_leave_one_information`：已经做了单条同种子重跑；
+- `isolated_same_seed_leave_source_group`：已经做了同一来源组整体移除的同种子重跑；
 - `state_update_route`：只证明信息进入状态向量和模拟表面，不能当作单条因果实验。
 
 ## 6. Ham/Lec 问题的当前状态
@@ -297,7 +326,7 @@ src/f1predict/prediction_anomaly.py
 最新离线审计能抓到的例子包括：
 
 - Alpine：负向同周末来源与 Gasly 第 9 的预测位置存在张力，需要继续复核同周末长距离、可靠性和车手层输入是否覆盖过强；
-- isolated 影响追踪覆盖不足：453 条状态更新中只有 12 组单条 isolated 重跑，解释必须区分“已进入状态向量”和“已证明单条影响”。
+- isolated 影响追踪覆盖不足：453 条状态更新中有 12 组单条 isolated 重跑和 4 组来源组 isolated 重跑，解释必须区分“已进入状态向量”“已证明来源组影响”和“已证明单条影响”。
 
 上一版异常审计中的 Leclerc/Hamilton 与 Racing Bulls 条目已在 2026-07-06 07:49 UTC 新 run 中消失；Williams 与 Alonso/Stroll 条目已在 2026-07-06 08:20 UTC 新 run 中消失。这不能证明最终模型已经正确，但证明异常审计发现的问题已经至少有一部分通过通用映射修正反馈到了预测结果，而不是只停留在提示文本。
 

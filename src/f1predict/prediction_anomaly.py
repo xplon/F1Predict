@@ -177,6 +177,11 @@ class PredictionAnomalyAuditor:
                     for row in impact_trace
                     if row.get("trace_type") == "isolated_same_seed_leave_one_information"
                 ),
+                "isolated_source_group_trace_count": sum(
+                    1
+                    for row in impact_trace
+                    if row.get("trace_type") == "isolated_same_seed_leave_source_group"
+                ),
                 "route_only_trace_count": sum(1 for row in impact_trace if row.get("trace_type") == "state_update_route"),
             },
             "anomalies": limited,
@@ -468,13 +473,21 @@ class PredictionAnomalyAuditor:
             for row in impact_trace
             if row.get("trace_type") == "isolated_same_seed_leave_one_information" and row.get("claim_id")
         }
+        grouped_claims = {
+            str(claim_id)
+            for row in impact_trace
+            if row.get("trace_type") == "isolated_same_seed_leave_source_group"
+            for claim_id in _as_values(row.get("claim_ids"))
+            if claim_id
+        }
+        covered_claims = isolated_claims | grouped_claims
         routed_updates = [
             row
             for row in ledger
             if not _is_seed_or_blocked(row, sources)
-            and str(row.get("claim_id") or "") not in isolated_claims
+            and str(row.get("claim_id") or "") not in covered_claims
         ]
-        if len(routed_updates) <= len(isolated_claims) * 2 + 8:
+        if len(routed_updates) <= max(8, len(covered_claims) // 3):
             return []
         selected = sorted(routed_updates, key=lambda row: abs(_float(row.get("delta"))), reverse=True)[:8]
         support = _TeamSupport(team_id="all", driver_ids=[])
@@ -491,7 +504,8 @@ class PredictionAnomalyAuditor:
                 driver_ids=[],
                 expected_rank_summary_zh="当前预测已有状态更新路由，但大量更新还没有逐条同种子隔离重跑。",
                 evidence_summary_zh=(
-                    f"{len(ledger)} 条状态更新中，只有 {len(isolated_claims)} 组已有单条 isolated 影响追踪；"
+                    f"{len(ledger)} 条状态更新中，{len(isolated_claims)} 组已有单条 isolated 影响追踪，"
+                    f"{len(grouped_claims)} 组已被来源组 isolated 影响追踪覆盖；"
                     "其余主要只能证明进入了状态向量，不能证明单条因果影响。"
                 ),
                 model_risk_zh="解释链条仍可能把“进入模型”误说成“证明改变预测”。",
@@ -521,16 +535,28 @@ class PredictionAnomalyAuditor:
     ) -> dict[str, Any]:
         claim_ids = sorted(support.claim_ids or set())[:10]
         source_ids = sorted(support.source_ids or set())[:10]
-        impact_ids = [
-            str(row.get("impact_trace_id"))
-            for row in impact_trace
-            if row.get("impact_trace_id")
-            and (
-                str(row.get("claim_id") or "") in claim_ids
-                or str(row.get("source_id") or "") in source_ids
-                or str(row.get("update_id_or_group_id") or "") in claim_ids
-            )
-        ][:8]
+        claim_id_set = set(claim_ids)
+        source_id_set = set(source_ids)
+        impact_ids = []
+        for row in impact_trace:
+            impact_id = str(row.get("impact_trace_id") or "")
+            if not impact_id:
+                continue
+            row_claim_ids = {
+                str(value)
+                for value in [row.get("claim_id"), *_as_values(row.get("claim_ids"))]
+                if value
+            }
+            row_source_ids = {
+                str(value)
+                for value in [row.get("source_id"), *_as_values(row.get("source_ids"))]
+                if value
+            }
+            group_id = str(row.get("update_id_or_group_id") or "")
+            if row_claim_ids & claim_id_set or row_source_ids & source_id_set or group_id in claim_id_set:
+                impact_ids.append(impact_id)
+            if len(impact_ids) >= 8:
+                break
         trace_status = "isolated_impact_available" if impact_ids else "state_route_only"
         return {
             "anomaly_id": safe_name(f"anomaly_{code}_{target_id}"),
@@ -622,6 +648,10 @@ def _field(row: Any, name: str) -> Any:
 
 def _as_list(value: Any) -> list[dict[str, Any]]:
     return [item for item in value if isinstance(item, dict)] if isinstance(value, list) else []
+
+
+def _as_values(value: Any) -> list[Any]:
+    return list(value) if isinstance(value, list) else []
 
 
 def _as_dict(value: Any) -> dict[str, Any]:

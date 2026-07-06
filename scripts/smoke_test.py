@@ -936,7 +936,13 @@ def main() -> None:
         assert all(
             row.quality_status != "strong" for row in conflicting_rows
         ), "conflicted evidence should not be promoted to strong quality"
-    packet = PredictionPacketBuilder(PredictionPipeline(iterations=120)).build(
+    packet = PredictionPacketBuilder(
+        PredictionPipeline(
+            iterations=120,
+            isolated_impact_limit=4,
+            isolated_source_group_limit=3,
+        )
+    ).build(
         "british_gp",
         knowledge_cutoff="2026-06-30T12:00:00+00:00",
         iterations=120,
@@ -958,6 +964,13 @@ def main() -> None:
     assert (
         packet.codex_context["factor_route_counts"].get("track_contextual_pace", 0) >= 3
     ), "prediction packet should preserve technical factor route counts"
+    assert (
+        packet.codex_context["isolated_source_group_impact_count"] >= 1
+    ), "prediction packet should include same-seed source-group impact traces"
+    assert any(
+        row.get("trace_type") == "isolated_same_seed_leave_source_group"
+        for row in packet.prediction.get("prediction_impact_trace", [])
+    ), "source-group impact traces should be part of the public prediction impact chain"
     assert (
         packet.codex_context["factor_trace"][0]["route_status"] != "unsupported_metric"
     ), "prediction packet should expose simulator-routed factor trace rows"

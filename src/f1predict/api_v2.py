@@ -210,6 +210,10 @@ class BackendApiV2:
         cutoff = body.get("knowledge_cutoff") or _first(query, "knowledge_cutoff", None)
         iterations = int(body.get("iterations") or _first(query, "iterations", "1200"))
         isolated_impact_limit = int(body.get("isolated_impact_limit") or _first(query, "isolated_impact_limit", "12"))
+        isolated_source_group_limit = int(
+            body.get("isolated_source_group_limit")
+            or _first(query, "isolated_source_group_limit", "4")
+        )
         output_dir = Path(body.get("output_dir") or self._default_prediction_packet_output_dir(event_id))
         register = bool(body.get("register", True))
         write_intake = bool(body.get("write_information_intake", True))
@@ -231,6 +235,7 @@ class BackendApiV2:
             PredictionPipeline(
                 iterations=iterations,
                 isolated_impact_limit=isolated_impact_limit,
+                isolated_source_group_limit=isolated_source_group_limit,
             ),
             reports_root=self.root / "reports",
         )
@@ -245,6 +250,7 @@ class BackendApiV2:
             "knowledge_cutoff": cutoff,
             "iterations": iterations,
             "isolated_impact_limit": isolated_impact_limit,
+            "isolated_source_group_limit": isolated_source_group_limit,
             "prediction_packet_paths": {
                 key: str(_relative_to_root(path, self.root))
                 for key, path in packet_paths.items()
