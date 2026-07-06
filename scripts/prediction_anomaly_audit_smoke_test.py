@@ -55,6 +55,10 @@ def main() -> None:
         row["code"] == "source_backed_negative_not_reflected" and row.get("target_id") == "alpine"
         for row in anomalies
     ), "Alpine team-level weak negative support has offsetting evidence and should not be a hard anomaly"
+    assert not any(
+        row["code"] == "teammate_order_conflict" and row.get("target_id") == "bortoleto_vs_hulkenberg"
+        for row in anomalies
+    ), "Near-tie teammate ordinal ranks should not be reported as material order conflicts"
     for row in anomalies:
         assert row["expected_rank_summary_zh"]
         assert row["evidence_summary_zh"]

@@ -56,6 +56,9 @@ SAME_EVENT_SOURCE_MARKERS = (
     "fastf1-session-laps",
 )
 
+TEAMMATE_CONFLICT_MIN_AVERAGE_FINISH_GAP = 0.40
+TEAMMATE_CONFLICT_MIN_EXPECTED_POINTS_GAP = 0.10
+
 
 @dataclass(frozen=True)
 class _PredictionRow:
@@ -539,6 +542,15 @@ class PredictionAnomalyAuditor:
                     teammate_rank = by_driver[teammate_id].rank
                     if driver_rank - teammate_rank < 2:
                         continue
+                    driver_prediction = by_driver[driver_id]
+                    teammate_prediction = by_driver[teammate_id]
+                    average_finish_gap = driver_prediction.average_finish - teammate_prediction.average_finish
+                    expected_points_gap = teammate_prediction.expected_points - driver_prediction.expected_points
+                    if (
+                        average_finish_gap < TEAMMATE_CONFLICT_MIN_AVERAGE_FINISH_GAP
+                        and expected_points_gap < TEAMMATE_CONFLICT_MIN_EXPECTED_POINTS_GAP
+                    ):
+                        continue
                     relevant_support = support.get(team_id)
                     driver_updates = [
                         row
@@ -570,6 +582,7 @@ class PredictionAnomalyAuditor:
                                 f"{_driver_name(season, driver_id)} 同场排位 P{driver_q}，"
                                 f"{_driver_name(season, teammate_id)} 同场排位 P{teammate_q}；"
                                 f"但预测中前者第 {driver_rank}，后者第 {teammate_rank}。"
+                                f"平均完赛名次差 {average_finish_gap:.2f}，期望积分差 {expected_points_gap:.2f}。"
                             ),
                             evidence_summary_zh="同队比较中，排位/发车位来源化输入与最终正赛预测顺序存在明显张力。",
                             model_risk_zh="这不一定说明排名必错，但当前解释必须证明正赛长距离、保胎、策略或近期状态足以覆盖同场排位差异；否则就是模型校准风险。",

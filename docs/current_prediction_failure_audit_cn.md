@@ -625,3 +625,54 @@ GET /api/v2/prediction-impact-traces/latest -> sidecar_id = british_gp_1a7764238
 ```
 
 前端应展示的状态是：解释链已经能从来源到状态更新到预测影响做同迭代追踪；但预测包仍是 `diagnostic_only`，还没有通过历史回放、概率校准和 edge 验证。
+
+## 14. 2026-07-06：同队顺序异常需要区分“实质冲突”和“近似平局”
+
+本轮继续修正一个解释层问题：异常审计不能只看整数预测排名。
+在 British GP 最新诊断包中，Audi 的 Bortoleto 与 Hulkenberg 曾被标为同队顺序张力：
+
+```text
+Bortoleto 同场排位 P11
+Hulkenberg 同场排位 P13
+预测排序中 Hulkenberg 略靠前
+```
+
+如果只看整数 expected rank，会显示成“第 18 vs 第 16”，像是明显冲突。但真实连续预测量是：
+
+```text
+Bortoleto average_finish = 15.60
+Hulkenberg average_finish = 15.53
+average_finish_gap = 0.07
+expected_points_gap ~= 0.01
+```
+
+这不是实质性预测分歧，而是一个接近同分布的近似平局。把它报成中优先级异常，会误导前端解释，让用户以为模型强烈认为排位更差的一方明显更好。
+
+因此新增通用审计阈值：
+
+```text
+TEAMMATE_CONFLICT_MIN_AVERAGE_FINISH_GAP = 0.40
+TEAMMATE_CONFLICT_MIN_EXPECTED_POINTS_GAP = 0.10
+```
+
+只有当“排位更好的同队车手”在平均完赛名次或期望积分上被预测为实质性更差时，才标记 `teammate_order_conflict`。如果只是整数排名由于近似平局发生跳动，就不再报中优先级异常。
+
+这个修正不改变预测概率、不改变排序、不手调任何车手。它只让异常审计更忠实地表达模型状态：
+
+```text
+近似平局 -> 不报明显冲突
+实质性被反向预测 -> 报同队顺序张力
+```
+
+当前 API 运行时复核：
+
+```text
+GET /api/v2/prediction-packets/latest?event_id=british_gp
+prediction_anomaly_audit.status = no_major_anomaly_detected
+prediction_anomaly_audit.anomaly_count = 0
+impact_trace_source = sidecar
+impact_trace_covered_claim_count = 453
+impact_trace_uncovered_claim_count = 0
+```
+
+这不等于预测已经正确，也不等于具备正式 edge；它只表示当前异常审计规则没有发现“来源事实与最终排名之间的明显冲突”。下一步仍然要靠历史回放、概率校准和市场基线比较证明预测质量。
