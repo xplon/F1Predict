@@ -862,13 +862,17 @@ class PredictionExplainer:
         for row in traces:
             if not isinstance(row, dict):
                 continue
-            if not _impact_trace_relevant(row, selected, teams, event_id):
+            relevance_scope = _impact_trace_relevance_scope(row, selected, teams, event_id)
+            if relevance_scope is None:
                 continue
             public_rows.append(
                 {
+                    "sort_index": len(public_rows),
                     "impact_trace_id": row.get("impact_trace_id"),
                     "trace_type": row.get("trace_type"),
                     "trace_type_label": _trace_type_label(row.get("trace_type")),
+                    "relevance_scope": relevance_scope,
+                    "relevance_scope_label": _trace_relevance_label(relevance_scope),
                     "update_id_or_group_id": row.get("update_id_or_group_id"),
                     "claim_id": row.get("claim_id"),
                     "claim_ids": list(row.get("claim_ids") or [])[:12],
@@ -893,6 +897,14 @@ class PredictionExplainer:
                     "interpretation_zh": row.get("interpretation_zh"),
                 }
             )
+        public_rows.sort(
+            key=lambda item: (
+                _trace_relevance_priority(item.get("relevance_scope")),
+                int(item.get("sort_index") or 0),
+            )
+        )
+        for row in public_rows:
+            row.pop("sort_index", None)
         isolated_count = sum(
             1
             for row in traces
@@ -1359,6 +1371,8 @@ class PredictionExplainer:
         rows = (context.get("prediction_impact_trace_context") or {}).get("top_traces") or []
         lines = []
         for row in rows[:limit]:
+            relevance = row.get("relevance_scope_label")
+            prefix = f"{relevance}：" if relevance else ""
             if row.get("trace_type") == "same_seed_before_after":
                 rank_changes = row.get("rank_changes") or []
                 if rank_changes:
@@ -1367,14 +1381,14 @@ class PredictionExplainer:
                         f"{item.get('direction_label')}{item.get('magnitude_label')}"
                         for item in rank_changes[:3]
                     )
-                    lines.append(f"完整状态相对弱 seed 初始状态的同种子对比中，{changes}")
+                    lines.append(f"{prefix}完整状态相对弱 seed 初始状态的同种子对比中，{changes}")
                 else:
-                    lines.append("完整状态相对弱 seed 初始状态已经生成同种子前后对比，但所选车手没有明显名次变化")
+                    lines.append(f"{prefix}完整状态相对弱 seed 初始状态已经生成同种子前后对比，但所选车手没有明显名次变化")
             elif row.get("trace_type") == "state_update_route":
                 factors = row.get("changed_factors") or []
                 factor = factors[0] if factors else {}
                 lines.append(
-                    f"{factor.get('target_label') or factor.get('target_id')} 的{factor.get('factor_label')}更新"
+                    f"{prefix}{factor.get('target_label') or factor.get('target_id')} 的{factor.get('factor_label')}更新"
                     f"已经路由到模拟器，但当前记录仍是{row.get('probability_delta_label')}"
                 )
             elif row.get("trace_type") == "isolated_same_seed_leave_one_information":
@@ -1385,9 +1399,9 @@ class PredictionExplainer:
                         f"在完整预测中{item.get('direction_label')}{item.get('magnitude_label')}"
                         for item in points_changes[:3]
                     )
-                    lines.append(f"相对移除单条信息 `{row.get('claim_id')}` 的同种子重跑，{changes}")
+                    lines.append(f"{prefix}相对移除单条信息 `{row.get('claim_id')}` 的同种子重跑，{changes}")
                 else:
-                    lines.append(f"单条信息 `{row.get('claim_id')}` 已做同种子隔离重跑，但对所选车手影响很小")
+                    lines.append(f"{prefix}单条信息 `{row.get('claim_id')}` 已做同种子隔离重跑，但对所选车手影响很小")
             elif row.get("trace_type") == "isolated_same_seed_leave_source_group":
                 points_changes = row.get("points_changes") or []
                 source_group = row.get("update_id_or_group_id")
@@ -1397,9 +1411,9 @@ class PredictionExplainer:
                         f"在完整预测中{item.get('direction_label')}{item.get('magnitude_label')}"
                         for item in points_changes[:3]
                     )
-                    lines.append(f"相对移除来源组 `{source_group}` 的同种子重跑，{changes}")
+                    lines.append(f"{prefix}相对移除来源组 `{source_group}` 的同种子重跑，{changes}")
                 else:
-                    lines.append(f"来源组 `{source_group}` 已做同种子隔离重跑，但对所选车手影响很小")
+                    lines.append(f"{prefix}来源组 `{source_group}` 已做同种子隔离重跑，但对所选车手影响很小")
         return lines
 
     def _single_score_note(
@@ -1813,19 +1827,49 @@ def _impact_trace_relevant(
     selected_team_ids: set[str],
     event_id: str,
 ) -> bool:
+    return _impact_trace_relevance_scope(row, selected_driver_ids, selected_team_ids, event_id) is not None
+
+
+def _impact_trace_relevance_scope(
+    row: dict[str, Any],
+    selected_driver_ids: set[str],
+    selected_team_ids: set[str],
+    event_id: str,
+) -> str | None:
     if row.get("update_id_or_group_id") == "all_state_updates_vs_weak_seed_prior":
-        return True
-    affected = {str(item) for item in row.get("affected_drivers") or []}
-    if selected_driver_ids & affected:
-        return True
-    if affected & {f"team:{team_id}" for team_id in selected_team_ids}:
-        return True
+        return "global_baseline"
     for factor in row.get("changed_factors") or []:
         if not isinstance(factor, dict):
             continue
         if _state_update_relevant(factor, selected_driver_ids, selected_team_ids, event_id):
-            return True
-    return False
+            target_type = str(factor.get("target_type") or "")
+            return "event_context" if target_type == "event" else "direct_target"
+    affected = {str(item) for item in row.get("affected_drivers") or []}
+    if selected_driver_ids & affected:
+        return "indirect_competition"
+    if affected & {f"team:{team_id}" for team_id in selected_team_ids}:
+        return "indirect_competition"
+    return None
+
+
+def _trace_relevance_label(scope: Any) -> str:
+    labels = {
+        "direct_target": "直接作用于所问对象",
+        "event_context": "本场比赛环境影响",
+        "global_baseline": "整体状态基线对比",
+        "indirect_competition": "竞争格局间接影响，不是直接支持所问对象的来源",
+    }
+    return labels.get(str(scope or ""), str(scope or "相关性未标注"))
+
+
+def _trace_relevance_priority(scope: Any) -> int:
+    priorities = {
+        "direct_target": 0,
+        "event_context": 1,
+        "global_baseline": 2,
+        "indirect_competition": 3,
+    }
+    return priorities.get(str(scope or ""), 9)
 
 
 def _target_label(target_type: Any, target_id: Any, season: Any) -> str:

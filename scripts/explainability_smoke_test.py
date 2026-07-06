@@ -117,6 +117,18 @@ def main() -> None:
         "\u53ef\u8ffd\u6eaf\u94fe\u8def" in ferrari.answer,
         "Comparison should explain via the traceable chain",
     )
+    ferrari_traces = ferrari_public["evidence_context"]["prediction_impact_trace_context"]["top_traces"]
+    _assert(ferrari_traces, "Ferrari comparison should include prediction-impact traces")
+    _assert(
+        ferrari_traces[0].get("relevance_scope") == "direct_target",
+        "Direct Ferrari/Hamilton/Leclerc traces should be prioritized before indirect competition traces",
+    )
+    _assert(
+        "\u76f4\u63a5\u4f5c\u7528\u4e8e\u6240\u95ee\u5bf9\u8c61" in ferrari.answer,
+        "Comparison impact lines should label direct target traces",
+    )
+    for trace in ferrari_traces:
+        _assert(trace.get("relevance_scope_label"), "Prediction-impact traces should expose a relevance label")
 
     zero_podium = explainer.answer(
         "why is Alonso first among zero podium drivers?",

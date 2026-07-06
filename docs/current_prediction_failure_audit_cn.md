@@ -817,3 +817,17 @@ average_finish 从小到大
 ```
 
 两者都重要，但不能互相替代。
+
+## 17. 2026-07-07：解释 trace 区分直接证据和间接竞争影响
+
+继续检查中文解释时发现一个容易误导用户的问题：一条影响 trace 只要改变了所问车手的期望积分，就会进入解释；但这条 trace 的来源目标不一定是该车手或同队赛车。例如 Mercedes 车队强度重估被移除时，Ferrari 车手的期望积分也会变化，因为竞争格局变了。这个 trace 可以说明“竞争对手来源会间接改变 Ferrari 分布”，但不能写成“Mercedes 来源直接解释 Hamilton/Leclerc 队内差距”。
+
+本轮修正：
+
+- `PredictionExplainer` 为每条公开 impact trace 增加 `relevance_scope` 和 `relevance_scope_label`；
+- 直接作用于所问车手、所问车队或本场事件的 trace 标为“直接作用于所问对象”或“本场比赛环境影响”；
+- 只因为改变竞争格局而影响所问车手的 trace 标为“竞争格局间接影响，不是直接支持所问对象的来源”；
+- 用户可读回答优先展示直接 trace，再展示本场环境/整体基线，最后才展示间接竞争影响；
+- `scripts/explainability_smoke_test.py` 增加断言，确保 Hamilton/Leclerc 对比时 Ferrari/Leclerc/Hamilton 直接 trace 排在 Mercedes 间接竞争 trace 前面。
+
+这项修正不改变预测概率，也不改变 sidecar。它修正的是解释语义：影响到了某个车手，不等于该来源就是解释这个车手/车队状态的直接证据。以后前端如果展示一条 Mercedes 来源影响 Leclerc/Hamilton 的 trace，必须明确这是竞争格局间接影响，而不是 Ferrari 或 Leclerc 的事实来源。

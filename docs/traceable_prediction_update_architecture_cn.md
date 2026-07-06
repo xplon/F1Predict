@@ -661,6 +661,15 @@ sidecar 必须记录：
 
 其中“原始来源”来自 `RawSourceRecord`，“信息分析”来自 claim/evidence/quality/factor trace，“状态更新”来自 update ledger，“模拟路由”来自 factor route 或 update ledger 的 `affected_model_surfaces`，“预测变化”来自同种子 before/after 或 leave-one-information rerun。当前如果 trace 是整体聚合行，可能只有“预测变化”阶段；如果是单条 claim/source 行，必须展示完整链路或明确说明缺失哪一段。
 
+每条影响 trace 还必须说明“为什么和用户问题相关”。相关性至少分四类：
+
+- `direct_target`：来源或状态更新直接作用于所问车手/车队；
+- `event_context`：来源作用于本场比赛环境，例如天气、安全车、赛道温度；
+- `global_baseline`：完整状态相对初始状态的整体对比；
+- `indirect_competition`：来源作用于竞争对手，但因为排名和概率是全场联合分布，所以间接改变了所问车手。
+
+前端和自然语言解释必须优先展示 `direct_target` 和 `event_context`。`indirect_competition` 可以展示，但必须写明“这不是直接支持所问对象的来源”。否则系统会把“Mercedes 变强导致 Ferrari 分布变化”误写成“Mercedes 来源解释 Ferrari/Leclerc 状态”，这会破坏可解释性。
+
 这解决的是可追溯性问题，不是预测质量问题。只有当 sidecar 使用与源 run 相同的输入、知识截止、随机种子策略和迭代数时，才能把某条 trace 作为更强的影响解释。低迭代 sidecar 只能叫诊断，不能叫正式 ablation 或正式效果证明。
 
 异常审计也必须 sidecar-aware：如果主 prediction packet 只内嵌 top-N trace，但同一个 `run_id` 已有完整 sidecar，前端/API 的异常审计应该使用 sidecar 覆盖证据，而不是继续把“主包内嵌 trace 少”报告成解释链缺失。历史 packet 文件仍保持不可变；API 可以运行时刷新审计视图，但不能借此改变预测概率或排名。
