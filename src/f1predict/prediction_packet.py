@@ -12,6 +12,7 @@ from f1predict.domain import PredictionReport, parse_dt, utc_now
 from f1predict.event_inputs import audit_event_input
 from f1predict.market import after_cutoff_market_count, event_market_snapshots
 from f1predict.pipeline import PredictionPipeline
+from f1predict.prediction_anomaly import PredictionAnomalyAuditor
 from f1predict.storage import safe_name
 from f1predict.track_features import track_feature_vector
 
@@ -32,6 +33,7 @@ class PredictionPacket:
     market_context: dict[str, Any]
     model_context: dict[str, Any]
     codex_context: dict[str, Any]
+    prediction_anomaly_audit: dict[str, Any]
     probability_summary: dict[str, Any]
     top_market_edges: tuple[dict[str, Any], ...]
     prediction: dict[str, Any]
@@ -51,6 +53,7 @@ class PredictionPacket:
             "market_context": self.market_context,
             "model_context": self.model_context,
             "codex_context": self.codex_context,
+            "prediction_anomaly_audit": self.prediction_anomaly_audit,
             "probability_summary": self.probability_summary,
             "top_market_edges": list(self.top_market_edges),
             "prediction": self.prediction,
@@ -125,6 +128,17 @@ class PredictionPacket:
                 "- Explanation path: raw source -> extracted information -> normalized factor -> "
                 "state update -> same-seed prediction impact."
             )
+        anomaly_audit = self.prediction_anomaly_audit or {}
+        if anomaly_audit:
+            lines.extend(["", "## Prediction Anomaly Audit", ""])
+            lines.append(f"- Status: `{anomaly_audit.get('status', 'unknown')}`")
+            lines.append(f"- Summary: {anomaly_audit.get('summary_zh', '')}")
+            for row in (anomaly_audit.get("anomalies") or [])[:6]:
+                lines.append(
+                    f"- `{row.get('severity')}` `{row.get('code')}`: "
+                    f"{row.get('expected_rank_summary_zh', '')} "
+                    f"{row.get('model_risk_zh', '')}"
+                )
         lines.extend(["", "## Market Context", ""])
         lines.append(f"- Usable snapshots: `{self.market_context.get('usable_snapshot_count', 0)}`")
         lines.append(f"- After-cutoff snapshots: `{self.market_context.get('after_cutoff_snapshot_count', 0)}`")
@@ -181,6 +195,7 @@ class PredictionPacketBuilder:
         model_context = self._model_context(pipeline, report.event)
         codex_context = self._codex_context(report)
         codex_context["intake"] = self._codex_intake_context(event_id)
+        prediction_anomaly_audit = PredictionAnomalyAuditor().build(season, report)
         market_context = self._market_context(report, usable_markets, after_cutoff_markets)
         probability_summary = self._probability_summary(report)
         top_market_edges = tuple(self._top_market_edges(report))
@@ -206,6 +221,7 @@ class PredictionPacketBuilder:
             market_context=market_context,
             model_context=model_context,
             codex_context=codex_context,
+            prediction_anomaly_audit=prediction_anomaly_audit,
             probability_summary=probability_summary,
             top_market_edges=top_market_edges,
             prediction=report.to_dict(),
@@ -226,6 +242,7 @@ class PredictionPacketBuilder:
             market_context=packet.market_context,
             model_context=packet.model_context,
             codex_context=packet.codex_context,
+            prediction_anomaly_audit=packet.prediction_anomaly_audit,
             probability_summary=packet.probability_summary,
             top_market_edges=packet.top_market_edges,
             prediction=packet.prediction,

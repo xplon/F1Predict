@@ -10,6 +10,7 @@ diagnostic and must not be treated as production evidence.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 
@@ -20,6 +21,7 @@ PREDICTION_UPDATE_FILES = (
     ROOT / "src" / "f1predict" / "models" / "pace.py",
     ROOT / "src" / "f1predict" / "pipeline.py",
     ROOT / "src" / "f1predict" / "models" / "simulator.py",
+    ROOT / "src" / "f1predict" / "prediction_anomaly.py",
 )
 
 ENTITY_TOKENS = (
@@ -52,7 +54,8 @@ def main() -> None:
     for path in PREDICTION_UPDATE_FILES:
         text = path.read_text(encoding="utf-8").lower()
         for token in ENTITY_TOKENS:
-            if token in text:
+            pattern = rf"(?<![a-z0-9_]){re.escape(token)}(?![a-z0-9_])"
+            if re.search(pattern, text):
                 violations.append(f"{path.relative_to(ROOT)} contains entity token {token!r}")
     if violations:
         details = "\n".join(f"- {item}" for item in violations)

@@ -545,6 +545,7 @@ function render() {
   drawReplayChart(replayRows);
   renderStrategyTrace(replayRows);
   renderProbabilityTable(report.race_probabilities);
+  renderPredictionAnomalyAudit();
   renderEdgeTable(report.market_edges);
   renderPredictionPacket();
   renderAiJudgement(report.ai_judgement);
@@ -591,6 +592,9 @@ function renderPredictionPending(eventId) {
     : "";
   document.getElementById("iterationMeta").textContent = title;
   document.getElementById("probabilityTable").innerHTML = `<p>${escapeHtml(detail)}</p>`;
+  document.getElementById("predictionAnomalyStatus").textContent = title;
+  document.getElementById("predictionAnomalySummary").innerHTML = "";
+  document.getElementById("predictionAnomalyList").innerHTML = `<p>${escapeHtml(detail)}</p>`;
   document.getElementById("edgeTable").innerHTML = "";
   document.getElementById("packetSummary").innerHTML = "";
   document.getElementById("aiJudgement").innerHTML = "";
@@ -667,12 +671,82 @@ function renderPredictionPacket() {
       <div><span>影响追踪</span><strong>${codex.prediction_impact_trace_count || 0}</strong></div>
       <div><span>单条重跑</span><strong>${codex.isolated_prediction_impact_count || 0}</strong></div>
       <div><span>原始来源</span><strong>${packet.prediction?.belief_state?.raw_sources?.length || 0}</strong></div>
+      <div><span>异常审计</span><strong>${packet.prediction_anomaly_audit?.anomaly_count || 0}</strong></div>
       <div><span>市场快照</span><strong>${market.usable_snapshot_count || 0}</strong></div>
       <div><span>弱证据</span><strong>${codex.weak_evidence_quality_count || 0}</strong></div>
       <div><span>预检</span><strong>${escapeHtml(intake.research_preflight_status || "missing")}</strong></div>
     </div>
     <div class="packet-flags">${blockerText}</div>
     <div class="packet-flags">${warningText}</div>
+  `;
+}
+
+function renderPredictionAnomalyAudit() {
+  const audit = state.packet?.prediction_anomaly_audit || currentTraceablePrediction()?.prediction_anomaly_audit || null;
+  const statusElement = document.getElementById("predictionAnomalyStatus");
+  const summaryElement = document.getElementById("predictionAnomalySummary");
+  const listElement = document.getElementById("predictionAnomalyList");
+  if (!audit) {
+    statusElement.textContent = "等待预测包";
+    summaryElement.innerHTML = "";
+    listElement.innerHTML = "<p>当前预测包还没有异常审计。</p>";
+    return;
+  }
+  const coverage = audit.coverage || {};
+  const anomalies = Array.isArray(audit.anomalies) ? audit.anomalies : [];
+  statusElement.textContent = anomalyStatusLabel(audit.status);
+  summaryElement.innerHTML = [
+    ["异常", audit.anomaly_count || 0],
+    ["高优先级", audit.high_severity_count || 0],
+    ["中优先级", audit.medium_severity_count || 0],
+    ["状态更新", coverage.state_update_count || 0],
+    ["单条重跑", coverage.isolated_trace_count || 0],
+    ["路由记录", coverage.route_only_trace_count || 0]
+  ].map(([label, value]) => `
+    <article class="metric-card ${label === "高优先级" && Number(value) ? "metric-alert" : ""}">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </article>
+  `).join("");
+  listElement.innerHTML = anomalies.length
+    ? anomalies.map(row => renderPredictionAnomalyCard(row)).join("")
+    : `<article class="anomaly-card"><span class="pill">未发现主要异常</span><p>${escapeHtml(audit.summary_zh || "当前规则没有发现明显冲突。")}</p></article>`;
+}
+
+function renderPredictionAnomalyCard(row) {
+  const drivers = (row.driver_ids || [])
+    .map(id => driverNames[id] || id)
+    .filter(Boolean)
+    .join(" / ");
+  const target = row.target_type === "team"
+    ? (teamNames[row.target_id] || row.target_id)
+    : row.team_id
+      ? `${teamNames[row.team_id] || row.team_id}${drivers ? ` | ${drivers}` : ""}`
+      : (drivers || row.target_id || "预测运行");
+  const sources = (row.supporting_sources || [])
+    .slice(0, 3)
+    .map(source => `<span class="pill">${escapeHtml(source.publisher || source.source_type_zh || "来源")}: ${escapeHtml(shortHash(source.title || source.source_id))}</span>`)
+    .join("");
+  const chain = (row.source_to_prediction_chain || [])
+    .slice(0, 4)
+    .map(stage => `<p><strong>${escapeHtml(stage.stage || "")}</strong>：${escapeHtml(stage.text_zh || "")}</p>`)
+    .join("");
+  const severityClass = String(row.severity || "low").replace(/[^a-z0-9_-]/gi, "");
+  return `
+    <article class="anomaly-card anomaly-${severityClass}">
+      <div class="anomaly-head">
+        <h3>${escapeHtml(target)}</h3>
+        <span class="pill">${escapeHtml(severityLabel(row.severity))}</span>
+        <span class="pill">${escapeHtml(anomalyCodeLabel(row.code))}</span>
+        <span class="pill">${escapeHtml(traceStatusLabel(row.trace_status))}</span>
+      </div>
+      <p>${escapeHtml(row.expected_rank_summary_zh || "")}</p>
+      <p>${escapeHtml(row.evidence_summary_zh || "")}</p>
+      <p>${escapeHtml(row.model_risk_zh || "")}</p>
+      <p>${escapeHtml(row.recommended_action_zh || "")}</p>
+      <div class="quality-flags">${sources || "<span class=\"pill\">来源摘要不足</span>"}</div>
+      <div class="anomaly-chain">${chain}</div>
+    </article>
   `;
 }
 
@@ -3143,6 +3217,43 @@ function traceTypeLabel(type) {
     state_update_route: "状态更新路由"
   };
   return labels[String(type)] || String(type || "预测影响");
+}
+
+function anomalyStatusLabel(status) {
+  const labels = {
+    requires_model_review: "需要优先复核",
+    review_recommended: "建议复核",
+    no_major_anomaly_detected: "未发现主要异常"
+  };
+  return labels[String(status)] || String(status || "异常状态未知");
+}
+
+function severityLabel(severity) {
+  const labels = {
+    high: "高优先级",
+    medium: "中优先级",
+    low: "低优先级"
+  };
+  return labels[String(severity)] || String(severity || "优先级未知");
+}
+
+function anomalyCodeLabel(code) {
+  const labels = {
+    source_backed_negative_not_reflected: "负向来源未充分反映",
+    source_backed_positive_under_ranked: "正向来源可能被压低",
+    recent_form_not_reflected: "近期走势未反映",
+    teammate_order_conflict: "队友顺序张力",
+    impact_trace_incomplete_for_material_updates: "单条影响追踪不足"
+  };
+  return labels[String(code)] || String(code || "异常类型");
+}
+
+function traceStatusLabel(status) {
+  const labels = {
+    isolated_impact_available: "已有同种子影响证据",
+    state_route_only: "仅有状态路由证据"
+  };
+  return labels[String(status)] || String(status || "影响追踪状态未知");
 }
 
 function targetDisplay(targetType, targetId) {

@@ -339,6 +339,56 @@ canvas {
   overflow-wrap: anywhere;
 }
 
+.anomaly-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 10px;
+}
+
+.anomaly-card {
+  display: grid;
+  gap: 9px;
+  align-content: start;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--warn);
+  border-radius: 8px;
+  background: var(--panel-2);
+  padding: 12px;
+}
+
+.anomaly-card.anomaly-high {
+  border-left-color: var(--bad);
+}
+
+.anomaly-card.anomaly-low {
+  border-left-color: var(--accent);
+}
+
+.anomaly-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+.anomaly-head h3 {
+  flex: 1 0 100%;
+  margin: 0 0 3px;
+  font-size: 15px;
+}
+
+.anomaly-card p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.anomaly-chain {
+  display: grid;
+  gap: 6px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
 .impact-score {
   display: grid;
   gap: 4px;

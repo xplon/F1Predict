@@ -194,6 +194,14 @@ knowledge_cutoff=2026-07-05T00:00:00+00:00  # 可选
 }
 ```
 
+packet 本体现在包含：
+
+```text
+prediction_anomaly_audit
+```
+
+用途是展示“来源事实、状态更新和最终排名之间是否存在张力”。它只做诊断和解释，不会反向修改预测概率。前端“预测异常审计”区块读取这个字段，展示中文摘要、支持来源、状态更新链条和需要复核的模型风险。
+
 ### GET /api/v2/prediction-runs/{run_id}/packet
 
 用途：读取指定 run 指向的 prediction packet JSON。它同样是只读接口，不会重新生成预测。
