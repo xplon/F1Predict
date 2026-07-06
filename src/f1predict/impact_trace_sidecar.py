@@ -285,7 +285,10 @@ def merge_sidecars(sidecars: list[dict[str, Any]]) -> dict[str, Any]:
     traces = _dedupe_traces([trace for sidecar in valid for trace in _as_trace_list(sidecar)])
     generated_at = utc_now().replace(microsecond=0).isoformat()
     trace_fingerprint = _canonical_hash(traces)
-    sidecar_id = safe_name(f"{event_id}_{_run_dir_name(run_id)}_{_stem_time(generated_at)}_merged_{trace_fingerprint[:10]}")
+    # Keep merged artifact names comfortably below Windows path limits; the
+    # full source run id remains recorded in source_run.run_id.
+    run_fingerprint = _canonical_hash(run_id)[:12]
+    sidecar_id = safe_name(f"{event_id}_{run_fingerprint}_{_stem_time(generated_at)}_merged_{trace_fingerprint[:10]}")
     merged = {
         key: value
         for key, value in first.items()

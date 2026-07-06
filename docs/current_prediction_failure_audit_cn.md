@@ -545,3 +545,83 @@ formal_readiness.formal_ready = true
 - 继续减少/替换 `seed://` 开发证据，让默认预测更多来自 FIA/F1 官方、FastF1、天气、赛道、可靠性、长距离和近期窗口数据；
 - 把正式 sidecar 的链路解释接入前端默认问答和重点面板，而不是让用户看到孤立分数；
 - 用历史回放验证每类状态更新和每类权重修改是否真的改善预测，而不是只改善解释或迎合人工直觉。
+
+## 13. 2026-07-06 13:18 UTC：积分截断修正来自来源映射，不来自用户一句话
+
+本轮修正专门回应一个原则问题：用户指出 Mercedes、Ferrari、Red Bull、Aston Martin、Cadillac、Racing Bulls、Audi 等例子，只能作为异常报告，不能作为标签。代码不能因为用户说“某队应该更强/更弱”就偷偷写死数值。
+
+这次实际修改的是通用来源映射问题：分站积分和车队积分只奖励前十名，是 `top-ten-censored` 数据。仅用积分会把经常在第 11-15 名附近完赛的中游车队，错误地压到和长期第 18-22 名的垫底车队接近。新的 `fastf1_team_strength_reestimate` 仍读取 FastF1 赛季/近期每站积分，但当积分信号为负、而同一批 FastF1 全场完赛分类显示该队没有那么差时，会用统一公式缓和负向积分信号。
+
+这不是按车队名硬编码：
+
+```text
+Racing Bulls、Alpine、Audi、Haas、Williams：负向积分信号被全场完赛分类不同程度缓和
+Aston Martin、Cadillac：全场完赛分类没有支持缓和，因此仍保持更强负向
+```
+
+关键来源解释示例：
+
+```text
+Racing Bulls:
+FastF1 赛前每站积分 5.12 vs 全场 9.18；近期窗口 7.67 vs 全场 9.18。
+因为积分只覆盖前十，负向积分信号被同源 FastF1 全场完赛分类信号 +0.0226 缓和，最终 team_strength = -0.0011。
+
+Audi:
+FastF1 赛前每站积分 0.25 vs 全场 9.18；近期窗口 0.00 vs 全场 9.18。
+因为积分只覆盖前十，负向积分信号被同源 FastF1 全场完赛分类信号 -0.0243 缓和，最终 team_strength = -0.0432。
+
+Aston Martin:
+FastF1 赛前每站积分 0.12 vs 全场 9.18；近期窗口 0.33 vs 全场 9.18。
+没有触发缓和，最终 team_strength = -0.0563。
+
+Cadillac:
+FastF1 赛前每站积分 0.00 vs 全场 9.18；近期窗口 0.00 vs 全场 9.18。
+没有触发缓和，最终 team_strength = -0.0577。
+```
+
+同口径 diff 显示：
+
+```text
+base_run = british_gp_20260705T000000_0000_20260706T115913_0000_31f3f052bf
+candidate_run = british_gp_20260705T000000_0000_20260706T125327_0000_b732713811
+input_changed = true
+evidence_changed = false
+probability_changed = true
+information_intake_changed = false
+changed_driver_count = 20
+material_driver_change_count = 2
+rank_change_count = 2
+max_abs_expected_points_delta = 0.0992
+```
+
+这说明它不是新增了用户话语证据；也不是新增了 Codex 非结构化来源。它是结构化特征映射的修正，因此 `input_changed = true`、`evidence_changed = false`。预测变化幅度很小：主要是 Hulkenberg/Audi 从第 17 到第 16，Ocon 从第 16 到第 17；Racing Bulls 的期望积分略升，Aston Martin/Cadillac 仍在底部。这只能叫“方向上更合理一点”，不能叫预测质量已经显著优秀。
+
+最新注册 run：
+
+```text
+run_id = british_gp_20260705T000000_0000_20260706T125327_0000_b732713811
+packet_sha256 = b73271381102a3c760effd8ca0afc052d7cb15d471d478fa4d10523de3073c62
+status = diagnostic_only
+blocker = probability_calibration_diagnostic_only
+```
+
+正式解释 sidecar 已完成：
+
+```text
+sidecar_id = british_gp_1a7764238906_20260706T131855_0000_merged_1236c64f1a
+source_iterations = 1200
+trace_iterations = 1200
+covered_claim_count = 453
+uncovered_claim_count = 0
+formal_readiness.status = formal_trace_ready
+formal_readiness.formal_ready = true
+```
+
+API 当前会选择这个 sidecar：
+
+```text
+GET /api/v2/prediction-impact-traces/readiness -> formal_trace_ready
+GET /api/v2/prediction-impact-traces/latest -> sidecar_id = british_gp_1a7764238906_20260706T131855_0000_merged_1236c64f1a
+```
+
+前端应展示的状态是：解释链已经能从来源到状态更新到预测影响做同迭代追踪；但预测包仍是 `diagnostic_only`，还没有通过历史回放、概率校准和 edge 验证。

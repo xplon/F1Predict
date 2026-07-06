@@ -355,6 +355,13 @@ def main() -> None:
         and feature.target_type == "team"
         and feature.metric == "race_pace"
     }
+    british_team_strength = {
+        feature.target_id: feature
+        for feature in british_race_morning_features
+        if feature.source.startswith("fastf1_team_strength_reestimate")
+        and feature.target_type == "team"
+        and feature.metric == "race_pace"
+    }
     british_with_qualifying_order = pipeline._event_with_fastf1_qualifying_order(
         season,
         british_event,
@@ -372,6 +379,13 @@ def main() -> None:
         and british_finish_position_strength["audi"].value > british_finish_position_strength["aston_martin"].value
         and british_finish_position_strength["cadillac"].value < 0
     ), "FastF1 full-field finish positions should distinguish midfield/backfield team strength beyond points-only scoring"
+    assert (
+        british_team_strength["racing_bulls"].value > british_team_strength["audi"].value
+        > british_team_strength["aston_martin"].value
+        > british_team_strength["cadillac"].value
+        and "top-ten-censored" in british_team_strength["audi"].explanation
+        and "top-ten-censored" not in british_team_strength["aston_martin"].explanation
+    ), "FastF1 point-based team strength should be moderated by full-field finishes for censored midfield teams"
     british_track_vector = track_feature_vector(british_event)
     british_track_position_penalty = SingleRaceSimulator(
         season,
@@ -950,8 +964,11 @@ def main() -> None:
     assert packet.status == "diagnostic_only", "prediction packet should not promote diagnostic inputs to formal edge"
     assert not packet.formal_edge_ready, "prediction packet should keep formal edge readiness false while blockers remain"
     assert (
-        "codex_evidence_quality_review_required" in packet.blocker_codes
-    ), "prediction packet should surface weak/review-required Codex evidence quality"
+        "codex_claims_require_review" in packet.warning_codes
+    ), "prediction packet should surface review-required Codex evidence quality"
+    assert (
+        "blocked_development_seed_evidence_separated" in packet.warning_codes
+    ), "prediction packet should keep blocked development seed evidence separated from public inputs"
     assert (
         packet.market_context["usable_snapshot_count"] >= 1
     ), "prediction packet should summarize cutoff-usable market snapshots"
@@ -962,8 +979,11 @@ def main() -> None:
         packet.model_context["simulator_config"]["race_score_lap_time_scale"] == 0.66
     ), "prediction packet should preserve calibrated simulator parameters"
     assert (
-        packet.codex_context["factor_route_counts"].get("track_contextual_pace", 0) >= 3
-    ), "prediction packet should preserve technical factor route counts"
+        packet.codex_context["factor_route_counts"].get("wet_weather", 0) >= 1
+    ), "prediction packet should preserve public source-backed factor route counts"
+    assert (
+        packet.codex_context["blocked_development_evidence_count"] >= 1
+    ), "prediction packet should report blocked development seed evidence without routing it as public evidence"
     assert (
         packet.codex_context["isolated_source_group_impact_count"] >= 1
     ), "prediction packet should include same-seed source-group impact traces"
@@ -978,15 +998,23 @@ def main() -> None:
         "effective_race_input" in row and "weighted_input_impact" in row
         for row in packet.codex_context["factor_trace"]
     ), "prediction packet should preserve effective simulator input decomposition"
-    assert any(
-        row.get("track_demand_component") == "ers_demand"
-        for row in packet.codex_context["factor_trace"]
-    ), "prediction packet should preserve technical track-demand components"
-    assert any(
-        row.get("context_multiplier") is not None
-        for row in packet.codex_context["factor_trace"]
+    technical_trace_rows = [
+        row for row in packet.codex_context["factor_trace"]
         if row.get("route") == "track_contextual_pace"
-    ), "prediction packet should preserve track-context multipliers for technical factors"
+    ]
+    if technical_trace_rows:
+        assert any(
+            row.get("track_demand_component") == "ers_demand"
+            for row in technical_trace_rows
+        ), "prediction packet should preserve technical track-demand components when public technical claims exist"
+        assert any(
+            row.get("context_multiplier") is not None
+            for row in technical_trace_rows
+        ), "prediction packet should preserve track-context multipliers for public technical factors"
+    else:
+        assert (
+            packet.codex_context["blocked_development_evidence_count"] >= 1
+        ), "technical seed claims should be blocked instead of appearing as public track-context evidence"
     assert (
         packet.codex_context["conflict_status_counts"].get("no_conflict", 0) >= 1
     ), "prediction packet should summarize Codex conflict diagnostics"

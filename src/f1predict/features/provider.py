@@ -1673,6 +1673,14 @@ class ProcessedFeatureProvider:
         field_recent_avg = mean(recent_team_avg.get(team_id, all_team_avg[team_id]) for team_id in team_ids)
         recent_count = len(recent_result_rows)
         recent_weight = min(0.45, 0.15 + 0.10 * recent_count) if recent_count >= 2 else 0.0
+        finish_value_by_team = self._team_strength_finish_moderators(
+            season,
+            all_result_rows,
+            recent_result_rows,
+            driver_lookup,
+            team_ids,
+            recent_weight,
+        )
         confidence = min(0.62, 0.34 + 0.035 * len(all_result_rows))
         source = (
             f"fastf1_team_strength_reestimate:{season.season}:"
@@ -1684,9 +1692,17 @@ class ProcessedFeatureProvider:
             season_delta = all_team_avg[team_id] - field_all_avg
             recent_delta = recent_team_avg.get(team_id, all_team_avg[team_id]) - field_recent_avg
             blended_delta = (1.0 - recent_weight) * season_delta + recent_weight * recent_delta
-            value = round(self._clamp(blended_delta / 35.0 * 0.22, -0.16, 0.16), 4)
+            points_value = self._clamp(blended_delta / 35.0 * 0.22, -0.16, 0.16)
+            finish_value = finish_value_by_team.get(team_id)
+            value = round(self._points_censoring_adjusted_value(points_value, finish_value), 4)
             if not value:
                 continue
+            moderation_note = ""
+            if finish_value is not None and value > round(points_value, 4):
+                moderation_note = (
+                    " Because points are top-ten-censored, the negative points signal was moderated by "
+                    f"the same FastF1 full-field finish classification signal ({finish_value:+.4f})."
+                )
             adjustments.append(
                 FeatureAdjustment(
                     feature_id=(
@@ -1707,10 +1723,47 @@ class ProcessedFeatureProvider:
                         f"{recent_team_avg.get(team_id, all_team_avg[team_id]):.2f} vs field {field_recent_avg:.2f}. "
                         "Used as a bounded team/car strength reestimate so current-season results can move the "
                         "race-pace prior without hand-writing a team order."
+                        f"{moderation_note}"
                     ),
                 )
             )
         return adjustments
+
+    def _team_strength_finish_moderators(
+        self,
+        season: SeasonState,
+        all_result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        recent_result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        driver_lookup: dict[str, str],
+        team_ids: list[str],
+        recent_weight: float,
+    ) -> dict[str, float]:
+        all_team_finishes = self._team_event_average_finishes(season, all_result_rows, driver_lookup)
+        recent_team_finishes = self._team_event_average_finishes(season, recent_result_rows, driver_lookup)
+        teams_with_finishes = [team_id for team_id in team_ids if all_team_finishes.get(team_id)]
+        if not teams_with_finishes:
+            return {}
+
+        field_all_finish = mean(mean(all_team_finishes[team_id]) for team_id in teams_with_finishes)
+        field_recent_finish = mean(
+            mean(recent_team_finishes.get(team_id, all_team_finishes[team_id]))
+            for team_id in teams_with_finishes
+        )
+        output: dict[str, float] = {}
+        for team_id in teams_with_finishes:
+            all_avg_finish = mean(all_team_finishes[team_id])
+            recent_avg_finish = mean(recent_team_finishes.get(team_id, all_team_finishes[team_id]))
+            season_delta = field_all_finish - all_avg_finish
+            recent_delta = field_recent_finish - recent_avg_finish
+            blended_delta = (1.0 - recent_weight) * season_delta + recent_weight * recent_delta
+            output[team_id] = self._clamp(blended_delta / 8.0 * 0.10, -0.10, 0.10)
+        return output
+
+    @staticmethod
+    def _points_censoring_adjusted_value(points_value: float, finish_value: float | None) -> float:
+        if finish_value is None or points_value >= 0.0 or finish_value <= points_value:
+            return points_value
+        return points_value * 0.58 + finish_value * 0.42
 
     def _team_event_point_totals(
         self,
