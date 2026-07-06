@@ -56,6 +56,12 @@ def main() -> None:
         row["code"] == "source_backed_negative_not_reflected" and row.get("target_id") == "alpine"
         for row in anomalies
     ), "Alpine team-level weak negative support has offsetting evidence and should not be a hard anomaly"
+    assert any(
+        row["code"] == "driver_specific_lift_over_weak_team_support"
+        and row.get("target_id") == "gasly"
+        and row.get("severity") == "low"
+        for row in anomalies
+    ), "Gasly P9 over weak Alpine team support should remain visible as a low-priority review item"
     assert not any(
         row["code"] == "teammate_order_conflict" and row.get("target_id") == "bortoleto_vs_hulkenberg"
         for row in anomalies
@@ -66,7 +72,7 @@ def main() -> None:
         assert row["model_risk_zh"]
         assert row["recommended_action_zh"]
         chain = row.get("source_to_prediction_chain") or []
-        assert [stage["stage"] for stage in chain[:4]] == ["原始来源", "信息分析", "状态更新", "预测变化"]
+        assert [stage["stage"] for stage in chain[:5]] == ["原始来源", "信息分析", "状态更新", "模拟路由", "预测变化"]
         assert not any(str(source_id).startswith("seed") for source_id in row.get("supporting_source_ids", []))
 
     print("prediction anomaly audit smoke ok")

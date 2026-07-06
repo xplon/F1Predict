@@ -438,7 +438,7 @@ Alonso 曾被放在“领奖台概率为 0 的车手”中的第一，这与 Ast
 - Russell 和 Antonelli 的领先幅度可能过大；
 - Hamilton/Leclerc 的队内差距已比上一版缓和，但仍需要用长距离、保胎、策略和近期状态做历史回放校准；
 - Racing Bulls、Audi/Sauber、中游车队排序已补入全场完赛顺位，但仍需要更多同周末长距离和可靠性信息支撑；
-- Alpine 的负向同周末来源与 Gasly 第 9 的预测位置仍存在张力；不过 Alpine 的赛季/近期完赛顺位和积分并不差，因此这项应保留为模型复核风险，而不是手动压低排名；
+- Alpine 的车队/赛车层来源整体略偏弱，但 Gasly 的个人积分、近期表现和部分同周末来源把他抬到第 9；这项现在会作为低优先级复核项展示，而不是硬判为模型错误，也不能手动压低排名；
 - 单站 1200 次蒙特卡洛采样仍不足以支撑小概率尾部结论；
 - 当前预测仍是 `diagnostic_only`，不具备稳定盈利 edge 的证明。
 
@@ -489,15 +489,16 @@ src/f1predict/prediction_anomaly.py
 当前 API 可见状态：
 
 ```text
-run = british_gp_20260705T000000_0000_20260706T115913_0000_31f3f052bf
+run = british_gp_20260705T000000_0000_20260706T142235_0000_ab901d489d
 prediction_anomaly_audit_source = api_runtime_recomputed
 impact_trace_source = sidecar
-impact_trace_covered_claim_count = 453
+impact_trace_covered_claim_count = 456
 impact_trace_uncovered_claim_count = 0
-anomaly_count = 0
+anomaly_count = 1
+anomaly = driver_specific_lift_over_weak_team_support / gasly / low
 ```
 
-上一版异常审计中的 Leclerc/Hamilton 与 Racing Bulls 条目已在 2026-07-06 07:49 UTC 新 run 中消失；Williams 与 Alonso/Stroll 条目已在 2026-07-06 08:20 UTC 新 run 中消失。这不能证明最终模型已经正确，但证明异常审计发现的问题已经至少有一部分通过通用映射修正反馈到了预测结果，而不是只停留在提示文本。
+上一版异常审计中的 Leclerc/Hamilton 与 Racing Bulls 条目已在 2026-07-06 07:49 UTC 新 run 中消失；Williams 与 Alonso/Stroll 条目已在 2026-07-06 08:20 UTC 新 run 中消失。当前保留的 Gasly/Alpine 条目不是“车队负向却硬排中游”的高/中优先级异常，而是低优先级复核：Alpine 车队/赛车层来源略偏弱，Gasly 个人来源把他抬入前十附近。这不能证明最终模型已经正确，但证明异常审计会把“来源事实、状态更新和最终排名之间的张力”展示出来，而不是给出“完全无风险”的假象。
 
 前端新增“预测异常审计”区块，默认展示中文摘要、风险原因、支持来源和从“原始来源 -> 信息分析 -> 状态更新 -> 模拟路由 -> 预测变化”的链条。它不会展示内部裸分数，也不会按车队/车手手动改结果。
 
@@ -560,18 +561,18 @@ anomaly_count = 0
 2. 如果 sidecar 的 `trace_generation.comparison_status` 是 `diagnostic_iteration_mismatch`，说明隔离重跑迭代数与源 run 不一致，只能用于链路诊断，不能作为正式“这条信息精确改变了多少概率”的证明。
 3. 用户的例子仍然只能触发排查：代码层继续要求预测更新不能按车手/车队名写死，必须来自来源化数据、结构化特征和通用模拟机制。
 4. 当前模型质量仍是 `diagnostic_only`：sidecar 解决的是“能否追溯每条信息的边际影响”，不是“预测已经稳定有 edge”。
-5. 当前默认 latest 已确认是 `british_gp_20260705T000000_0000_20260706T115913_0000_31f3f052bf`；由未验证启发式权重试验生成的 `c4515f938f` 不进入默认前端。
+5. 当前默认 latest 已确认是 `british_gp_20260705T000000_0000_20260706T142235_0000_ab901d489d`；由未验证启发式权重试验生成的 `c4515f938f` 不进入默认前端。
 6. API/latest 会用当前审计器和对应 sidecar 重新计算前端可见的 `prediction_anomaly_audit`；这不是重新预测，也不会写 artifact。
 
 当前已缓存 sidecar 对最新注册 run 的正式解释覆盖为：
 
 ```text
-state_update_count = 453
-sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_e33fbbd4ba1b_20260706T123600_0000_057974e605
+state_update_count = 456
+sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_b9e5e9b73c4a_20260706T144238_0000_4764d14662
 source_iterations = 1200
 trace_iterations = 1200
 trace_generation.comparison_status = matched_source_run_iterations
-impact_trace_covered_claim_count = 453
+impact_trace_covered_claim_count = 456
 impact_trace_uncovered_claim_count = 0
 formal_readiness.status = formal_trace_ready
 formal_readiness.formal_ready = true
@@ -743,11 +744,12 @@ TEAMMATE_CONFLICT_MIN_EXPECTED_POINTS_GAP = 0.10
 
 ```text
 GET /api/v2/prediction-packets/latest?event_id=british_gp
-prediction_anomaly_audit.status = no_major_anomaly_detected
-prediction_anomaly_audit.anomaly_count = 0
+prediction_anomaly_audit.status = review_recommended
+prediction_anomaly_audit.anomaly_count = 1
+prediction_anomaly_audit.low_priority = driver_specific_lift_over_weak_team_support / gasly
 impact_trace_source = sidecar
-impact_trace_covered_claim_count = 453
+impact_trace_covered_claim_count = 456
 impact_trace_uncovered_claim_count = 0
 ```
 
-这不等于预测已经正确，也不等于具备正式 edge；它只表示当前异常审计规则没有发现“来源事实与最终排名之间的明显冲突”。下一步仍然要靠历史回放、概率校准和市场基线比较证明预测质量。
+这不等于预测已经正确，也不等于具备正式 edge；它只表示当前异常审计规则没有发现高/中优先级明显冲突，但会保留低优先级 Gasly/Alpine 复核项。下一步仍然要靠历史回放、概率校准和市场基线比较证明预测质量。

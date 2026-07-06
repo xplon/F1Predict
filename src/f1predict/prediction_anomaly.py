@@ -510,6 +510,45 @@ class PredictionAnomalyAuditor:
                         impact_trace=impact_trace,
                     )
                 )
+            if (
+                bucket in {"negative", "slight_negative"}
+                and best_rank <= 10
+                and avg_rank > 10.0
+                and team_support.positive_update_count > team_support.team_positive_update_count
+                and team_support.positive_value > max(0.03, team_support.team_positive_value)
+            ):
+                best_driver = team_rows[0]
+                anomalies.append(
+                    self._anomaly(
+                        code="driver_specific_lift_over_weak_team_support",
+                        severity="low",
+                        target_type="driver",
+                        target_id=best_driver.driver_id,
+                        team_id=team_id,
+                        driver_ids=[row.driver_id for row in team_rows],
+                        expected_rank_summary_zh=(
+                            f"{_driver_name(season, best_driver.driver_id)} 被预测为第 {best_rank}，"
+                            f"但 {_team_name(season, team_id)} 双车平均预测约第 {avg_rank:.1f}。"
+                        ),
+                        evidence_summary_zh=(
+                            f"车队/赛车层来源为{_bucket_zh(bucket)}："
+                            f"{team_support.team_positive_update_count} 条正向、"
+                            f"{team_support.team_negative_update_count} 条负向；"
+                            f"但车手层正向来源把该车手抬入前十附近。"
+                        ),
+                        model_risk_zh=(
+                            "这不是硬冲突，但前端不能只显示“无异常”。需要说明当前排名主要来自车手个人近期积分、"
+                            "赛季表现或同周末数据，而不是车队整体已经转强。"
+                        ),
+                        recommended_action_zh=(
+                            "复核该车手个人来源是否足以覆盖车队层弱信号；优先补长距离、轮胎衰退、策略和队友对比，"
+                            "不要按车队名手动压低。"
+                        ),
+                        support=team_support,
+                        sources=sources,
+                        impact_trace=impact_trace,
+                    )
+                )
         return anomalies
 
     def _teammate_conflict_anomalies(
@@ -742,6 +781,10 @@ class PredictionAnomalyAuditor:
             {
                 "stage": "状态更新",
                 "text_zh": f"相关声明产生 {len(support.update_ids or [])} 条状态更新，方向由来源、时效、机制和冲突门控决定。",
+            },
+            {
+                "stage": "模拟路由",
+                "text_zh": "这些状态更新会通过对应因子进入 race pace、排位采样、策略、可靠性或湿地分支等模拟器表面。",
             },
             {
                 "stage": "预测变化",
