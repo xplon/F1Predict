@@ -115,6 +115,7 @@ class PredictionRunRegistrationGate:
     probability_changed: bool
     race_probability_changed: bool
     belief_state_update_changed: bool
+    source_identity_changed: bool
     model_revision_proof_path: str | None
     summary_zh: str
 
@@ -130,6 +131,7 @@ class PredictionRunRegistrationGate:
             "probability_changed": self.probability_changed,
             "race_probability_changed": self.race_probability_changed,
             "belief_state_update_changed": self.belief_state_update_changed,
+            "source_identity_changed": self.source_identity_changed,
             "model_revision_proof_path": self.model_revision_proof_path,
             "summary_zh": self.summary_zh,
         }
@@ -285,6 +287,7 @@ class PredictionRunRegistry:
                 probability_changed=True,
                 race_probability_changed=True,
                 belief_state_update_changed=True,
+                source_identity_changed=True,
                 model_revision_proof_path=str(model_revision_proof_path) if model_revision_proof_path else None,
                 summary_zh="没有可比较的旧 run；允许注册，但不能据此声称预测改进来自新增来源。",
             )
@@ -295,10 +298,17 @@ class PredictionRunRegistry:
         candidate_evidence = self._evidence_fingerprint(packet)
         candidate_probability = self._probability_fingerprint(packet)
         candidate_belief = self._belief_state(packet).get("update_fingerprint")
+        candidate_source_identity = self._source_identity_fingerprint(packet)
+        base_source_identity = self._source_identity_fingerprint(base_packet) if base_packet is not None else None
         input_changed = candidate_input != base_record.input_fingerprint
         evidence_changed = candidate_evidence != base_record.evidence_fingerprint
         probability_changed = candidate_probability != base_record.probability_fingerprint
         belief_state_update_changed = candidate_belief != base_record.belief_state_update_fingerprint
+        source_identity_changed = (
+            candidate_source_identity != base_source_identity
+            if base_source_identity is not None
+            else evidence_changed
+        )
         race_probability_changed = probability_changed
         if base_packet is not None:
             race_probability_changed = (
@@ -318,13 +328,14 @@ class PredictionRunRegistry:
                 probability_changed=probability_changed,
                 race_probability_changed=False,
                 belief_state_update_changed=belief_state_update_changed,
+                source_identity_changed=source_identity_changed,
                 model_revision_proof_path=str(model_revision_proof_path) if model_revision_proof_path else None,
                 summary_zh="正赛排名/概率没有变化；允许注册，但这不是预测效果改进。",
             )
 
-        if evidence_changed or belief_state_update_changed:
+        if evidence_changed or source_identity_changed:
             return PredictionRunRegistrationGate(
-                status="source_state_driven_prediction_change",
+                status="source_identity_driven_prediction_change",
                 allow_registration=True,
                 blocker_codes=(),
                 warning_codes=(),
@@ -334,8 +345,9 @@ class PredictionRunRegistry:
                 probability_changed=probability_changed,
                 race_probability_changed=True,
                 belief_state_update_changed=belief_state_update_changed,
+                source_identity_changed=source_identity_changed,
                 model_revision_proof_path=str(model_revision_proof_path) if model_revision_proof_path else None,
-                summary_zh="预测变化伴随证据或 BeliefState 更新变化；可以注册为来源/状态驱动的诊断 run。",
+                summary_zh="预测变化伴随新证据或新原始来源身份；可以注册为来源驱动的诊断 run。",
             )
 
         proof_path = Path(model_revision_proof_path) if model_revision_proof_path else None
@@ -351,15 +363,18 @@ class PredictionRunRegistry:
                 evidence_changed=False,
                 probability_changed=probability_changed,
                 race_probability_changed=True,
-                belief_state_update_changed=False,
+                belief_state_update_changed=belief_state_update_changed,
+                source_identity_changed=source_identity_changed,
                 model_revision_proof_path=str(proof_path),
                 summary_zh=(
-                    "预测变化没有伴随证据或 BeliefState 更新变化，但提供了模型修订证明；"
+                    "预测变化没有伴随新证据或新原始来源身份，但提供了模型/映射修订证明；"
                     "允许注册为模型修订诊断 run，仍不能声称来自新增来源。"
                 ),
             )
 
         blockers = ["non_source_driven_prediction_change"]
+        if belief_state_update_changed and not source_identity_changed and not evidence_changed:
+            blockers.append("state_mapping_revision_proof_required")
         if allow_model_revision_registration and not proof_exists:
             blockers.append("model_revision_proof_missing")
         return PredictionRunRegistrationGate(
@@ -372,11 +387,12 @@ class PredictionRunRegistry:
             evidence_changed=False,
             probability_changed=probability_changed,
             race_probability_changed=True,
-            belief_state_update_changed=False,
+            belief_state_update_changed=belief_state_update_changed,
+            source_identity_changed=source_identity_changed,
             model_revision_proof_path=str(model_revision_proof_path) if model_revision_proof_path else None,
             summary_zh=(
-                "新包改变了正赛预测，但证据 fingerprint 和 BeliefState 更新 fingerprint 都没有变化；"
-                "这更像模型/常数/启发式改动，默认不能注册成 latest。"
+                "新包改变了正赛预测，但没有新证据或新原始来源身份；如果这是同一批信息的"
+                "模型/映射修订，必须提供模型修订证明，默认不能注册成 latest。"
             ),
         )
 
@@ -466,6 +482,58 @@ class PredictionRunRegistry:
         return _canonical_hash(
             {
                 "evidence": prediction.get("evidence"),
+            }
+        )
+
+    @staticmethod
+    def _source_identity_fingerprint(packet: dict[str, Any]) -> str:
+        prediction = packet.get("prediction") if isinstance(packet.get("prediction"), dict) else {}
+        evidence_rows = prediction.get("evidence") if isinstance(prediction.get("evidence"), list) else []
+        feature_rows = (
+            prediction.get("feature_adjustments")
+            if isinstance(prediction.get("feature_adjustments"), list)
+            else []
+        )
+        evidence_sources = []
+        for row in evidence_rows:
+            if not isinstance(row, dict):
+                continue
+            evidence_sources.append(
+                {
+                    "claim_id": row.get("claim_id"),
+                    "source": row.get("source"),
+                    "source_url": row.get("source_url"),
+                    "published_at": row.get("published_at"),
+                    "observed_at": row.get("observed_at"),
+                }
+            )
+        feature_sources = []
+        for row in feature_rows:
+            if not isinstance(row, dict):
+                continue
+            feature_sources.append(
+                {
+                    "source": row.get("source"),
+                    "observed_at": row.get("observed_at"),
+                }
+            )
+        return _canonical_hash(
+            {
+                "evidence_sources": sorted(
+                    evidence_sources,
+                    key=lambda item: (
+                        str(item.get("source_url") or ""),
+                        str(item.get("claim_id") or ""),
+                        str(item.get("observed_at") or ""),
+                    ),
+                ),
+                "feature_sources": sorted(
+                    feature_sources,
+                    key=lambda item: (
+                        str(item.get("source") or ""),
+                        str(item.get("observed_at") or ""),
+                    ),
+                ),
             }
         )
 

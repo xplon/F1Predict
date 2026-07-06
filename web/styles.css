@@ -74,6 +74,17 @@ button {
   cursor: pointer;
 }
 
+.secondary-button {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.secondary-button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
@@ -91,6 +102,14 @@ button {
 
 .wide {
   grid-column: 1 / -1;
+}
+
+.diagnostic-panel {
+  display: none;
+}
+
+body.show-diagnostics .diagnostic-panel {
+  display: block;
 }
 
 .panel-title {
@@ -219,6 +238,47 @@ canvas {
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 10px;
   margin-top: 10px;
+}
+
+.core-decision-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.core-decision-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  padding: 12px;
+}
+
+.core-decision-card.important {
+  border-left: 4px solid var(--accent);
+}
+
+.core-decision-card.warning {
+  border-left: 4px solid var(--warn);
+}
+
+.core-decision-card h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.core-decision-card p {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.core-decision-card .pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 .strategy-card {

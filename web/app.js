@@ -24,10 +24,14 @@ const state = {
   predictionError: null,
   replayLap: null,
   replayPlaying: false,
-  replayTimer: null
+  replayTimer: null,
+  diagnosticsLoaded: false,
+  diagnosticsLoading: false,
+  diagnosticsSlowPanels: []
 };
 
 let predictionRequestSeq = 0;
+const DIAGNOSTIC_PANEL_TIMEOUT_MS = 12000;
 
 const driverNames = {
   antonelli: "Antonelli",
@@ -136,37 +140,123 @@ async function init() {
     .join("");
   select.value = "british_gp";
   document.getElementById("refreshButton").addEventListener("click", refreshAll);
+  document.getElementById("loadDiagnosticsButton").addEventListener("click", toggleDiagnostics);
   select.addEventListener("change", loadPrediction);
   document.getElementById("replayPlayButton").addEventListener("click", toggleReplayPlayback);
   document.getElementById("replayLapSlider").addEventListener("input", event => {
     setReplayLap(Number(event.target.value));
   });
   await loadPrediction();
-  loadDashboardPanels();
 }
 
 async function refreshAll() {
   await loadPrediction();
-  await loadDashboardPanels();
+  if (diagnosticsVisible()) {
+    await loadDashboardPanels();
+  }
 }
 
 async function loadDashboardPanels() {
-  await Promise.allSettled([
-    loadSeasonForecast(),
-    loadOfficialStandings(),
-    loadChronologicalReplay(),
-    loadReplayAnalysis(),
-    loadMvpGate(),
-    loadFormalReadiness(),
-    loadReadinessIntake(),
-    loadMarketReadiness(),
-    loadSourceReadiness(),
-    loadImprovementPlan(),
-    loadCalibrationReport(),
-    loadModelErrorReview(),
-    loadSimulatorCalibration(),
-    loadReplayFreeze()
-  ]);
+  state.diagnosticsLoading = true;
+  state.diagnosticsSlowPanels = [];
+  renderDiagnosticsButton();
+  const results = await Promise.all([
+    ["season", loadSeasonForecast],
+    ["officialStandings", loadOfficialStandings],
+    ["chronologicalReplay", loadChronologicalReplay],
+    ["replayAnalysis", loadReplayAnalysis],
+    ["mvpGate", loadMvpGate],
+    ["formalReadiness", loadFormalReadiness],
+    ["readinessIntake", loadReadinessIntake],
+    ["marketReadiness", loadMarketReadiness],
+    ["sourceReadiness", loadSourceReadiness],
+    ["improvementPlan", loadImprovementPlan],
+    ["calibration", loadCalibrationReport],
+    ["modelErrorReview", loadModelErrorReview],
+    ["simulatorCalibration", loadSimulatorCalibration],
+    ["replayFreeze", loadReplayFreeze]
+  ].map(([label, loader]) => loadDiagnosticPanel(label, loader)));
+  state.diagnosticsSlowPanels = results
+    .filter(result => result.status === "timeout")
+    .map(result => result.label);
+  state.diagnosticsSlowPanels.forEach(markDiagnosticPanelTimeout);
+  state.diagnosticsLoaded = true;
+  state.diagnosticsLoading = false;
+  renderDiagnosticsButton();
+}
+
+function loadDiagnosticPanel(label, loader) {
+  let timeoutId = null;
+  const task = Promise.resolve()
+    .then(loader)
+    .then(
+      () => ({ label, status: "loaded" }),
+      () => ({ label, status: "failed" })
+    );
+  const timeout = new Promise(resolve => {
+    timeoutId = window.setTimeout(
+      () => resolve({ label, status: "timeout" }),
+      DIAGNOSTIC_PANEL_TIMEOUT_MS
+    );
+  });
+  return Promise.race([task, timeout]).finally(() => {
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId);
+    }
+  });
+}
+
+function markDiagnosticPanelTimeout(label) {
+  const statusIdByLabel = {
+    season: "seasonStatus",
+    officialStandings: "officialStatus",
+    chronologicalReplay: "chronologicalStatus",
+    replayAnalysis: "analysisStatus",
+    mvpGate: "mvpGateStatus",
+    formalReadiness: "readinessStatus",
+    readinessIntake: "intakeStatus",
+    marketReadiness: "marketReadinessStatus",
+    sourceReadiness: "sourceReadinessStatus",
+    improvementPlan: "improvementStatus",
+    calibration: "calibrationStatus",
+    modelErrorReview: "modelErrorStatus",
+    simulatorCalibration: "simulatorCalibrationStatus",
+    replayFreeze: "freezeStatus"
+  };
+  const element = document.getElementById(statusIdByLabel[label]);
+  if (element) {
+    element.textContent = "后台加载中";
+  }
+}
+
+function diagnosticsVisible() {
+  return document.body.classList.contains("show-diagnostics");
+}
+
+async function toggleDiagnostics() {
+  document.body.classList.toggle("show-diagnostics");
+  renderDiagnosticsButton();
+  if (diagnosticsVisible() && !state.diagnosticsLoaded && !state.diagnosticsLoading) {
+    await loadPredictionDiagnostics();
+    await loadDashboardPanels();
+  }
+}
+
+function renderDiagnosticsButton() {
+  const button = document.getElementById("loadDiagnosticsButton");
+  if (!button) {
+    return;
+  }
+  button.classList.toggle("active", diagnosticsVisible());
+  if (state.diagnosticsLoading) {
+    button.textContent = "诊断加载中";
+  } else if (diagnosticsVisible() && state.diagnosticsSlowPanels.length) {
+    button.textContent = "诊断面板已展开";
+  } else if (diagnosticsVisible()) {
+    button.textContent = "隐藏诊断面板";
+  } else {
+    button.textContent = "加载诊断面板";
+  }
 }
 
 async function loadPrediction() {
@@ -214,11 +304,15 @@ async function loadPrediction() {
 
 function loadPredictionAuxiliaryPanels(encodedEventId, requestSeq, packetLoadedFromCache = false) {
   const requests = [
-    ["impactTraceSidecar", `/api/v2/prediction-impact-traces/latest?event_id=${encodedEventId}&limit=24`],
-    ["researchPlan", `/api/codex-research-plan?event_id=${encodedEventId}`],
-    ["sourceCandidates", `/api/source-candidates?event_id=${encodedEventId}`],
-    ["researchPreflight", `/api/research-preflight?event_id=${encodedEventId}`]
+    ["impactTraceSidecar", `/api/v2/prediction-impact-traces/latest?event_id=${encodedEventId}&limit=24`]
   ];
+  if (diagnosticsVisible()) {
+    requests.push(
+      ["researchPlan", `/api/codex-research-plan?event_id=${encodedEventId}`],
+      ["sourceCandidates", `/api/source-candidates?event_id=${encodedEventId}`],
+      ["researchPreflight", `/api/research-preflight?event_id=${encodedEventId}`]
+    );
+  }
   if (!packetLoadedFromCache) {
     requests.unshift([
       "packet",
@@ -242,6 +336,28 @@ function loadPredictionAuxiliaryPanels(encodedEventId, requestSeq, packetLoadedF
         render();
       });
   });
+}
+
+async function loadPredictionDiagnostics() {
+  const eventId = document.getElementById("eventSelect").value;
+  const encoded = encodeURIComponent(eventId);
+  const requestSeq = predictionRequestSeq;
+  await Promise.allSettled([
+    ["researchPlan", `/api/codex-research-plan?event_id=${encoded}`],
+    ["sourceCandidates", `/api/source-candidates?event_id=${encoded}`],
+    ["researchPreflight", `/api/research-preflight?event_id=${encoded}`]
+  ].map(([stateKey, url]) => (
+    getJson(url).then(payload => {
+      if (requestSeq === predictionRequestSeq) {
+        state[stateKey] = payload;
+      }
+    }).catch(() => {
+      if (requestSeq === predictionRequestSeq) {
+        state[stateKey] = null;
+      }
+    })
+  )));
+  render();
 }
 
 async function loadReplayAnalysis() {
@@ -548,6 +664,7 @@ function render() {
   drawReplayChart(replayRows);
   renderStrategyTrace(replayRows);
   renderProbabilityTable(report.race_probabilities);
+  renderCoreDecisionSummary();
   renderPredictionAnomalyAudit();
   renderEdgeTable(report.market_edges);
   renderPredictionPacket();
@@ -595,6 +712,8 @@ function renderPredictionPending(eventId) {
     : "";
   document.getElementById("iterationMeta").textContent = title;
   document.getElementById("probabilityTable").innerHTML = `<p>${escapeHtml(detail)}</p>`;
+  document.getElementById("coreDecisionStatus").textContent = title;
+  document.getElementById("coreDecisionSummary").innerHTML = `<p>${escapeHtml(detail)}</p>`;
   document.getElementById("predictionAnomalyStatus").textContent = title;
   document.getElementById("predictionAnomalySummary").innerHTML = "";
   document.getElementById("predictionAnomalyList").innerHTML = `<p>${escapeHtml(detail)}</p>`;
@@ -643,6 +762,107 @@ function renderReplayPending(title, detail) {
     const ctx = canvas.getContext("2d");
     drawCanvasNotice(ctx, canvas.width, canvas.height, canvasTitle, [detail]);
   });
+}
+
+function renderCoreDecisionSummary() {
+  const report = state.report;
+  const packet = state.packet || {};
+  const sidecar = state.impactTraceSidecar || {};
+  const audit = packet.prediction_anomaly_audit || {};
+  const cache = packet.cache_context || {};
+  const coverage = sidecar.coverage || {};
+  const formalTrace = sidecar.formal_readiness || {};
+  const raceRows = Array.isArray(report?.race_probabilities)
+    ? report.race_probabilities.slice().sort((a, b) => Number(a.average_finish || 99) - Number(b.average_finish || 99))
+    : [];
+  const topDrivers = raceRows.slice(0, 5)
+    .map((row, index) => `${index + 1}. ${driverNames[row.driver_id] || row.driver_id}`)
+    .join(" / ");
+  const materialTraces = Array.isArray(sidecar.traces)
+    ? sidecar.traces
+        .filter(row => ["material_prediction_change", "small_prediction_change"].includes(row.impact_status))
+        .sort((a, b) => tracePriority(b) - tracePriority(a))
+        .slice(0, 3)
+    : [];
+  const traceCards = materialTraces.map(trace => {
+    const source = (trace.supporting_sources || [])[0] || {};
+    const changed = (trace.changed_factors || [])[0] || {};
+    const predictionText = firstPredictionChangeText(trace);
+    return `
+      <article class="core-decision-card important">
+        <h3>${escapeHtml(source.publisher || "来源化信息")}: ${escapeHtml(shortHash(source.title || trace.claim_id || trace.impact_trace_id))}</h3>
+        <p>${escapeHtml(targetDisplay(changed.target_type, changed.target_id))} 的 ${escapeHtml(factorLabel(changed.factor))}：${escapeHtml(directionLabel(changed.direction))}。</p>
+        <p>${escapeHtml(predictionText || trace.interpretation_zh || "同种子影响追踪已生成。")}</p>
+        <div class="pill-row">
+          <span class="pill">${escapeHtml(impactStatusLabel(trace.impact_status))}</span>
+          <span class="pill">${escapeHtml(magnitudeLabel(trace.probability_delta_bucket))}</span>
+        </div>
+      </article>
+    `;
+  }).join("");
+  const anomalyCards = (audit.anomalies || []).slice(0, 2).map(row => `
+    <article class="core-decision-card warning">
+      <h3>${escapeHtml(anomalyCodeLabel(row.code))}</h3>
+      <p>${escapeHtml(row.summary_zh || row.model_risk_zh || "该预测仍需复核。")}</p>
+      <p>${escapeHtml(row.recommended_action_zh || "需要补充来源化信息或复核模型传导。")}</p>
+    </article>
+  `).join("");
+  document.getElementById("coreDecisionStatus").textContent = formalTrace.formal_ready
+    ? "正式解释链已缓存，预测仍是诊断级"
+    : "解释链未完全就绪";
+  document.getElementById("coreDecisionSummary").innerHTML = [
+    `
+      <article class="core-decision-card ${packet.status === "diagnostic_only" ? "warning" : "important"}">
+        <h3>当前预测状态</h3>
+        <p>Run：${escapeHtml(shortHash(cache.run_id || sidecar.source_run?.run_id || ""))}；状态：${escapeHtml(packet.status || "未知")}。</p>
+        <p>${escapeHtml((packet.blocker_codes || []).join("，") || "没有阻塞项")}。</p>
+        <div class="pill-row">
+          <span class="pill">${packet.formal_edge_ready ? "可进入正式复核" : "仍是诊断预测"}</span>
+          <span class="pill">${escapeHtml((packet.warning_codes || [])[0] || "无警告")}</span>
+        </div>
+      </article>
+    `,
+    `
+      <article class="core-decision-card important">
+        <h3>排名摘要</h3>
+        <p>${escapeHtml(topDrivers || "暂无排名。")}</p>
+        <p>排序按平均完赛名次展示；完整概率表在上方面板。</p>
+      </article>
+    `,
+    `
+      <article class="core-decision-card important">
+        <h3>解释链覆盖</h3>
+        <p>来源化状态更新：${escapeHtml(coverage.impact_trace_covered_claim_count || 0)} / ${escapeHtml(coverage.impact_trace_claim_count || 0)}。</p>
+        <p>${escapeHtml(formalTrace.status_zh || "完整影响追踪缓存尚未生成。")}</p>
+        <div class="pill-row">
+          <span class="pill">${formalTrace.formal_ready ? "同迭代全覆盖" : "诊断解释"}</span>
+          <span class="pill">${escapeHtml(sidecar.trace_generation?.comparison_status || "missing")}</span>
+        </div>
+      </article>
+    `,
+    `
+      <article class="core-decision-card ${Number(audit.anomaly_count || 0) ? "warning" : "important"}">
+        <h3>剩余异常</h3>
+        <p>${escapeHtml(audit.summary_zh || "异常审计尚未加载。")}</p>
+      </article>
+    `,
+    traceCards,
+    anomalyCards
+  ].filter(Boolean).join("");
+}
+
+function firstPredictionChangeText(trace) {
+  const points = Array.isArray(trace.expected_points_delta) ? trace.expected_points_delta[0] : null;
+  if (points?.driver_id) {
+    const direction = Number(points.expected_points_delta || 0) >= 0 ? "上升" : "下降";
+    return `${driverNames[points.driver_id] || points.driver_id} 的期望积分${direction} ${Math.abs(Number(points.expected_points_delta || 0)).toFixed(3)}。`;
+  }
+  const ranks = Array.isArray(trace.rank_delta) ? trace.rank_delta.find(row => Number(row.expected_rank_delta || 0) !== 0) : null;
+  if (ranks?.driver_id) {
+    const delta = Number(ranks.expected_rank_delta || 0);
+    return `${driverNames[ranks.driver_id] || ranks.driver_id} 的预测名次变化 ${delta > 0 ? "+" : ""}${delta}。`;
+  }
+  return "";
 }
 
 function renderPredictionPacket() {

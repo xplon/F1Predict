@@ -165,14 +165,25 @@ def _assert_registration_gate_contract() -> None:
         source_state = deepcopy(model_only)
         source_state["prediction"]["belief_state"]["state_id"] = "contract_state_update-b"
         source_state["prediction"]["belief_state"]["update_fingerprint"] = "update-b"
-        allowed = registry.assess_registration_gate(source_state, base_record=base_record)
-        if not allowed.allow_registration or allowed.status != "source_state_driven_prediction_change":
-            raise AssertionError("Source/BeliefState-driven prediction changes should remain registrable")
+        state_only_blocked = registry.assess_registration_gate(source_state, base_record=base_record)
+        if (
+            state_only_blocked.allow_registration
+            or "state_mapping_revision_proof_required" not in state_only_blocked.blocker_codes
+        ):
+            raise AssertionError("State-mapping changes without new source identity must require model-revision proof")
+
+        new_source_state = deepcopy(source_state)
+        new_source_state["prediction"]["evidence"][0]["claim_id"] = "contract-source-002"
+        new_source_state["prediction"]["evidence"][0]["source_url"] = "https://example.com/contract-source-2"
+        new_source_state["prediction"]["evidence"][0]["observed_at"] = "2026-07-01T00:30:00+00:00"
+        allowed = registry.assess_registration_gate(new_source_state, base_record=base_record)
+        if not allowed.allow_registration or allowed.status != "source_identity_driven_prediction_change":
+            raise AssertionError("New source identity should remain registrable as source-driven")
 
         proof = root / "model_revision_proof.md"
         proof.write_text("diagnostic replay proof placeholder", encoding="utf-8")
         proof_allowed = registry.assess_registration_gate(
-            model_only,
+            source_state,
             base_record=base_record,
             allow_model_revision_registration=True,
             model_revision_proof_path=proof,

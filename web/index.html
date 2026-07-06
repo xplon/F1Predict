@@ -15,6 +15,7 @@
       <div class="controls">
         <select id="eventSelect" aria-label="Race event"></select>
         <button id="refreshButton" type="button">Refresh</button>
+        <button id="loadDiagnosticsButton" type="button" class="secondary-button">加载诊断面板</button>
       </div>
     </header>
 
@@ -38,6 +39,14 @@
 
       <section class="panel wide">
         <div class="panel-title">
+          <h2>预测依据总览</h2>
+          <span id="coreDecisionStatus">来源、状态更新与影响追踪</span>
+        </div>
+        <div id="coreDecisionSummary" class="core-decision-grid"></div>
+      </section>
+
+      <section class="panel wide">
+        <div class="panel-title">
           <h2>预测异常审计</h2>
           <span id="predictionAnomalyStatus">来源事实与排名冲突</span>
         </div>
@@ -45,7 +54,7 @@
         <div id="predictionAnomalyList" class="anomaly-list"></div>
       </section>
 
-      <section class="panel">
+      <section class="panel diagnostic-panel">
         <div class="panel-title">
           <h2>Season Forecast</h2>
           <span id="seasonStatus">Loading</span>
@@ -53,7 +62,7 @@
         <div id="seasonTable" class="table"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Official Standings</h2>
           <span id="officialStatus">Roster audit</span>
@@ -79,16 +88,16 @@
         <div id="strategyTrace" class="strategy-trace"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Chronological Replay</h2>
           <span id="chronologicalStatus">Full-season diagnostic bundle</span>
         </div>
         <div id="chronologicalSummary" class="metric-grid"></div>
-        <div id="chronologicalList" class="chronological-list"></div>
+      <div id="chronologicalList" class="chronological-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Replay Diagnostics</h2>
           <span id="analysisStatus">Diagnostic replay</span>
@@ -101,7 +110,7 @@
         <div id="marketAuditList" class="source-audit-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>MVP Gate</h2>
           <span id="mvpGateStatus">Delivery requirements</span>
@@ -110,7 +119,7 @@
         <div id="mvpGateList" class="mvp-gate-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Formal Readiness</h2>
           <span id="readinessStatus">Input queue</span>
@@ -119,7 +128,7 @@
         <div id="readinessList" class="readiness-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Readiness Intake</h2>
           <span id="intakeStatus">Assignable queues</span>
@@ -128,7 +137,7 @@
         <div id="intakeList" class="intake-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Market Readiness</h2>
           <span id="marketReadinessStatus">Candidate scan</span>
@@ -137,7 +146,7 @@
         <div id="marketReadinessList" class="market-readiness-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Source Readiness</h2>
           <span id="sourceReadinessStatus">Archive proof</span>
@@ -146,7 +155,7 @@
         <div id="sourceReadinessList" class="source-readiness-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Improvement Plan</h2>
           <span id="improvementStatus">Next actions</span>
@@ -155,7 +164,7 @@
         <div id="improvementList" class="improvement-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Calibration</h2>
           <span id="calibrationStatus">Diagnostic only</span>
@@ -164,7 +173,7 @@
         <div id="calibrationBins" class="table calibration-table"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Model Error Review</h2>
           <span id="modelErrorStatus">Replay miss analysis</span>
@@ -173,7 +182,7 @@
         <div id="modelErrorList" class="model-error-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Simulator Calibration</h2>
           <span id="simulatorCalibrationStatus">Diagnostic candidate ranking</span>
@@ -182,7 +191,7 @@
         <div id="simulatorCalibrationList" class="simulator-calibration-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Replay Freeze</h2>
           <span id="freezeStatus">Reproducibility manifest</span>
@@ -191,7 +200,7 @@
         <div id="freezeList" class="freeze-list"></div>
       </section>
 
-      <section class="panel">
+      <section class="panel diagnostic-panel">
         <div class="panel-title">
           <h2>Market Gap</h2>
           <span>Model vs market</span>
@@ -207,7 +216,7 @@
         <div id="packetSummary" class="packet-summary"></div>
       </section>
 
-      <section class="panel">
+      <section class="panel diagnostic-panel">
         <div class="panel-title">
           <h2>Codex Judgement</h2>
           <span>Normalized evidence only</span>
@@ -215,7 +224,7 @@
         <div id="aiJudgement" class="note"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Codex Research Plan</h2>
           <span id="researchPlanStatus">Source tasks and impact rubric</span>
@@ -224,7 +233,7 @@
         <div id="researchPlanList" class="research-plan-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Source Candidate Audit</h2>
           <span id="sourceCandidateStatus">Codex search/open source gate</span>
@@ -233,7 +242,7 @@
         <div id="sourceCandidateList" class="preflight-list source-candidate-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>Research Packet Preflight</h2>
           <span id="researchPreflightStatus">Source links, conflicts, weights, routes</span>
@@ -258,7 +267,7 @@
         <div id="technicalTraceList" class="technical-trace-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>证据质量审计</h2>
           <span>来源、冲突和复核状态</span>
@@ -266,7 +275,7 @@
         <div id="evidenceQualityList" class="quality-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>结构化证据声明</h2>
           <span>带来源的 claim</span>
@@ -274,7 +283,7 @@
         <div id="evidenceList" class="evidence-list"></div>
       </section>
 
-      <section class="panel wide">
+      <section class="panel wide diagnostic-panel">
         <div class="panel-title">
           <h2>结构化数据特征</h2>
           <span>FastF1 / 官方数据输入</span>
