@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from f1predict.domain import EvidenceClaim, FeatureAdjustment, RaceEvent, utc_now
+from f1predict.impact_trace_sidecar import PredictionImpactTraceSidecarStore
 from f1predict.models.pace import PaceModel
 from f1predict.pipeline import PredictionPipeline
 from f1predict.run_tracking import PredictionRunRecord, PredictionRunRegistry
@@ -235,6 +236,7 @@ class PredictionExplainer:
     ) -> None:
         self.root = Path(root) if root is not None else Path(__file__).resolve().parents[2]
         self.registry = registry or PredictionRunRegistry(self.root / "reports" / "prediction_runs")
+        self.impact_trace_store = PredictionImpactTraceSidecarStore(self.root, registry=self.registry)
         self.pipeline = PredictionPipeline(iterations=1)
 
     def answer(
@@ -251,6 +253,7 @@ class PredictionExplainer:
         run = self._select_run(event_id=event_id, run_id=run_id, knowledge_cutoff=knowledge_cutoff)
         packet_path = self._packet_path(run)
         packet = _read_json(packet_path)
+        sidecar = self.impact_trace_store.latest(event_id=run.event_id, run_id=run.run_id)
         season = self.pipeline.data_source.load()
         driver_lookup = _driver_display_lookup(season)
         team_lookup = _team_display_lookup(season)
@@ -263,6 +266,7 @@ class PredictionExplainer:
             entities=entities,
             question_type=question_type,
             max_evidence=max_evidence,
+            impact_trace_sidecar=sidecar,
         )
         answer = self._render_answer(
             question=question,
@@ -442,6 +446,7 @@ class PredictionExplainer:
         entities: dict[str, Any],
         question_type: str,
         max_evidence: int,
+        impact_trace_sidecar: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         selected_drivers = list(entities["drivers"])
         if question_type == "general_explanation":
@@ -464,6 +469,7 @@ class PredictionExplainer:
             season,
             selected_drivers,
             max_evidence=max_evidence,
+            impact_trace_sidecar=impact_trace_sidecar,
         )
         score_breakdown = self._score_breakdown_context(packet, season, selected_drivers)
         qualifying = self._qualifying_context(packet, selected_drivers)
@@ -838,9 +844,15 @@ class PredictionExplainer:
         season: Any,
         driver_ids: list[str],
         max_evidence: int,
+        impact_trace_sidecar: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         prediction = packet.get("prediction") or {}
-        traces = prediction.get("prediction_impact_trace") or []
+        sidecar_traces = (
+            impact_trace_sidecar.get("traces")
+            if isinstance(impact_trace_sidecar, dict) and isinstance(impact_trace_sidecar.get("traces"), list)
+            else []
+        )
+        traces = sidecar_traces or prediction.get("prediction_impact_trace") or []
         if not isinstance(traces, list):
             return {}
         selected = set(driver_ids)
@@ -892,19 +904,41 @@ class PredictionExplainer:
             if isinstance(row, dict) and row.get("trace_type") == "isolated_same_seed_leave_source_group"
         )
         codex_context = packet.get("codex_context") or {}
+        sidecar_coverage = (
+            impact_trace_sidecar.get("coverage")
+            if isinstance(impact_trace_sidecar, dict) and isinstance(impact_trace_sidecar.get("coverage"), dict)
+            else {}
+        )
+        sidecar_readiness = (
+            impact_trace_sidecar.get("formal_readiness")
+            if isinstance(impact_trace_sidecar, dict) and isinstance(impact_trace_sidecar.get("formal_readiness"), dict)
+            else {}
+        )
+        claim_count = sidecar_coverage.get("impact_trace_claim_count", codex_context.get("impact_trace_claim_count"))
+        covered_count = sidecar_coverage.get(
+            "impact_trace_covered_claim_count",
+            codex_context.get("impact_trace_covered_claim_count"),
+        )
+        uncovered_count = sidecar_coverage.get(
+            "impact_trace_uncovered_claim_count",
+            codex_context.get("impact_trace_uncovered_claim_count"),
+        )
         return {
             "total_prediction_impact_trace_count": len(traces),
             "isolated_prediction_impact_trace_count": isolated_count,
             "isolated_source_group_impact_trace_count": source_group_count,
-            "impact_trace_claim_count": codex_context.get("impact_trace_claim_count"),
-            "impact_trace_covered_claim_count": codex_context.get("impact_trace_covered_claim_count"),
-            "impact_trace_uncovered_claim_count": codex_context.get("impact_trace_uncovered_claim_count"),
+            "impact_trace_claim_count": claim_count,
+            "impact_trace_covered_claim_count": covered_count,
+            "impact_trace_uncovered_claim_count": uncovered_count,
+            "impact_trace_source": "sidecar" if sidecar_traces else "embedded_packet",
+            "impact_trace_formal_ready": sidecar_readiness.get("formal_ready"),
+            "impact_trace_readiness_status": sidecar_readiness.get("status"),
             "selected_prediction_impact_trace_count": len(public_rows),
             "top_traces": public_rows[:max_evidence],
             "isolation_status": (
                 f"当前已生成 {isolated_count} 条单条信息 isolated same-seed 重跑和 "
                 f"{source_group_count} 条来源组 isolated same-seed 重跑；"
-                f"仍有 {codex_context.get('impact_trace_uncovered_claim_count', '未知数量')} 条状态更新未被 isolated 覆盖。"
+                f"仍有 {uncovered_count if uncovered_count is not None else '未知数量'} 条状态更新未被 isolated 覆盖。"
                 if isolated_count or source_group_count
                 else (
                     "当前已实现整体同种子前后对比和状态路由记录；"

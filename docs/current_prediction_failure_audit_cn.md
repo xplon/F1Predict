@@ -106,27 +106,32 @@ scripts/explainability_smoke_test.py
 最新诊断预测包：
 
 ```text
-reports/prediction_packets_v2/british_gp/2026-07-06T09_27_47_00_00/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+reports/prediction_packets_v2/british_gp/2026-07-06T11_58_49_00_00/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
 ```
 
 注册 run：
 
 ```text
-reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260706T092941_0000_b4fa317c0b.prediction_run.json
+reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260706T115913_0000_31f3f052bf.prediction_run.json
 ```
 
 本次预测状态：
 
 ```text
 belief_state_id = british_gp_6b6cbfd62d_142a1a9878
+public_evidence_count = 1
+blocked_development_seed_evidence_count = 5
 state_update_count = 453
-prediction_impact_trace_count = 27
-isolated_prediction_impact_count = 12
-isolated_source_group_impact_count = 4
-impact_trace_covered_claim_count = 87
-impact_trace_uncovered_claim_count = 366
+embedded_prediction_impact_trace_count = 11
+embedded_isolated_prediction_impact_count = 0
+sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_e33fbbd4ba1b_20260706T120008_0000_5228c60b4e
+sidecar_trace_iterations = 5
+sidecar_impact_trace_covered_claim_count = 453
+sidecar_impact_trace_uncovered_claim_count = 0
+sidecar_formal_ready = false
 status = diagnostic_only
-blocker_codes = codex_evidence_quality_review_required, probability_calibration_diagnostic_only
+blocker_codes = probability_calibration_diagnostic_only
+warning_codes = codex_claims_require_review, blocked_development_seed_evidence_separated
 ```
 
 按平均完赛名次排序的诊断结果：
@@ -160,7 +165,8 @@ blocker_codes = codex_evidence_quality_review_required, probability_calibration_
 
 - 如果某个变化来自 FastF1、官方积分榜、同场排位、近几站结果、天气 API 或已归档 source log，它可以作为诊断级预测依据；
 - 如果某个变化只来自 `seed://codex/...`，它只能作为开发链路测试，不能算有效预测进步；
-- 本次修正后，`seed-british-*` 的模型输入权重为 `0`，并且不再产生状态更新账本行。
+- 本次修正后，`seed-british-*` 不再出现在默认公开 `evidence`、`evidence_quality`、`factor_trace` 或 `belief_state.raw_sources` 中；它们只保留在 `blocked_development_evidence` 审计区，且不能解释为预测变化来源；
+- 注册门记录本次新包为 `no_race_prediction_change`：排名和正赛概率没有改变，变化只是清理公开来源口径。
 
 2026-07-06 07:49 UTC 追加修正后，新旧 run diff 显示：
 

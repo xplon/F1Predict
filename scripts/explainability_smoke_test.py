@@ -54,6 +54,28 @@ def _assert_no_raw_internal_fields(payload: dict, label: str) -> None:
         _assert(field not in text, f"{label}: public explanation should redact {field}")
 
 
+def _assert_public_packet_seed_separation(payload: dict) -> None:
+    prediction = payload.get("prediction") or {}
+    public_text = json.dumps(
+        {
+            "evidence": prediction.get("evidence") or [],
+            "evidence_quality": prediction.get("evidence_quality") or [],
+            "factor_trace": prediction.get("factor_trace") or [],
+            "belief_raw_sources": (prediction.get("belief_state") or {}).get("raw_sources") or [],
+        },
+        ensure_ascii=False,
+    )
+    _assert("seed://" not in public_text, "Latest packet public evidence should not expose seed:// sources")
+    _assert(
+        "seed_scenario_source" not in public_text,
+        "Latest packet public evidence should not expose seed scenario risk rows",
+    )
+    blocked = prediction.get("blocked_development_evidence") or {}
+    if blocked.get("claim_count", 0):
+        blocked_text = json.dumps(blocked, ensure_ascii=False)
+        _assert("seed://" in blocked_text, "Blocked seed evidence should remain auditable in a separated section")
+
+
 def main() -> None:
     explainer = PredictionExplainer(ROOT)
 
@@ -138,6 +160,13 @@ def main() -> None:
         "score_breakdown" not in response.payload["codex_prompt"],
         "API Codex prompt should not expose raw score breakdown",
     )
+
+    latest_packet = api.handle_get(
+        "/api/v2/prediction-packets/latest",
+        {"event_id": ["british_gp"]},
+    )
+    _assert(latest_packet.status == 200, "Latest packet API should succeed")
+    _assert_public_packet_seed_separation(latest_packet.payload)
 
     print("traceable explainability smoke ok")
 

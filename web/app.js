@@ -661,6 +661,7 @@ function renderPredictionPacket() {
   const cache = packet.cache_context || {};
   const blockers = packet.blocker_codes || [];
   const warnings = packet.warning_codes || [];
+  const blockedDevelopment = packet.prediction?.blocked_development_evidence || {};
   const blockerText = blockers.length
     ? blockers.map(code => `<span class="pill">${escapeHtml(code)}</span>`).join("")
     : "<span class=\"pill\">no blockers</span>";
@@ -680,6 +681,7 @@ function renderPredictionPacket() {
       <div><span>追踪口径</span><strong>${escapeHtml(sidecar.trace_generation?.comparison_status || "missing")}</strong></div>
       <div><span>正式解释</span><strong>${escapeHtml(formalTrace.formal_ready ? "已就绪" : formalTrace.status || "未就绪")}</strong></div>
       <div><span>原始来源</span><strong>${packet.prediction?.belief_state?.raw_sources?.length || 0}</strong></div>
+      <div><span>开发 seed 已分离</span><strong>${blockedDevelopment.claim_count || codex.blocked_development_evidence_count || 0}</strong></div>
       <div><span>异常审计</span><strong>${packet.prediction_anomaly_audit?.anomaly_count || 0}</strong></div>
       <div><span>市场快照</span><strong>${market.usable_snapshot_count || 0}</strong></div>
       <div><span>弱证据</span><strong>${codex.weak_evidence_quality_count || 0}</strong></div>

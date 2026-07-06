@@ -201,9 +201,12 @@ packet 本体现在包含：
 
 ```text
 prediction_anomaly_audit
+prediction.blocked_development_evidence
 ```
 
 用途是展示“来源事实、状态更新和最终排名之间是否存在张力”。它只做诊断和解释，不会反向修改预测概率。前端“预测异常审计”区块读取这个字段，展示中文摘要、支持来源、状态更新链条和需要复核的模型风险。
+
+`prediction.blocked_development_evidence` 用于保存已从公开预测依据中分离出去的 `seed://`/`test://` 开发期证据。前端可以显示其数量和审计说明，但不能把其中的 claim 当作真实来源或预测变化原因。
 
 注意：`GET /prediction-packets/latest` 和 `GET /prediction-runs/{run_id}/packet` 会在读取历史 packet 后，用当前 `PredictionAnomalyAuditor` 重新计算前端可见的 `prediction_anomaly_audit`。如果该 run 有缓存 sidecar，审计会使用 sidecar 的 full trace 覆盖证据。这个刷新不重新运行模拟、不写 artifact、不改变 packet hash，也不会改变预测排名。
 

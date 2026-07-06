@@ -54,6 +54,8 @@
 
 这条守门规则不是为了禁止模型迭代，而是为了防止一种最危险的退化：用户指出一个直觉问题后，系统通过改模拟常数让排名看起来更顺眼，然后把它注册成最新预测。正确做法仍然是让变化先进入来源、结构化特征、质量审计、状态更新和 impact trace。
 
+2026-07-06 追加实现状态：默认 prediction packet 已经把 `seed://`/`test://` 开发期证据从公开 `evidence`、`evidence_quality`、`factor_trace` 和 `belief_state.raw_sources` 中分离出去，只保留在 `blocked_development_evidence` 审计区。这样前端和解释 API 展示的“预测依据”只包含真实来源或结构化特征链条；开发 seed 只能说明曾经存在一个被阻断的占位假设，不能被解释成预测变化来源。
+
 ## 2. 总体链路
 
 ```mermaid

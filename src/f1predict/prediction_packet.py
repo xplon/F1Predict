@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -203,6 +204,7 @@ class PredictionPacketBuilder:
         model_context = self._model_context(pipeline, report.event)
         codex_context = self._codex_context(report)
         codex_context["intake"] = self._codex_intake_context(event_id)
+        prediction_payload = self._public_prediction_payload(report.to_dict(), codex_context)
         prediction_anomaly_audit = PredictionAnomalyAuditor().build(season, report)
         market_context = self._market_context(report, usable_markets, after_cutoff_markets)
         probability_summary = self._probability_summary(report)
@@ -232,7 +234,7 @@ class PredictionPacketBuilder:
             prediction_anomaly_audit=prediction_anomaly_audit,
             probability_summary=probability_summary,
             top_market_edges=top_market_edges,
-            prediction=report.to_dict(),
+            prediction=prediction_payload,
         )
         payload_hash = self._payload_sha256(packet.to_dict(include_payload_hash=False))
         return PredictionPacket(
@@ -414,6 +416,237 @@ class PredictionPacketBuilder:
             ),
         }
 
+    @classmethod
+    def _public_prediction_payload(
+        cls,
+        report_payload: dict[str, Any],
+        codex_context: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Separate blocked seed/test evidence from the public prediction path.
+
+        The simulator and evidence-quality tests still need to know that these
+        development claims existed and were blocked. The default prediction
+        packet, however, should not present them beside source-backed evidence.
+        """
+
+        payload = deepcopy(report_payload)
+        evidence = _list_payload(payload.get("evidence"))
+        evidence_quality = _list_payload(payload.get("evidence_quality"))
+        evidence_impact = _list_payload(payload.get("evidence_impact"))
+        factor_trace = _list_payload(payload.get("factor_trace"))
+
+        blocked_claim_ids = {
+            str(row.get("claim_id"))
+            for row in evidence
+            if row.get("claim_id") and cls._is_development_seed_row(row)
+        }
+        blocked_claim_ids.update(
+            str(row.get("claim_id"))
+            for row in [*evidence_quality, *factor_trace]
+            if row.get("claim_id") and cls._is_development_seed_row(row)
+        )
+
+        public_evidence = [
+            row for row in evidence
+            if str(row.get("claim_id") or "") not in blocked_claim_ids
+            and not cls._is_development_seed_row(row)
+        ]
+        blocked_evidence = [
+            row for row in evidence
+            if str(row.get("claim_id") or "") in blocked_claim_ids
+            or cls._is_development_seed_row(row)
+        ]
+        public_quality = [
+            row for row in evidence_quality
+            if str(row.get("claim_id") or "") not in blocked_claim_ids
+            and not cls._is_development_seed_row(row)
+        ]
+        blocked_quality = [
+            row for row in evidence_quality
+            if str(row.get("claim_id") or "") in blocked_claim_ids
+            or cls._is_development_seed_row(row)
+        ]
+        public_impact = [
+            row for row in evidence_impact
+            if str(row.get("claim_id") or "") not in blocked_claim_ids
+            and not cls._is_development_seed_row(row)
+        ]
+        blocked_impact = [
+            row for row in evidence_impact
+            if str(row.get("claim_id") or "") in blocked_claim_ids
+            or cls._is_development_seed_row(row)
+        ]
+        public_factor_trace = [
+            row for row in factor_trace
+            if str(row.get("claim_id") or "") not in blocked_claim_ids
+            and not cls._is_development_seed_row(row)
+        ]
+        blocked_factor_trace = [
+            row for row in factor_trace
+            if str(row.get("claim_id") or "") in blocked_claim_ids
+            or cls._is_development_seed_row(row)
+        ]
+
+        payload["evidence"] = public_evidence
+        payload["evidence_quality"] = public_quality
+        payload["evidence_impact"] = public_impact
+        payload["factor_trace"] = public_factor_trace
+        blocked_raw_sources, blocked_normalized_claims, blocked_quality_profiles = cls._sanitize_belief_state(
+            payload.get("belief_state"),
+            blocked_claim_ids,
+        )
+        payload["blocked_development_evidence"] = {
+            "status": "blocked_seed_or_test_evidence_separated",
+            "summary_zh": (
+                "以下条目是开发期 seed/test 场景或缺少真实来源日志的占位证据，"
+                "已经从公开预测依据中分离，不能解释为预测变化来源。"
+            ),
+            "claim_count": len(blocked_evidence),
+            "quality_count": len(blocked_quality),
+            "impact_count": len(blocked_impact),
+            "factor_trace_count": len(blocked_factor_trace),
+            "raw_source_count": len(blocked_raw_sources),
+            "normalized_claim_count": len(blocked_normalized_claims),
+            "quality_profile_count": len(blocked_quality_profiles),
+            "claim_ids": sorted(blocked_claim_ids),
+            "claims": blocked_evidence,
+            "quality": blocked_quality,
+            "impact": blocked_impact,
+            "factor_trace": blocked_factor_trace,
+            "raw_sources": blocked_raw_sources,
+            "normalized_claims": blocked_normalized_claims,
+            "quality_profiles": blocked_quality_profiles,
+        }
+        cls._refresh_public_codex_context(
+            codex_context,
+            public_evidence=public_evidence,
+            public_quality=public_quality,
+            public_impact=public_impact,
+            public_factor_trace=public_factor_trace,
+            blocked_evidence=blocked_evidence,
+            blocked_quality=blocked_quality,
+            blocked_factor_trace=blocked_factor_trace,
+            blocked_raw_sources=blocked_raw_sources,
+        )
+        return payload
+
+    @classmethod
+    def _sanitize_belief_state(
+        cls,
+        belief_state: Any,
+        blocked_claim_ids: set[str],
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+        if not isinstance(belief_state, dict):
+            return [], [], []
+        raw_sources = _list_payload(belief_state.get("raw_sources"))
+        normalized_claims = _list_payload(belief_state.get("normalized_claims"))
+        quality_profiles = _list_payload(belief_state.get("quality_profiles"))
+
+        blocked_raw_sources = [row for row in raw_sources if cls._is_development_seed_row(row)]
+        blocked_normalized_claims = [
+            row for row in normalized_claims
+            if str(row.get("claim_id") or "") in blocked_claim_ids
+            or cls._is_development_seed_row(row)
+        ]
+        blocked_quality_profiles = [
+            row for row in quality_profiles
+            if str(row.get("claim_id") or "") in blocked_claim_ids
+            or cls._is_development_seed_row(row)
+        ]
+        belief_state["raw_sources"] = [
+            row for row in raw_sources
+            if row not in blocked_raw_sources
+        ]
+        belief_state["normalized_claims"] = [
+            row for row in normalized_claims
+            if row not in blocked_normalized_claims
+        ]
+        belief_state["quality_profiles"] = [
+            row for row in quality_profiles
+            if row not in blocked_quality_profiles
+        ]
+        return blocked_raw_sources, blocked_normalized_claims, blocked_quality_profiles
+
+    @staticmethod
+    def _refresh_public_codex_context(
+        codex_context: dict[str, Any],
+        *,
+        public_evidence: list[dict[str, Any]],
+        public_quality: list[dict[str, Any]],
+        public_impact: list[dict[str, Any]],
+        public_factor_trace: list[dict[str, Any]],
+        blocked_evidence: list[dict[str, Any]],
+        blocked_quality: list[dict[str, Any]],
+        blocked_factor_trace: list[dict[str, Any]],
+        blocked_raw_sources: list[dict[str, Any]],
+    ) -> None:
+        quality_counts = _count_by(public_quality, "quality_status")
+        triangulation_counts = _count_by(public_quality, "triangulation_status")
+        conflict_counts = _count_by(public_quality, "conflict_status")
+        risk_counts: dict[str, int] = {}
+        for row in public_quality:
+            for flag in row.get("risk_flags") or []:
+                risk_counts[str(flag)] = risk_counts.get(str(flag), 0) + 1
+        factor_route_counts = _count_by(public_factor_trace, "route")
+        factor_status_counts = _count_by(public_factor_trace, "route_status")
+        model_input_weights = [
+            float(row.get("model_input_weight"))
+            for row in public_quality
+            if _is_number(row.get("model_input_weight"))
+        ]
+        codex_context.update(
+            {
+                "evidence_count": len(public_evidence),
+                "evidence_quality_count": len(public_quality),
+                "evidence_impact_count": len(public_impact),
+                "factor_trace_count": len(public_factor_trace),
+                "factor_observed_movement_count": factor_status_counts.get("observed_probability_movement", 0),
+                "factor_route_counts": dict(sorted(factor_route_counts.items())),
+                "factor_route_status_counts": dict(sorted(factor_status_counts.items())),
+                "factor_trace": public_factor_trace,
+                "weak_evidence_quality_count": sum(
+                    count for status, count in quality_counts.items()
+                    if status in {"weak_diagnostic", "review_required"}
+                ),
+                "strong_evidence_quality_count": quality_counts.get("strong", 0),
+                "review_required_count": sum(1 for row in public_evidence if row.get("review_required")),
+                "quality_status_counts": dict(sorted(quality_counts.items())),
+                "triangulation_status_counts": dict(sorted(triangulation_counts.items())),
+                "conflict_status_counts": dict(sorted(conflict_counts.items())),
+                "conflicting_evidence_count": len(public_quality) - conflict_counts.get("no_conflict", 0),
+                "average_model_input_weight": round(sum(model_input_weights) / len(model_input_weights), 4)
+                if model_input_weights
+                else None,
+                "min_model_input_weight": min(model_input_weights) if model_input_weights else None,
+                "max_model_input_weight": max(model_input_weights) if model_input_weights else None,
+                "single_source_or_seed_count": sum(
+                    count for status, count in triangulation_counts.items()
+                    if status in {"single_source", "same_source_repetition", "seed_or_test_only", "unlinked_source"}
+                ),
+                "quality_risk_counts": dict(sorted(risk_counts.items())),
+                "max_evidence_win_delta": max(
+                    (row.get("max_win_probability_delta") for row in public_impact if _is_number(row.get("max_win_probability_delta"))),
+                    key=lambda value: abs(float(value)),
+                    default=None,
+                ),
+                "blocked_development_evidence_count": len(blocked_evidence),
+                "blocked_development_quality_count": len(blocked_quality),
+                "blocked_development_factor_trace_count": len(blocked_factor_trace),
+                "blocked_development_raw_source_count": len(blocked_raw_sources),
+            }
+        )
+
+    @staticmethod
+    def _is_development_seed_row(row: dict[str, Any]) -> bool:
+        if not isinstance(row, dict):
+            return False
+        source_url = str(row.get("source_url") or row.get("url") or "")
+        if source_url.startswith(("seed://", "test://")):
+            return True
+        risk_flags = {str(flag) for flag in row.get("risk_flags") or []}
+        reasons = {str(reason) for reason in row.get("reasons") or []}
+        return bool({"seed_scenario_source", "seed_only_triangulation"} & (risk_flags | reasons))
+
     @staticmethod
     def _market_context(report: PredictionReport, usable_markets: list[Any], after_cutoff_markets: int) -> dict[str, Any]:
         positive_edges = [
@@ -490,6 +723,8 @@ class PredictionPacketBuilder:
             blockers.append("codex_evidence_quality_review_required")
         if codex_context.get("review_required_count", 0):
             warnings.append("codex_claims_require_review")
+        if codex_context.get("blocked_development_evidence_count", 0):
+            warnings.append("blocked_development_seed_evidence_separated")
         if any(
             "diagnostic_conservative_calibration" in edge.risk_flags
             for edge in report.market_edges
@@ -576,6 +811,29 @@ def _field(row: Any, name: str) -> Any:
     if isinstance(row, dict):
         return row.get(name)
     return getattr(row, name, None)
+
+
+def _list_payload(value: Any) -> list[dict[str, Any]]:
+    return [row for row in value if isinstance(row, dict)] if isinstance(value, list) else []
+
+
+def _count_by(rows: list[dict[str, Any]], key: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for row in rows:
+        value = row.get(key)
+        if value is None:
+            continue
+        text = str(value)
+        counts[text] = counts.get(text, 0) + 1
+    return counts
+
+
+def _is_number(value: Any) -> bool:
+    try:
+        float(value)
+    except (TypeError, ValueError):
+        return False
+    return True
 
 
 def _fmt_signed_pct(value: Any) -> str:
