@@ -14,6 +14,7 @@ from typing import Any
 
 from f1predict.domain import parse_dt, utc_now
 from f1predict.explainability import PredictionExplainer
+from f1predict.impact_trace_sidecar import PredictionImpactTraceSidecarStore
 from f1predict.intelligence.codex import CodexEvidenceProvider
 from f1predict.pipeline import PredictionPipeline
 from f1predict.prediction_packet import PredictionPacketBuilder
@@ -47,6 +48,7 @@ class BackendApiV2:
             reports_root=self.root / "reports",
         )
         self.explainer = PredictionExplainer(self.root, registry=self.registry)
+        self.impact_trace_store = PredictionImpactTraceSidecarStore(self.root, registry=self.registry)
 
     def handle_get(self, path: str, query: dict[str, list[str]]) -> ApiResponse | None:
         if not path.startswith("/api/v2/"):
@@ -108,6 +110,28 @@ class BackendApiV2:
             if payload is None:
                 return ApiResponse(
                     {"error": "prediction_packet_not_found", "run_id": record.run_id},
+                    status=404,
+                )
+            return ApiResponse(payload)
+        if route.startswith("/prediction-runs/") and route.endswith("/impact-traces"):
+            run_id = route.removeprefix("/prediction-runs/").removesuffix("/impact-traces").strip("/")
+            if not run_id:
+                return ApiResponse({"error": "missing_run_id"}, status=400)
+            payload = self._prediction_impact_trace_page(query, run_id=run_id)
+            if payload is None:
+                return ApiResponse({"error": "prediction_impact_trace_sidecar_not_found", "run_id": run_id}, status=404)
+            return ApiResponse(payload)
+        if route == "/prediction-impact-traces/latest":
+            event_id = str(_first(query, "event_id", "british_gp"))
+            run_id = _first(query, "run_id", None)
+            payload = self._prediction_impact_trace_page(query, event_id=event_id, run_id=run_id)
+            if payload is None:
+                return ApiResponse(
+                    {
+                        "error": "prediction_impact_trace_sidecar_not_found",
+                        "event_id": event_id,
+                        "run_id": run_id,
+                    },
                     status=404,
                 )
             return ApiResponse(payload)
@@ -198,6 +222,9 @@ class BackendApiV2:
                 output_dir=output_dir,
             )
             return ApiResponse(payload, status=201 if write else 200)
+        if route == "/prediction-impact-traces":
+            payload = self._build_prediction_impact_trace_sidecar(body, query)
+            return ApiResponse(payload, status=201)
         return ApiResponse({"error": "unknown_api_v2_route", "path": path}, status=404)
 
     def create_prediction_run(
@@ -212,7 +239,7 @@ class BackendApiV2:
         isolated_impact_limit = int(body.get("isolated_impact_limit") or _first(query, "isolated_impact_limit", "12"))
         isolated_source_group_limit = int(
             body.get("isolated_source_group_limit")
-            or _first(query, "isolated_source_group_limit", "4")
+            or _first(query, "isolated_source_group_limit", "0")
         )
         output_dir = Path(body.get("output_dir") or self._default_prediction_packet_output_dir(event_id))
         register = bool(body.get("register", True))
@@ -449,8 +476,80 @@ class BackendApiV2:
                     "get": {"summary": "Answer a prediction-result question from a registered run"},
                     "post": {"summary": "Answer and optionally persist a prediction explanation artifact"},
                 },
+                "/api/v2/prediction-impact-traces/latest": {
+                    "get": {"summary": "Fetch a cached, paginated full prediction-impact trace sidecar"},
+                },
+                "/api/v2/prediction-runs/{run_id}/impact-traces": {
+                    "get": {"summary": "Fetch cached impact traces for one registered run"},
+                },
+                "/api/v2/prediction-impact-traces": {
+                    "post": {"summary": "Build and optionally persist a full prediction-impact trace sidecar"},
+                },
             },
         }
+
+    def _prediction_impact_trace_page(
+        self,
+        query: dict[str, list[str]],
+        *,
+        event_id: str = "british_gp",
+        run_id: str | None = None,
+    ) -> dict[str, Any] | None:
+        return self.impact_trace_store.latest_page(
+            event_id=event_id,
+            run_id=run_id,
+            limit=int(_first(query, "limit", "40") or "40"),
+            offset=int(_first(query, "offset", "0") or "0"),
+            trace_type=_first(query, "trace_type", None),
+            impact_status=_first(query, "impact_status", None),
+            claim_id=_first(query, "claim_id", None),
+        )
+
+    def _build_prediction_impact_trace_sidecar(
+        self,
+        body: dict[str, Any],
+        query: dict[str, list[str]],
+    ) -> dict[str, Any]:
+        event_id = str(body.get("event_id") or _first(query, "event_id", "british_gp"))
+        run_id = body.get("run_id") or _first(query, "run_id", None)
+        cutoff = body.get("knowledge_cutoff") or _first(query, "knowledge_cutoff", None)
+        iterations_value = body.get("iterations") or _first(query, "iterations", None)
+        iterations = int(iterations_value) if iterations_value is not None else None
+        isolated_impact_limit = int(body.get("isolated_impact_limit") or _first(query, "isolated_impact_limit", "-1"))
+        isolated_source_group_limit = int(
+            body.get("isolated_source_group_limit") or _first(query, "isolated_source_group_limit", "0")
+        )
+        write = bool(body.get("write", True))
+        include_traces = bool(body.get("include_traces", False))
+        page_limit = int(body.get("limit") or _first(query, "limit", "40") or "40")
+        page_offset = int(body.get("offset") or _first(query, "offset", "0") or "0")
+        sidecar = self.impact_trace_store.build(
+            event_id=event_id,
+            run_id=str(run_id) if run_id else None,
+            knowledge_cutoff=str(cutoff) if cutoff else None,
+            iterations=iterations,
+            isolated_impact_limit=isolated_impact_limit,
+            isolated_source_group_limit=isolated_source_group_limit,
+        )
+        path = None
+        if write:
+            path = self.impact_trace_store.write(sidecar)
+        if include_traces:
+            payload = sidecar
+        else:
+            payload = self.impact_trace_store.latest_page(
+                event_id=event_id,
+                run_id=sidecar["source_run"]["run_id"],
+                limit=page_limit,
+                offset=page_offset,
+            ) if write else None
+            if payload is None:
+                from f1predict.impact_trace_sidecar import page_sidecar
+
+                payload = page_sidecar(sidecar, limit=page_limit, offset=page_offset)
+        if path is not None:
+            payload["path"] = str(_relative_to_root(path, self.root))
+        return payload
 
     def _list_prediction_diffs(self, event_id: str | None = None) -> dict[str, Any]:
         root = self.root / "reports" / "prediction_diffs"

@@ -69,7 +69,7 @@ class AppHandler(BaseHTTPRequestHandler):
             cutoff = query.get("knowledge_cutoff", [None])[0]
             iterations = int(query.get("iterations", ["1200"])[0])
             isolated_impact_limit = int(query.get("isolated_impact_limit", ["12"])[0])
-            isolated_source_group_limit = int(query.get("isolated_source_group_limit", ["4"])[0])
+            isolated_source_group_limit = int(query.get("isolated_source_group_limit", ["0"])[0])
             try:
                 packet = PredictionPacketBuilder(
                     PredictionPipeline(

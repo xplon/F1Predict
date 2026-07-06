@@ -416,3 +416,26 @@ src/f1predict/prediction_anomaly.py
 4. 继续降低无来源 seed prior 在单站预测中的影响，并要求 seed prior 逐步来源化。
 5. 继续收敛前端：减少非核心审计面板，把默认视图聚焦到预测结果、关键状态、来源链路、影响记录和异常审计。
 6. 用历史回放验证“结构化信息进入 BeliefState 后是否真的提高预测质量”，并严格标注诊断/正式比较的边界。
+## 12. 2026-07-06 更新：全量影响追踪 sidecar 已接入，但不等于正式预测达标
+
+针对“默认预测包只展示少量 trace，用户看不到每条信息是否真的改变预测”的问题，当前新增了缓存式 sidecar：
+
+- `src/f1predict/impact_trace_sidecar.py`：生成、写入、分页读取完整 `PredictionImpactTrace`；
+- `GET /api/v2/prediction-impact-traces/latest`：读取最新注册 run 的已缓存 sidecar，不触发重新预测；
+- `GET /api/v2/prediction-runs/{run_id}/impact-traces`：读取指定 run 的 sidecar；
+- `POST /api/v2/prediction-impact-traces`：按需生成 sidecar；
+- `web/app.js`：前端会优先读取 sidecar；如果没有 sidecar，会明确显示“完整影响追踪缓存未生成”，不再把主包少量 trace 暗示成全量解释；
+- `scripts/impact_trace_sidecar_smoke_test.py`：验证 sidecar API、分页、覆盖率和低迭代诊断标记。
+
+重要边界：
+
+1. sidecar 是解释缓存，不是新的预测结果。它不会注册新的 latest prediction run，也不会手动改变排名。
+2. 如果 sidecar 的 `trace_generation.comparison_status` 是 `diagnostic_iteration_mismatch`，说明隔离重跑迭代数与源 run 不一致，只能用于链路诊断，不能作为正式“这条信息精确改变了多少概率”的证明。
+3. 用户的例子仍然只能触发排查：代码层继续要求预测更新不能按车手/车队名写死，必须来自来源化数据、结构化特征和通用模拟机制。
+4. 当前模型质量仍是 `diagnostic_only`：sidecar 解决的是“能否追溯每条信息的边际影响”，不是“预测已经稳定有 edge”。
+
+下一步不再是“把 sidecar 做出来”，而是：
+
+- 为最新 British GP run 生成同迭代数的正式 sidecar，或明确标注低迭代诊断 sidecar；
+- 继续减少/替换 `seed://` 开发证据，让默认预测更多来自 FIA/F1 官方、FastF1、天气、赛道、可靠性、长距离和近期窗口数据；
+- 用历史回放验证每类状态更新是否真的改善预测，而不是只改善解释。

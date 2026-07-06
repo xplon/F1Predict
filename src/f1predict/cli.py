@@ -14,6 +14,7 @@ from f1predict.domain import parse_dt
 from f1predict.explainability import PredictionExplainer
 from f1predict.features.calendar import CalendarBuilder
 from f1predict.features.openf1_summary import OpenF1SummaryBuilder
+from f1predict.impact_trace_sidecar import PredictionImpactTraceSidecarStore, page_sidecar
 from f1predict.improvement_plan import ImprovementPlanBuilder
 from f1predict.ingestion import LiveIngestor
 from f1predict.intelligence.codex import CodexEvidenceProvider, EvidencePacketStore
@@ -99,6 +100,21 @@ def main() -> None:
     prediction_packet.add_argument("--register-run", action="store_true")
     prediction_packet.add_argument("--registry-root", default="reports/prediction_runs")
     prediction_packet.add_argument("--information-intake", default=None)
+
+    impact_trace_sidecar = sub.add_parser(
+        "prediction-impact-trace-sidecar",
+        help="Build a cached, paginated sidecar for full prediction impact traces",
+    )
+    impact_trace_sidecar.add_argument("--event", default="british_gp")
+    impact_trace_sidecar.add_argument("--run-id", default=None)
+    impact_trace_sidecar.add_argument("--knowledge-cutoff", default=None)
+    impact_trace_sidecar.add_argument("--iterations", type=int, default=None)
+    impact_trace_sidecar.add_argument("--isolated-impact-limit", type=int, default=-1)
+    impact_trace_sidecar.add_argument("--isolated-source-group-limit", type=int, default=0)
+    impact_trace_sidecar.add_argument("--write", action="store_true")
+    impact_trace_sidecar.add_argument("--output-dir", default="reports/prediction_impact_traces")
+    impact_trace_sidecar.add_argument("--limit", type=int, default=40)
+    impact_trace_sidecar.add_argument("--offset", type=int, default=0)
 
     season_forecast = sub.add_parser("season-forecast", help="Run cutoff-aware season points forecast")
     season_forecast.add_argument("--knowledge-cutoff", default=None)
@@ -666,6 +682,21 @@ def main() -> None:
                 raise ValueError("prediction-packet --register-run requires --write so the run points to a packet file")
             packet = builder.build(args.event, knowledge_cutoff=args.knowledge_cutoff, iterations=args.iterations)
             print(json.dumps(packet.to_dict(), ensure_ascii=False, indent=2))
+    elif args.command == "prediction-impact-trace-sidecar":
+        store = PredictionImpactTraceSidecarStore()
+        sidecar = store.build(
+            event_id=args.event,
+            run_id=args.run_id,
+            knowledge_cutoff=args.knowledge_cutoff,
+            iterations=args.iterations,
+            isolated_impact_limit=args.isolated_impact_limit,
+            isolated_source_group_limit=args.isolated_source_group_limit,
+        )
+        payload = page_sidecar(sidecar, limit=args.limit, offset=args.offset)
+        if args.write:
+            path = store.write(sidecar, output_root=args.output_dir)
+            payload["path"] = str(path)
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
     elif args.command == "season-forecast":
         report = PredictionPipeline(iterations=args.iterations).forecast_season(
             knowledge_cutoff=args.knowledge_cutoff,

@@ -2,6 +2,7 @@ const state = {
   events: [],
   report: null,
   packet: null,
+  impactTraceSidecar: null,
   researchPlan: null,
   sourceCandidates: null,
   researchPreflight: null,
@@ -177,6 +178,7 @@ async function loadPrediction() {
   state.predictionError = null;
   state.report = null;
   state.packet = null;
+  state.impactTraceSidecar = null;
   state.researchPlan = null;
   state.sourceCandidates = null;
   state.researchPreflight = null;
@@ -212,6 +214,7 @@ async function loadPrediction() {
 
 function loadPredictionAuxiliaryPanels(encodedEventId, requestSeq, packetLoadedFromCache = false) {
   const requests = [
+    ["impactTraceSidecar", `/api/v2/prediction-impact-traces/latest?event_id=${encodedEventId}&limit=24`],
     ["researchPlan", `/api/codex-research-plan?event_id=${encodedEventId}`],
     ["sourceCandidates", `/api/source-candidates?event_id=${encodedEventId}`],
     ["researchPreflight", `/api/research-preflight?event_id=${encodedEventId}`]
@@ -651,6 +654,8 @@ function renderPredictionPacket() {
     `${packet.status} | formal ready: ${packet.formal_edge_ready ? "yes" : "no"}`;
   const market = packet.market_context || {};
   const codex = packet.codex_context || {};
+  const sidecar = state.impactTraceSidecar || {};
+  const sidecarCoverage = sidecar.coverage || {};
   const intake = codex.intake || {};
   const cache = packet.cache_context || {};
   const blockers = packet.blocker_codes || [];
@@ -670,6 +675,8 @@ function renderPredictionPacket() {
       <div><span>状态更新</span><strong>${codex.state_update_count || 0}</strong></div>
       <div><span>影响追踪</span><strong>${codex.prediction_impact_trace_count || 0}</strong></div>
       <div><span>单条重跑</span><strong>${codex.isolated_prediction_impact_count || 0}</strong></div>
+      <div><span>完整追踪缓存</span><strong>${sidecar.trace_count ? `${sidecarCoverage.impact_trace_covered_claim_count || 0}/${sidecarCoverage.impact_trace_claim_count || 0}` : "未生成"}</strong></div>
+      <div><span>追踪口径</span><strong>${escapeHtml(sidecar.trace_generation?.comparison_status || "missing")}</strong></div>
       <div><span>原始来源</span><strong>${packet.prediction?.belief_state?.raw_sources?.length || 0}</strong></div>
       <div><span>异常审计</span><strong>${packet.prediction_anomaly_audit?.anomaly_count || 0}</strong></div>
       <div><span>市场快照</span><strong>${market.usable_snapshot_count || 0}</strong></div>
@@ -1923,10 +1930,37 @@ function renderEvidence(rows) {
 }
 
 function renderEvidenceImpact(report) {
-  const traces = Array.isArray(report?.prediction_impact_trace) ? report.prediction_impact_trace : [];
+  const sidecar = state.impactTraceSidecar || null;
+  const sidecarTraces = Array.isArray(sidecar?.traces) ? sidecar.traces : [];
+  const packetTraces = Array.isArray(report?.prediction_impact_trace) ? report.prediction_impact_trace : [];
+  const traces = sidecarTraces.length ? sidecarTraces : packetTraces;
   const rows = traces.slice().sort((a, b) => tracePriority(b) - tracePriority(a));
+  const coverage = sidecar?.coverage || {};
+  const page = sidecar?.pagination || {};
+  const sidecarSummary = sidecar
+    ? `
+      <article class="impact-card">
+        <div>
+          <h3>完整影响追踪缓存</h3>
+          <span class="pill">${escapeHtml(sidecar.trace_generation?.comparison_status || "cached")}</span>
+        </div>
+        <p>${escapeHtml(sidecar.trace_generation?.status_zh || "已读取缓存 sidecar。")}</p>
+        <p>覆盖 ${escapeHtml(coverage.impact_trace_covered_claim_count || 0)} / ${escapeHtml(coverage.impact_trace_claim_count || 0)} 条来源化更新；当前页 ${escapeHtml(page.returned_trace_count || rows.length)} / ${escapeHtml(page.filtered_trace_count || rows.length)} 条。</p>
+      </article>
+    `
+    : `
+      <article class="impact-card">
+        <div>
+          <h3>完整影响追踪缓存未生成</h3>
+          <span class="pill">主包快速样本</span>
+        </div>
+        <p>当前只展示预测主包内嵌的少量 trace；完整“原始信息 -> 状态更新 -> 预测变化”需要先生成 sidecar。</p>
+      </article>
+    `;
   document.getElementById("evidenceImpactList").innerHTML = rows.length
-    ? rows.slice(0, 12).map(trace => {
+    ? [
+        sidecarSummary,
+        ...rows.slice(0, 12).map(trace => {
         const changed = (trace.changed_factors || [])
           .slice(0, 3)
           .map(factor => `${targetDisplay(factor.target_type, factor.target_id)} ${factorLabel(factor.factor)} ${directionLabel(factor.direction)}`)
@@ -1944,6 +1978,7 @@ function renderEvidenceImpact(report) {
             <div>
               <h3>${escapeHtml(traceTypeLabel(trace.trace_type))}</h3>
               <span class="pill">${escapeHtml(magnitudeLabel(trace.probability_delta_bucket))}</span>
+              <span class="pill">${escapeHtml(impactStatusLabel(trace.impact_status))}</span>
               ${trace.claim_id ? `<span class="pill">${escapeHtml(shortHash(trace.claim_id))}</span>` : ""}
             </div>
             <p>${escapeHtml(changed || "整体状态更新对比")}</p>
@@ -1951,8 +1986,9 @@ function renderEvidenceImpact(report) {
             <p>${escapeHtml(trace.interpretation_zh || "预测影响记录已生成。")}</p>
           </article>
         `;
-      }).join("")
-    : "<p>当前预测还没有可展示的预测影响追踪。</p>";
+      })
+      ].join("")
+    : `${sidecarSummary}<p>当前预测还没有可展示的预测影响追踪。</p>`;
 }
 
 function renderTechnicalFactorTrace(report) {
@@ -3214,9 +3250,20 @@ function traceTypeLabel(type) {
   const labels = {
     same_seed_before_after: "完整状态同种子对比",
     isolated_same_seed_leave_one_information: "单条信息隔离重跑",
+    isolated_same_seed_leave_source_group: "同源信息组隔离重跑",
     state_update_route: "状态更新路由"
   };
   return labels[String(type)] || String(type || "预测影响");
+}
+
+function impactStatusLabel(status) {
+  const labels = {
+    material_prediction_change: "显著改变预测",
+    small_prediction_change: "小幅改变预测",
+    no_material_prediction_change: "没有显著改变",
+    pending_isolated_rerun: "等待隔离重跑"
+  };
+  return labels[String(status)] || String(status || "影响状态未知");
 }
 
 function anomalyStatusLabel(status) {

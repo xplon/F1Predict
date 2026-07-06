@@ -330,3 +330,51 @@ write=false
 - 强化练习赛/排位/长距离 pace；
 - 扩展赛车/赛道/车手 ontology；
 - 做历史 replay matched comparison。
+## 9. 预测影响追踪 sidecar 接口
+
+主 prediction packet 只保留少量 `prediction_impact_trace`，用于快速页面加载。完整的单条信息隔离重跑会产生几百条 trace，如果直接塞进主包，会让前端重新变慢。因此新增 sidecar 机制：完整 trace 单独写入 `reports/prediction_impact_traces/`，前端按页读取。
+
+### GET /api/v2/prediction-impact-traces/latest
+
+用途：读取某个 event 最新注册 run 对应的已缓存 sidecar，不触发重新预测。
+
+参数：
+```text
+event_id=british_gp
+run_id=<可选；不传则使用该 event 最新注册 run>
+limit=40
+offset=0
+trace_type=<可选>
+impact_status=<可选>
+claim_id=<可选>
+```
+
+如果 sidecar 不存在，返回 404。前端应显示“完整追踪缓存未生成”，不能把主包内嵌的少量 trace 当成全量解释。
+
+### GET /api/v2/prediction-runs/{run_id}/impact-traces
+
+用途：读取指定 run 的已缓存 sidecar。
+
+### POST /api/v2/prediction-impact-traces
+
+用途：生成完整 sidecar。这个接口可能很慢，因为它会做多次同种子隔离重跑；它不会注册新的 latest prediction run，也不会修改默认预测排名。
+
+请求体：
+```json
+{
+  "event_id": "british_gp",
+  "run_id": "可选",
+  "iterations": 1200,
+  "isolated_impact_limit": -1,
+  "isolated_source_group_limit": 0,
+  "write": true,
+  "limit": 40
+}
+```
+
+关键字段：
+- `source_run`：sidecar 解释的是哪一个已注册 run，包括 input/evidence/probability fingerprint；
+- `trace_generation.comparison_status`：`matched_source_run_iterations` 表示与源 run 同迭代数；`diagnostic_iteration_mismatch` 表示只是低迭代诊断，不可当作正式效果证明；
+- `coverage`：状态更新、claim 覆盖率、单条 isolated 覆盖率；
+- `pagination`：当前页和过滤后的 trace 数量；
+- `traces`：当前页 trace，而不是整包全量 trace。
