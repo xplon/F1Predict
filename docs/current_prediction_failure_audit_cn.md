@@ -83,13 +83,13 @@ scripts/explainability_smoke_test.py
 最新诊断预测包：
 
 ```text
-reports/prediction_packets_v2/british_gp/2026-07-06T09_07_01_00_00/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+reports/prediction_packets_v2/british_gp/2026-07-06T09_27_47_00_00/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
 ```
 
 注册 run：
 
 ```text
-reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260706T090822_0000_81e31b24ea.prediction_run.json
+reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260706T092941_0000_b4fa317c0b.prediction_run.json
 ```
 
 本次预测状态：
@@ -100,6 +100,8 @@ state_update_count = 453
 prediction_impact_trace_count = 27
 isolated_prediction_impact_count = 12
 isolated_source_group_impact_count = 4
+impact_trace_covered_claim_count = 87
+impact_trace_uncovered_claim_count = 366
 status = diagnostic_only
 blocker_codes = codex_evidence_quality_review_required, probability_calibration_diagnostic_only
 ```
@@ -202,6 +204,23 @@ rank_change_count = 0
 
 也就是说，09:08 这次主要是在补“如何证明来源影响预测”的审计链路，而不是改车手排序。
 
+2026-07-06 09:29 UTC 追加修正后，最新注册包加入了 impact trace 覆盖率字段和每条 trace 的 `impact_status`：
+
+```text
+run = british_gp_20260705T000000_0000_20260706T092941_0000_b4fa317c0b
+prediction_impact_trace_count = 27
+impact_trace_claim_count = 453
+impact_trace_covered_claim_count = 87
+impact_trace_uncovered_claim_count = 366
+```
+
+排名仍然没有被按用户例子手调。这个包的作用是让前端和解释 API 能清楚区分：
+
+- 已做单条 isolated 的信息；
+- 已被来源组 isolated 覆盖的信息；
+- 仍然只是 route-only 的状态更新；
+- 同种子重跑后有实质变化、小变化，还是无明显变化。
+
 示例来源：
 
 - Aston Martin 被压低：FastF1 同场车队平均排位 P21.5、赛前每站积分 0.12 vs 全场 9.18、F1 官方车队积分榜 P10/1 分；
@@ -238,11 +257,34 @@ rank_change_count = 0
 每个车手的排名分布、期望积分、领奖台概率具体变化多少？
 ```
 
-仍未完成的部分是：还没有对全部 453 条状态更新都做 isolated rerun。原因不是架构不支持，而是全量运行会显著增加生成预测包的时间。当前实现必须在解释中明确区分：
+新增全量运行模式：
+
+```text
+--isolated-impact-limit -1
+```
+
+该模式会对全部 453 条状态更新逐条做 same-seed isolated rerun。已新增验证：
+
+```text
+scripts/full_impact_trace_smoke_test.py
+```
+
+小迭代 smoke 证明该模式可以生成：
+
+```text
+isolated_same_seed_leave_one_information = 453
+impact_trace_covered_claim_count = 453
+impact_trace_uncovered_claim_count = 0
+```
+
+但默认最新前端包暂时不直接塞入 453 条全量 trace。原因是这会显著增大 packet JSON，重新制造前端加载慢的问题。当前默认注册包保留 top-N 单条 isolated 和 top-4 来源组 isolated，同时公开覆盖率字段；下一步应该把全量 trace 做成 sidecar/分页 API，让前端按需读取。
+
+当前实现必须在解释中明确区分：
 
 - `isolated_same_seed_leave_one_information`：已经做了单条同种子重跑；
 - `isolated_same_seed_leave_source_group`：已经做了同一来源组整体移除的同种子重跑；
-- `state_update_route`：只证明信息进入状态向量和模拟表面，不能当作单条因果实验。
+- `state_update_route`：只证明信息进入状态向量和模拟表面，不能当作单条因果实验；
+- `impact_status`：说明同种子重跑后是有实质预测变化、小幅变化、无明显变化，还是仍待 isolated。
 
 ## 6. Ham/Lec 问题的当前状态
 
@@ -326,7 +368,7 @@ src/f1predict/prediction_anomaly.py
 最新离线审计能抓到的例子包括：
 
 - Alpine：负向同周末来源与 Gasly 第 9 的预测位置存在张力，需要继续复核同周末长距离、可靠性和车手层输入是否覆盖过强；
-- isolated 影响追踪覆盖不足：453 条状态更新中有 12 组单条 isolated 重跑和 4 组来源组 isolated 重跑，解释必须区分“已进入状态向量”“已证明来源组影响”和“已证明单条影响”。
+- 默认注册包 isolated 影响追踪覆盖不足：453 条状态更新中有 12 组单条 isolated 重跑和 4 组来源组 isolated 重跑，共覆盖 87 条状态更新；全量模式已经能覆盖 453/453，但还没有做成前端友好的 sidecar/分页读取。
 
 上一版异常审计中的 Leclerc/Hamilton 与 Racing Bulls 条目已在 2026-07-06 07:49 UTC 新 run 中消失；Williams 与 Alonso/Stroll 条目已在 2026-07-06 08:20 UTC 新 run 中消失。这不能证明最终模型已经正确，但证明异常审计发现的问题已经至少有一部分通过通用映射修正反馈到了预测结果，而不是只停留在提示文本。
 
@@ -368,7 +410,7 @@ src/f1predict/prediction_anomaly.py
 
 优先级从高到低：
 
-1. 实现每条状态更新的 isolated same-seed rerun，生成真正逐条 `PredictionImpactTrace`。
+1. 把全量 isolated same-seed rerun 从可运行模式升级为前端友好的 sidecar/分页 API，避免默认 packet 过大。
 2. 把最近 3-5 站的车队积分、完赛顺位、排位、长距离速度、可靠性做成更明确的车队状态层。
 3. 根据异常审计结果继续校准，但校准只能改通用来源映射或通用模拟机制，不能按车队/车手名手调：垫底车队被抬高中游、同队排位更好者预测明显更差、近期变强车队被压低、信息更新没有改变预测。
 4. 继续降低无来源 seed prior 在单站预测中的影响，并要求 seed prior 逐步来源化。

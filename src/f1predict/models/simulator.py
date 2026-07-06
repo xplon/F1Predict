@@ -104,7 +104,7 @@ class SingleRaceSimulator:
         summary = self.simulate_summary(event)
         return summary.race_probabilities, summary.representative_lap
 
-    def simulate_summary(self, event: RaceEvent) -> RaceSimulationSummary:
+    def simulate_summary(self, event: RaceEvent, include_replay: bool = True) -> RaceSimulationSummary:
         driver_ids = list(self.season_state.drivers)
         wins = defaultdict(int)
         podiums = defaultdict(int)
@@ -113,7 +113,7 @@ class SingleRaceSimulator:
         finishes = defaultdict(list)
         team_double_podiums = defaultdict(int)
         driver_h2h = defaultdict(int)
-        representative_lap = self.sample_replay(event, max_drivers=6)
+        representative_lap = self.sample_replay(event, max_drivers=6) if include_replay else []
 
         for _ in range(self.iterations):
             result = self._simulate_once(event, driver_ids)

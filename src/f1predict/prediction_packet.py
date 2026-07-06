@@ -125,6 +125,14 @@ class PredictionPacket:
             lines.append(f"- Prediction impact traces: `{self.codex_context.get('prediction_impact_trace_count', 0)}`")
             lines.append(f"- Isolated same-seed traces: `{self.codex_context.get('isolated_prediction_impact_count', 0)}`")
             lines.append(
+                f"- Source-group isolated traces: "
+                f"`{self.codex_context.get('isolated_source_group_impact_count', 0)}`"
+            )
+            lines.append(
+                f"- Impact trace uncovered updates: "
+                f"`{self.codex_context.get('impact_trace_uncovered_claim_count', 0)}`"
+            )
+            lines.append(
                 "- Explanation path: raw source -> extracted information -> normalized factor -> "
                 "state update -> same-seed prediction impact."
             )
@@ -307,6 +315,24 @@ class PredictionPacketBuilder:
             for row in report.prediction_impact_trace
             if row.get("trace_type") == "isolated_same_seed_leave_source_group"
         )
+        ledger_claim_ids = {
+            str(_field(row, "claim_id"))
+            for row in report.state_update_ledger
+            if _field(row, "claim_id")
+        }
+        isolated_claim_ids = {
+            str(row.get("claim_id"))
+            for row in report.prediction_impact_trace
+            if row.get("trace_type") == "isolated_same_seed_leave_one_information" and row.get("claim_id")
+        }
+        grouped_claim_ids = {
+            str(claim_id)
+            for row in report.prediction_impact_trace
+            if row.get("trace_type") == "isolated_same_seed_leave_source_group"
+            for claim_id in row.get("claim_ids", [])
+            if claim_id
+        }
+        covered_claim_ids = ledger_claim_ids & (isolated_claim_ids | grouped_claim_ids)
         return {
             "evidence_count": len(report.evidence),
             "evidence_quality_count": len(report.evidence_quality),
@@ -319,6 +345,11 @@ class PredictionPacketBuilder:
             "prediction_impact_trace_count": len(report.prediction_impact_trace),
             "isolated_prediction_impact_count": isolated_impact_count,
             "isolated_source_group_impact_count": isolated_source_group_count,
+            "impact_trace_claim_count": len(ledger_claim_ids),
+            "impact_trace_single_claim_coverage_count": len(ledger_claim_ids & isolated_claim_ids),
+            "impact_trace_source_group_claim_coverage_count": len(ledger_claim_ids & grouped_claim_ids),
+            "impact_trace_covered_claim_count": len(covered_claim_ids),
+            "impact_trace_uncovered_claim_count": len(ledger_claim_ids - covered_claim_ids),
             "factor_observed_movement_count": factor_status_counts.get("observed_probability_movement", 0),
             "factor_route_counts": dict(sorted(factor_route_counts.items())),
             "factor_route_status_counts": dict(sorted(factor_status_counts.items())),
@@ -537,6 +568,12 @@ def _fmt_pct(value: Any) -> str:
         return f"{float(value) * 100:.1f}%"
     except (TypeError, ValueError):
         return "n/a"
+
+
+def _field(row: Any, name: str) -> Any:
+    if isinstance(row, dict):
+        return row.get(name)
+    return getattr(row, name, None)
 
 
 def _fmt_signed_pct(value: Any) -> str:

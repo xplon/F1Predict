@@ -47,7 +47,7 @@ class PredictionPipeline:
         iterations: int = 5000,
         simulator_config: SimulatorConfig | None = None,
         isolated_impact_limit: int = 0,
-        isolated_source_group_limit: int = 4,
+        isolated_source_group_limit: int = 0,
     ) -> None:
         self.data_source = data_source or CalendarAugmentedDataSource()
         self.evidence_provider = evidence_provider or CodexEvidenceProvider()
@@ -252,68 +252,66 @@ class PredictionPipeline:
         belief_state,
         knowledge_cutoff: str | None,
     ) -> list[dict[str, object]]:
-        if self.isolated_impact_limit <= 0:
-            return []
-        selected_groups = self._selected_isolated_update_groups(
-            belief_state.update_ledger,
-            self.isolated_impact_limit,
-        )
-        if not selected_groups:
-            return []
         evidence_ids = {row.claim_id for row in evidence}
         feature_ids = {row.feature_id for row in feature_adjustments}
         rows: list[dict[str, object]] = []
-        for claim_id, updates in selected_groups:
-            if claim_id not in evidence_ids and claim_id not in feature_ids:
-                continue
-            counterfactual_evidence = [row for row in evidence if row.claim_id != claim_id]
-            counterfactual_features = [row for row in feature_adjustments if row.feature_id != claim_id]
-            counterfactual_quality = [row for row in evidence_quality if row.claim_id != claim_id]
-            counterfactual_weights = self._evidence_input_weights(counterfactual_quality)
-            counterfactual_belief_state = self.belief_state_builder.build(
-                season,
-                event,
-                counterfactual_evidence,
-                counterfactual_features,
-                counterfactual_quality,
-                knowledge_cutoff=knowledge_cutoff,
+        if self.isolated_impact_limit != 0:
+            selected_groups = self._selected_isolated_update_groups(
+                belief_state.update_ledger,
+                self.isolated_impact_limit,
             )
-            counterfactual_pace = PaceModel(
-                season,
-                counterfactual_evidence,
-                counterfactual_features,
-                evidence_weights=counterfactual_weights,
-                belief_state=counterfactual_belief_state,
-            )
-            counterfactual_probabilities = SingleRaceSimulator(
-                season,
-                counterfactual_pace,
-                iterations=self.iterations,
-                config=self.simulator_config,
-            ).simulate_summary(event).race_probabilities
-            rows.append(
-                self.impact_trace_builder.isolated_row(
-                    counterfactual_probabilities,
+            for claim_id, updates in selected_groups:
+                if claim_id not in evidence_ids and claim_id not in feature_ids:
+                    continue
+                counterfactual_evidence = [row for row in evidence if row.claim_id != claim_id]
+                counterfactual_features = [row for row in feature_adjustments if row.feature_id != claim_id]
+                counterfactual_quality = [row for row in evidence_quality if row.claim_id != claim_id]
+                counterfactual_weights = self._evidence_input_weights(counterfactual_quality)
+                counterfactual_belief_state = self.belief_state_builder.build(
+                    season,
+                    event,
+                    counterfactual_evidence,
+                    counterfactual_features,
+                    counterfactual_quality,
+                    knowledge_cutoff=knowledge_cutoff,
+                )
+                counterfactual_pace = PaceModel(
+                    season,
+                    counterfactual_evidence,
+                    counterfactual_features,
+                    evidence_weights=counterfactual_weights,
+                    belief_state=counterfactual_belief_state,
+                )
+                counterfactual_probabilities = SingleRaceSimulator(
+                    season,
+                    counterfactual_pace,
+                    iterations=self.iterations,
+                    config=self.simulator_config,
+                ).simulate_summary(event, include_replay=False).race_probabilities
+                rows.append(
+                    self.impact_trace_builder.isolated_row(
+                        counterfactual_probabilities,
+                        probabilities,
+                        belief_state,
+                        claim_id,
+                        updates[0].source_id,
+                        updates,
+                    )
+                )
+        if self.isolated_source_group_limit != 0:
+            rows.extend(
+                self._isolated_source_group_impacts(
+                    season,
+                    event,
+                    evidence,
+                    feature_adjustments,
+                    evidence_quality,
                     probabilities,
                     belief_state,
-                    claim_id,
-                    updates[0].source_id,
-                    updates,
+                    knowledge_cutoff,
+                    set(),
                 )
             )
-        rows.extend(
-            self._isolated_source_group_impacts(
-                season,
-                event,
-                evidence,
-                feature_adjustments,
-                evidence_quality,
-                probabilities,
-                belief_state,
-                knowledge_cutoff,
-                set(),
-            )
-        )
         return rows
 
     def _isolated_source_group_impacts(
@@ -328,7 +326,7 @@ class PredictionPipeline:
         knowledge_cutoff: str | None,
         already_isolated_groups: set[str],
     ) -> list[dict[str, object]]:
-        if self.isolated_source_group_limit <= 0:
+        if self.isolated_source_group_limit == 0:
             return []
         group_lookup = self._source_group_lookup(evidence, feature_adjustments)
         selected_groups = self._selected_isolated_source_groups(
@@ -376,7 +374,7 @@ class PredictionPipeline:
                 counterfactual_pace,
                 iterations=self.iterations,
                 config=self.simulator_config,
-            ).simulate_summary(event).race_probabilities
+            ).simulate_summary(event, include_replay=False).race_probabilities
             rows.append(
                 self.impact_trace_builder.isolated_source_group_row(
                     counterfactual_probabilities,
@@ -401,6 +399,8 @@ class PredictionPipeline:
             score = max(abs(float(getattr(update, "delta", 0.0))) for update in updates)
             scored.append((score, claim_id, updates))
         scored.sort(key=lambda item: item[0], reverse=True)
+        if limit < 0:
+            return [(claim_id, updates) for _, claim_id, updates in scored]
         return [(claim_id, updates) for _, claim_id, updates in scored[: max(0, limit)]]
 
     @classmethod
@@ -425,6 +425,8 @@ class PredictionPipeline:
             score = sum(abs(float(getattr(update, "delta", 0.0))) for update in updates)
             scored.append((score, group_id, updates))
         scored.sort(key=lambda item: item[0], reverse=True)
+        if limit < 0:
+            return [(group_id, updates) for _, group_id, updates in scored]
         return [(group_id, updates) for _, group_id, updates in scored[: max(0, limit)]]
 
     @classmethod
@@ -836,12 +838,12 @@ class PredictionPipeline:
                 evidence_weights=counterfactual_weights,
                 belief_state=counterfactual_belief_state,
             )
-            counterfactual_probabilities, _ = SingleRaceSimulator(
+            counterfactual_probabilities = SingleRaceSimulator(
                 season,
                 counterfactual_pace,
                 iterations=self.iterations,
                 config=self.simulator_config,
-            ).simulate(event)
+            ).simulate_summary(event, include_replay=False).race_probabilities
             counterfactual_by_driver = {row.driver_id: row for row in counterfactual_probabilities}
             affected = self._affected_driver_ids(season, event, claim)
             outcome_rows = []

@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-06T09:07:01+00:00",
+  "updated_at": "2026-07-06T09:27:47+00:00",
   "intake_count": 3,
   "intakes": [
     {
@@ -29,7 +29,7 @@
     {
       "intake_id": "british_gp_20260705T000000_0000_c6e0a66a08_5952150b7d",
       "event_id": "british_gp",
-      "created_at": "2026-07-06T09:07:01+00:00",
+      "created_at": "2026-07-06T09:27:47+00:00",
       "knowledge_cutoff": "2026-07-05T00:00:00+00:00",
       "status": "intake_ready_with_review_risks",
       "claim_count": 6,

@@ -1012,6 +1012,7 @@ class PredictionImpactTraceBuilder:
                     "expected_points_delta": [],
                     "rank_delta": [],
                     "probability_delta_bucket": "not_isolated_yet",
+                    "impact_status": "pending_isolated_rerun",
                     "interpretation_zh": (
                         "这条记录证明信息已经进入状态向量并路由到模拟表面；"
                         "单条信息的同种子 isolated run 会在后续 P2 扩展中生成。"
@@ -1047,6 +1048,7 @@ class PredictionImpactTraceBuilder:
             or abs(row["podium_delta"]) >= 0.01
             or abs(row["expected_rank_delta"]) >= 1
         ]
+        max_delta = max((abs(row["podium_delta"]) for row in deltas), default=0.0)
         return {
             "impact_trace_id": safe_name(f"trace_{belief_state.state_id}_all_updates"),
             "update_id_or_group_id": "all_state_updates_vs_weak_seed_prior",
@@ -1058,7 +1060,8 @@ class PredictionImpactTraceBuilder:
             "finish_distribution_delta": sorted(deltas, key=lambda row: abs(row["average_finish_delta"]), reverse=True)[:12],
             "expected_points_delta": sorted(deltas, key=lambda row: abs(row["expected_points_delta"]), reverse=True)[:12],
             "rank_delta": sorted(deltas, key=lambda row: abs(row["expected_rank_delta"]), reverse=True)[:12],
-            "probability_delta_bucket": bucket_delta(max((abs(row["podium_delta"]) for row in deltas), default=0.0)),
+            "probability_delta_bucket": bucket_delta(max_delta),
+            "impact_status": impact_status(max_delta),
             "interpretation_zh": (
                 "同种子对比：弱 seed 初始状态与完整信息更新后的 BeliefState。"
                 "该记录证明结构化数据和 Codex 信息整体进入状态向量后改变了预测分布。"
@@ -1120,6 +1123,7 @@ class PredictionImpactTraceBuilder:
             "trace_type": "isolated_same_seed_leave_one_information",
             "base_run_id": f"without_{safe_name(claim_id)}",
             "candidate_run_id": belief_state.state_id,
+            "isolated_run_id": f"without_{safe_name(claim_id)}",
             "changed_factors": [
                 {
                     "target_type": update.target_type,
@@ -1137,6 +1141,7 @@ class PredictionImpactTraceBuilder:
             "expected_points_delta": sorted(deltas, key=lambda row: abs(row["expected_points_delta"]), reverse=True)[:12],
             "rank_delta": sorted(deltas, key=lambda row: abs(row["expected_rank_delta"]), reverse=True)[:12],
             "probability_delta_bucket": bucket_delta(max_delta),
+            "impact_status": impact_status(max_delta),
             "interpretation_zh": (
                 "同种子隔离对比：完整 BeliefState 与移除这一条来源化信息后的 BeliefState。"
                 "该记录用于说明这条信息本身对预测分布的边际影响。"
@@ -1199,6 +1204,7 @@ class PredictionImpactTraceBuilder:
             "trace_type": "isolated_same_seed_leave_source_group",
             "base_run_id": f"without_source_group_{safe_name(group_id)}",
             "candidate_run_id": belief_state.state_id,
+            "isolated_run_id": f"without_source_group_{safe_name(group_id)}",
             "changed_factors": [
                 {
                     "target_type": update.target_type,
@@ -1216,6 +1222,7 @@ class PredictionImpactTraceBuilder:
             "expected_points_delta": sorted(deltas, key=lambda row: abs(row["expected_points_delta"]), reverse=True)[:12],
             "rank_delta": sorted(deltas, key=lambda row: abs(row["expected_rank_delta"]), reverse=True)[:12],
             "probability_delta_bucket": bucket_delta(max_delta),
+            "impact_status": impact_status(max_delta),
             "interpretation_zh": (
                 "同种子来源组隔离对比：完整 BeliefState 与移除这一组同源信息后的 BeliefState。"
                 "该记录用于说明一类来源整体对预测分布的边际影响，单条信息仍需查看 isolated 单条记录。"
@@ -1296,6 +1303,15 @@ def bucket_delta(value: float) -> str:
     if magnitude >= 0.008:
         return "small"
     return "very_small"
+
+
+def impact_status(value: float) -> str:
+    magnitude = abs(value)
+    if magnitude >= 0.035:
+        return "material_prediction_change"
+    if magnitude >= 0.008:
+        return "small_prediction_change"
+    return "no_material_prediction_change"
 
 
 def bucket_strength(value: float) -> str:

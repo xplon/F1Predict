@@ -93,6 +93,7 @@ def main() -> None:
     prediction_packet.add_argument("--knowledge-cutoff", default=None)
     prediction_packet.add_argument("--iterations", type=int, default=1200)
     prediction_packet.add_argument("--isolated-impact-limit", type=int, default=0)
+    prediction_packet.add_argument("--isolated-source-group-limit", type=int, default=0)
     prediction_packet.add_argument("--write", action="store_true")
     prediction_packet.add_argument("--output-dir", default="reports/prediction_packets")
     prediction_packet.add_argument("--register-run", action="store_true")
@@ -642,6 +643,7 @@ def main() -> None:
             PredictionPipeline(
                 iterations=args.iterations,
                 isolated_impact_limit=args.isolated_impact_limit,
+                isolated_source_group_limit=args.isolated_source_group_limit,
             )
         )
         if args.write:

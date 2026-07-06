@@ -516,6 +516,12 @@ class PredictionExplainer:
                 "isolated_prediction_impact_count": (packet.get("codex_context") or {}).get(
                     "isolated_prediction_impact_count"
                 ),
+                "isolated_source_group_impact_count": (packet.get("codex_context") or {}).get(
+                    "isolated_source_group_impact_count"
+                ),
+                "impact_trace_uncovered_claim_count": (packet.get("codex_context") or {}).get(
+                    "impact_trace_uncovered_claim_count"
+                ),
             },
         }
 
@@ -853,9 +859,13 @@ class PredictionExplainer:
                     "trace_type_label": _trace_type_label(row.get("trace_type")),
                     "update_id_or_group_id": row.get("update_id_or_group_id"),
                     "claim_id": row.get("claim_id"),
+                    "claim_ids": list(row.get("claim_ids") or [])[:12],
                     "source_id": row.get("source_id"),
+                    "source_ids": list(row.get("source_ids") or [])[:12],
                     "probability_delta_bucket": row.get("probability_delta_bucket"),
                     "probability_delta_label": _magnitude_label(row.get("probability_delta_bucket")),
+                    "impact_status": row.get("impact_status"),
+                    "impact_status_label": _impact_status_label(row.get("impact_status")),
                     "changed_factors": _public_changed_factors(row.get("changed_factors") or [], season, limit=6),
                     "affected_drivers": [
                         _impact_driver_label(item, season)
@@ -876,14 +886,26 @@ class PredictionExplainer:
             for row in traces
             if isinstance(row, dict) and row.get("trace_type") == "isolated_same_seed_leave_one_information"
         )
+        source_group_count = sum(
+            1
+            for row in traces
+            if isinstance(row, dict) and row.get("trace_type") == "isolated_same_seed_leave_source_group"
+        )
+        codex_context = packet.get("codex_context") or {}
         return {
             "total_prediction_impact_trace_count": len(traces),
             "isolated_prediction_impact_trace_count": isolated_count,
+            "isolated_source_group_impact_trace_count": source_group_count,
+            "impact_trace_claim_count": codex_context.get("impact_trace_claim_count"),
+            "impact_trace_covered_claim_count": codex_context.get("impact_trace_covered_claim_count"),
+            "impact_trace_uncovered_claim_count": codex_context.get("impact_trace_uncovered_claim_count"),
             "selected_prediction_impact_trace_count": len(public_rows),
             "top_traces": public_rows[:max_evidence],
             "isolation_status": (
-                "当前已生成部分来源化信息的单条 isolated same-seed 重跑。"
-                if isolated_count
+                f"当前已生成 {isolated_count} 条单条信息 isolated same-seed 重跑和 "
+                f"{source_group_count} 条来源组 isolated same-seed 重跑；"
+                f"仍有 {codex_context.get('impact_trace_uncovered_claim_count', '未知数量')} 条状态更新未被 isolated 覆盖。"
+                if isolated_count or source_group_count
                 else (
                     "当前已实现整体同种子前后对比和状态路由记录；"
                     "单条信息 isolated rerun 仍是后续扩展，不能把路由记录误读成单条因果实验。"
@@ -1235,7 +1257,8 @@ class PredictionExplainer:
             f"{belief.get('normalized_claim_count', 0)} 条标准化因子声明、"
             f"{belief.get('state_update_count', 0)} 条状态更新、"
             f"{(context.get('prediction_impact_trace_context') or {}).get('total_prediction_impact_trace_count', 0)} 条预测影响记录，"
-            f"其中 {(context.get('prediction_impact_trace_context') or {}).get('isolated_prediction_impact_trace_count', 0)} 条是单条信息同种子隔离重跑"
+            f"其中 {(context.get('prediction_impact_trace_context') or {}).get('isolated_prediction_impact_trace_count', 0)} 条是单条信息同种子隔离重跑，"
+            f"{(context.get('prediction_impact_trace_context') or {}).get('isolated_source_group_impact_trace_count', 0)} 条是来源组同种子隔离重跑"
         )
         parts = [
             f"BeliefState 可追溯链路方面，本次预测包记录了 {counts}；解释应该沿着"
@@ -1331,6 +1354,18 @@ class PredictionExplainer:
                     lines.append(f"相对移除单条信息 `{row.get('claim_id')}` 的同种子重跑，{changes}")
                 else:
                     lines.append(f"单条信息 `{row.get('claim_id')}` 已做同种子隔离重跑，但对所选车手影响很小")
+            elif row.get("trace_type") == "isolated_same_seed_leave_source_group":
+                points_changes = row.get("points_changes") or []
+                source_group = row.get("update_id_or_group_id")
+                if points_changes:
+                    changes = "、".join(
+                        f"{driver_lookup.get(item.get('driver_id'), item.get('driver_name') or item.get('driver_id'))}"
+                        f"在完整预测中{item.get('direction_label')}{item.get('magnitude_label')}"
+                        for item in points_changes[:3]
+                    )
+                    lines.append(f"相对移除来源组 `{source_group}` 的同种子重跑，{changes}")
+                else:
+                    lines.append(f"来源组 `{source_group}` 已做同种子隔离重跑，但对所选车手影响很小")
         return lines
 
     def _single_score_note(
@@ -1812,6 +1847,7 @@ def _magnitude_label(bucket: Any) -> str:
         "medium": "中等",
         "small": "小幅",
         "tiny": "很小",
+        "very_small": "很小",
         "none": "无明显变化",
         "high": "高",
         "moderate": "中等",
@@ -1944,8 +1980,19 @@ def _trace_type_label(trace_type: Any) -> str:
         "same_seed_before_after": "同种子前后对比",
         "state_update_route": "状态更新路由记录",
         "isolated_same_seed_leave_one_information": "单条信息同种子隔离对比",
+        "isolated_same_seed_leave_source_group": "来源组同种子隔离对比",
     }
     return labels.get(str(trace_type), _identifier_to_zh(str(trace_type)))
+
+
+def _impact_status_label(value: Any) -> str:
+    labels = {
+        "material_prediction_change": "已证明有实质预测变化",
+        "small_prediction_change": "已证明有小幅预测变化",
+        "no_material_prediction_change": "已重跑但无明显预测变化",
+        "pending_isolated_rerun": "尚未进行同种子隔离重跑",
+    }
+    return labels.get(str(value), _identifier_to_zh(str(value)))
 
 
 def _public_changed_factors(rows: list[Any], season: Any, limit: int) -> list[dict[str, Any]]:
