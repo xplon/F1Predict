@@ -166,6 +166,38 @@ event_id=british_gp
 
 用途：读取指定 run。
 
+### GET /api/v2/prediction-packets/latest
+
+用途：读取某个 event/cutoff 最新已注册 run 指向的 prediction packet JSON。
+
+这个接口是只读缓存接口，不会重新运行模拟，也不会写新的 artifact。前端默认应该优先使用它来展示预测结果和可解释链路；只有找不到已注册 packet 时，才退回旧的实时构建接口。
+
+参数：
+
+```text
+event_id=british_gp
+knowledge_cutoff=2026-07-05T00:00:00+00:00  # 可选
+```
+
+输出会在原始 packet 上追加：
+
+```json
+{
+  "cache_context": {
+    "source": "registered_prediction_packet",
+    "run_id": "<run-id>",
+    "packet_path": "<relative-path>",
+    "packet_payload_sha256": "<sha256>",
+    "input_fingerprint": "<sha256>",
+    "probability_fingerprint": "<sha256>"
+  }
+}
+```
+
+### GET /api/v2/prediction-runs/{run_id}/packet
+
+用途：读取指定 run 指向的 prediction packet JSON。它同样是只读接口，不会重新生成预测。
+
 ### POST /api/v2/prediction-runs
 
 用途：执行一次完整后端预测工作流。

@@ -183,15 +183,23 @@ async function loadPrediction() {
   resetReplayLap([]);
   renderPredictionPending(eventId);
   try {
-    const report = normalizePredictionReport(await getJson(`/api/prediction?event_id=${encoded}`));
+    let packet = null;
+    let report = null;
+    try {
+      packet = await getJson(`/api/v2/prediction-packets/latest?event_id=${encoded}`);
+      report = normalizePredictionReport(packet.prediction);
+    } catch {
+      report = normalizePredictionReport(await getJson(`/api/prediction?event_id=${encoded}`));
+    }
     if (requestSeq !== predictionRequestSeq) {
       return;
     }
+    state.packet = packet;
     state.report = report;
     state.predictionLoading = false;
     resetReplayLap(predictionReplayRows(report));
     render();
-    loadPredictionAuxiliaryPanels(encoded, requestSeq);
+    loadPredictionAuxiliaryPanels(encoded, requestSeq, Boolean(packet));
   } catch (error) {
     if (requestSeq !== predictionRequestSeq) {
       return;
@@ -202,13 +210,18 @@ async function loadPrediction() {
   }
 }
 
-function loadPredictionAuxiliaryPanels(encodedEventId, requestSeq) {
+function loadPredictionAuxiliaryPanels(encodedEventId, requestSeq, packetLoadedFromCache = false) {
   const requests = [
-    ["packet", `/api/prediction-packet?event_id=${encodedEventId}&iterations=1200&isolated_impact_limit=12`],
     ["researchPlan", `/api/codex-research-plan?event_id=${encodedEventId}`],
     ["sourceCandidates", `/api/source-candidates?event_id=${encodedEventId}`],
     ["researchPreflight", `/api/research-preflight?event_id=${encodedEventId}`]
   ];
+  if (!packetLoadedFromCache) {
+    requests.unshift([
+      "packet",
+      `/api/prediction-packet?event_id=${encodedEventId}&iterations=1200&isolated_impact_limit=12`
+    ]);
+  }
   requests.forEach(([stateKey, url]) => {
     getJson(url)
       .then(payload => {
@@ -635,6 +648,7 @@ function renderPredictionPacket() {
   const market = packet.market_context || {};
   const codex = packet.codex_context || {};
   const intake = codex.intake || {};
+  const cache = packet.cache_context || {};
   const blockers = packet.blocker_codes || [];
   const warnings = packet.warning_codes || [];
   const blockerText = blockers.length
@@ -646,6 +660,8 @@ function renderPredictionPacket() {
   document.getElementById("packetSummary").innerHTML = `
     <div class="packet-hash">${escapeHtml(String(packet.packet_payload_sha256 || "").slice(0, 18))}</div>
     <div class="packet-grid">
+      <div><span>读取方式</span><strong>${cache.source ? "已注册缓存" : "实时生成"}</strong></div>
+      <div><span>Run</span><strong>${escapeHtml(shortHash(cache.run_id))}</strong></div>
       <div><span>BeliefState</span><strong>${escapeHtml(shortHash(codex.belief_state_id))}</strong></div>
       <div><span>状态更新</span><strong>${codex.state_update_count || 0}</strong></div>
       <div><span>影响追踪</span><strong>${codex.prediction_impact_trace_count || 0}</strong></div>

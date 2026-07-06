@@ -82,6 +82,35 @@ class BackendApiV2:
             if record is None:
                 return ApiResponse({"error": "prediction_run_not_found", "event_id": event_id}, status=404)
             return ApiResponse(record.to_dict())
+        if route == "/prediction-packets/latest":
+            event_id = _first(query, "event_id", "british_gp")
+            cutoff = _first(query, "knowledge_cutoff", None)
+            record = self.registry.latest(event_id, knowledge_cutoff=cutoff)
+            if record is None:
+                return ApiResponse({"error": "prediction_run_not_found", "event_id": event_id}, status=404)
+            payload = self._load_registered_prediction_packet(record)
+            if payload is None:
+                return ApiResponse(
+                    {
+                        "error": "prediction_packet_not_found",
+                        "event_id": event_id,
+                        "run_id": record.run_id,
+                    },
+                    status=404,
+                )
+            return ApiResponse(payload)
+        if route.startswith("/prediction-runs/") and route.endswith("/packet"):
+            run_id = route.removeprefix("/prediction-runs/").removesuffix("/packet").strip("/")
+            if not run_id:
+                return ApiResponse({"error": "missing_run_id"}, status=400)
+            record = self.registry.load(run_id)
+            payload = self._load_registered_prediction_packet(record)
+            if payload is None:
+                return ApiResponse(
+                    {"error": "prediction_packet_not_found", "run_id": record.run_id},
+                    status=404,
+                )
+            return ApiResponse(payload)
         if route.startswith("/prediction-runs/"):
             run_id = route.removeprefix("/prediction-runs/").strip("/")
             if not run_id:
@@ -399,6 +428,12 @@ class BackendApiV2:
                 },
                 "/api/v2/prediction-runs/latest": {"get": {"summary": "Fetch latest registered run for an event"}},
                 "/api/v2/prediction-runs/{run_id}": {"get": {"summary": "Fetch one registered prediction run"}},
+                "/api/v2/prediction-packets/latest": {
+                    "get": {"summary": "Fetch the prediction packet JSON for the latest registered run"},
+                },
+                "/api/v2/prediction-runs/{run_id}/packet": {
+                    "get": {"summary": "Fetch the prediction packet JSON for a registered run"},
+                },
                 "/api/v2/prediction-diffs": {
                     "get": {"summary": "List stored prediction diff artifacts"},
                     "post": {"summary": "Build a matched diff between two registered runs"},
@@ -433,6 +468,27 @@ class BackendApiV2:
                     }
                 )
         return {"diff_count": len(rows), "diffs": rows}
+
+    def _load_registered_prediction_packet(self, record) -> dict[str, Any] | None:
+        if not record.prediction_packet_path:
+            return None
+        packet_path = Path(record.prediction_packet_path)
+        if not packet_path.is_absolute():
+            packet_path = self.root / packet_path
+        if not packet_path.exists():
+            return None
+        payload = json.loads(packet_path.read_text(encoding="utf-8"))
+        payload["cache_context"] = {
+            "source": "registered_prediction_packet",
+            "run_id": record.run_id,
+            "created_at": record.created_at,
+            "packet_path": str(_relative_to_root(packet_path, self.root)),
+            "packet_payload_sha256": record.packet_payload_sha256,
+            "input_fingerprint": record.input_fingerprint,
+            "probability_fingerprint": record.probability_fingerprint,
+            "knowledge_cutoff": record.knowledge_cutoff,
+        }
+        return payload
 
     def _load_prediction_diff(self, diff_id: str) -> dict[str, Any] | None:
         root = self.root / "reports" / "prediction_diffs"

@@ -363,6 +363,9 @@ def main() -> None:
     assert "/api/v2/prediction-runs" in api_v2.handle_get("/api/v2/openapi.json", {}).payload[
         "paths"
     ], "API v2 should publish prediction-run endpoint definitions"
+    assert "/api/v2/prediction-packets/latest" in api_v2.handle_get("/api/v2/openapi.json", {}).payload[
+        "paths"
+    ], "API v2 should publish cached latest prediction-packet endpoint definitions"
     assert "/api/v2/track-features" in api_v2.handle_get("/api/v2/openapi.json", {}).payload[
         "paths"
     ], "API v2 should publish track-feature endpoint definitions"
@@ -392,6 +395,14 @@ def main() -> None:
     assert api_intake["claim_count"] >= 1, "API v2 should preview cutoff-valid information intake"
     api_runs = api_v2.handle_get("/api/v2/prediction-runs", {"event_id": ["british_gp"]}).payload
     assert api_runs["run_count"] >= 1, "API v2 should list registered prediction runs"
+    api_latest_packet = api_v2.handle_get(
+        "/api/v2/prediction-packets/latest",
+        {"event_id": ["british_gp"]},
+    ).payload
+    assert (
+        api_latest_packet["event_id"] == "british_gp"
+        and api_latest_packet["cache_context"]["source"] == "registered_prediction_packet"
+    ), "API v2 should return the latest registered packet artifact without rebuilding it"
     high_altitude_refs = {
         "weather_profile": {"elevation_m": 2240.0},
         "circuit_profile": {
