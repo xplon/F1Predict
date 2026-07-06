@@ -443,10 +443,37 @@ function predictionReplayRows(report) {
 }
 
 function normalizePredictionReport(payload) {
-  if (payload?.prediction?.event && (payload.prediction.simulation_replay || payload.prediction.representative_lap)) {
-    return payload.prediction;
+  const report = payload?.prediction?.event && (payload.prediction.simulation_replay || payload.prediction.representative_lap)
+    ? payload.prediction
+    : payload;
+  if (report && Array.isArray(report.race_probabilities)) {
+    return {
+      ...report,
+      race_probabilities: normalizeRaceProbabilities(report.race_probabilities)
+    };
   }
-  return payload;
+  return report;
+}
+
+function normalizeRaceProbabilities(rows) {
+  return rows
+    .filter(row => row && row.driver_id)
+    .map(row => ({ ...row }))
+    .sort((a, b) => {
+      const finishDelta = finiteNumber(a.average_finish, 999) - finiteNumber(b.average_finish, 999);
+      if (finishDelta) return finishDelta;
+      const pointDelta = finiteNumber(b.expected_points, 0) - finiteNumber(a.expected_points, 0);
+      if (pointDelta) return pointDelta;
+      const podiumDelta = finiteNumber(b.podium, 0) - finiteNumber(a.podium, 0);
+      if (podiumDelta) return podiumDelta;
+      const winDelta = finiteNumber(b.win, 0) - finiteNumber(a.win, 0);
+      if (winDelta) return winDelta;
+      return String(a.driver_id).localeCompare(String(b.driver_id));
+    })
+    .map((row, index) => ({
+      ...row,
+      expected_rank: index + 1
+    }));
 }
 
 function nonEmptyArray(value) {
@@ -516,9 +543,9 @@ function normalizeReplayRows(rows) {
     .map(({ _sourceIndex, ...row }) => row);
 }
 
-function finiteNumber(value) {
+function finiteNumber(value, fallback = null) {
   const number = Number(value);
-  return Number.isFinite(number) ? number : null;
+  return Number.isFinite(number) ? number : fallback;
 }
 
 function replayRankKey(row) {
@@ -1626,16 +1653,17 @@ function renderStrategyTrace(rows) {
 }
 
 function renderProbabilityTable(rows) {
-  const top = rows.slice(0, 8);
+  const rankedRows = normalizeRaceProbabilities(Array.isArray(rows) ? rows : []);
   document.getElementById("probabilityTable").innerHTML = [
-    `<div class="row header"><span>Driver</span><span>Win</span><span>Podium</span><span>Points</span><span>Exp pts</span></div>`,
-    ...top.map(row => `
-      <div class="row">
-        <span>${driverNames[row.driver_id] || row.driver_id}</span>
+    `<div class="row probability-row header"><span>排名</span><span>车手</span><span>冠军</span><span>领奖台</span><span>积分区</span><span>期望积分</span></div>`,
+    ...rankedRows.map(row => `
+      <div class="row probability-row">
+        <span>P${escapeHtml(row.expected_rank || "-")}</span>
+        <span>${escapeHtml(driverNames[row.driver_id] || row.driver_id)}</span>
         <span>${pct(row.win)}</span>
         <span>${pct(row.podium)}</span>
         <span>${pct(row.points)}</span>
-        <span>${row.expected_points.toFixed(2)}</span>
+        <span>${finiteNumber(row.expected_points, 0).toFixed(2)}</span>
       </div>
     `)
   ].join("");

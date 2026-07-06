@@ -651,6 +651,7 @@ class BackendApiV2:
             "probability_fingerprint": record.probability_fingerprint,
             "knowledge_cutoff": record.knowledge_cutoff,
         }
+        _normalize_prediction_probability_rows(payload)
         self._refresh_prediction_anomaly_audit(payload, record)
         return payload
 
@@ -699,6 +700,38 @@ def _first(query: dict[str, list[str]], key: str, default: str | None) -> str | 
     if not values:
         return default
     return values[0]
+
+
+def _as_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _normalize_prediction_probability_rows(payload: dict[str, Any]) -> None:
+    prediction = payload.get("prediction")
+    if not isinstance(prediction, dict):
+        return
+    rows = prediction.get("race_probabilities")
+    if not isinstance(rows, list):
+        return
+    normalized = []
+    for row in rows:
+        if isinstance(row, dict) and row.get("driver_id"):
+            normalized.append(dict(row))
+    normalized.sort(
+        key=lambda row: (
+            _as_float(row.get("average_finish"), 999.0),
+            -_as_float(row.get("expected_points"), 0.0),
+            -_as_float(row.get("podium"), 0.0),
+            -_as_float(row.get("win"), 0.0),
+            str(row.get("driver_id") or ""),
+        )
+    )
+    for index, row in enumerate(normalized, start=1):
+        row["expected_rank"] = index
+    prediction["race_probabilities"] = normalized
 
 
 def _bool_query(query: dict[str, list[str]], key: str, default: bool = False) -> bool:

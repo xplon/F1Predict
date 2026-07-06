@@ -315,6 +315,10 @@ canvas {
   background: var(--panel-2);
 }
 
+.probability-row {
+  grid-template-columns: 52px minmax(0, 1.2fr) repeat(4, minmax(68px, 0.7fr));
+}
+
 .row.header {
   background: transparent;
   color: var(--muted);
@@ -1481,6 +1485,20 @@ canvas {
 
   .row span:nth-child(n + 4) {
     display: none;
+  }
+
+  .probability-row {
+    grid-template-columns: 48px minmax(0, 1fr) minmax(74px, 0.35fr);
+  }
+
+  .probability-row span:nth-child(3),
+  .probability-row span:nth-child(4),
+  .probability-row span:nth-child(5) {
+    display: none;
+  }
+
+  .probability-row span:nth-child(6) {
+    display: inline;
   }
 
   .issue-card {

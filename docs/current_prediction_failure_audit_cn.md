@@ -753,3 +753,36 @@ impact_trace_uncovered_claim_count = 0
 ```
 
 这不等于预测已经正确，也不等于具备正式 edge；它只表示当前异常审计规则没有发现高/中优先级明显冲突，但会保留低优先级 Gasly/Alpine 复核项。下一步仍然要靠历史回放、概率校准和市场基线比较证明预测质量。
+
+## 15. 2026-07-06：修正 `race_probabilities` 的预计排名展示语义
+
+本轮发现一个前端/packet 展示层问题：`prediction.race_probabilities` 在模拟器内部按冠军概率排序，这对“谁最可能赢”有意义，但不能直接当作“每个车手预计排名”。最新 British GP 包里，前 8 名因为冠军概率和平均完赛名次大致一致，看起来没有问题；但第 9 名以后会出现 Alonso/Stroll 被数组顺序放在 Gasly、Racing Bulls 和 Williams 之前的错觉。实际平均完赛名次显示 Alonso/Stroll 应在第 19/20 左右。
+
+这不是新的模型修订，也不改变任何模拟概率、期望积分或平均完赛名次。修正内容是：
+
+- 后端 `PredictionReport.to_dict()` 输出 `race_probabilities` 时增加 `expected_rank`，并按 `average_finish -> expected_points -> podium -> win` 排列；
+- API 读取历史已注册 packet 时运行时补齐同样的 `expected_rank` 和排序，所以旧 JSON 包也不会继续误导前端；
+- 前端默认预测表改为中文“全场预计排名”表，展示 22 名车手，而不是只展示冠军概率前 8；
+- `probability_summary.top_win_probabilities` 仍然按冠军概率排序，避免把“冠军概率第一”和“平均完赛第一”混为一谈。
+
+当前 API 运行时复核：
+
+```text
+GET /api/v2/prediction-packets/latest?event_id=british_gp
+race_probabilities[0:8] by expected_rank =
+01 Russell
+02 Antonelli
+03 Hamilton
+04 Leclerc
+05 Norris
+06 Piastri
+07 Verstappen
+08 Hadjar
+...
+19 Alonso
+20 Stroll
+21 Bottas
+22 Perez
+```
+
+这项修正让前端展示更符合用户“预测整场比赛每个车手预计排名”的要求，但它不应被解释为预测质量提升。模型质量仍然是 `diagnostic_only`，还需要历史回放、概率校准和更多来源化赛车/赛道/长距离信息来证明预测本身更可靠。

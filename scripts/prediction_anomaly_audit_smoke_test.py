@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from f1predict.api_v2 import BackendApiV2  # noqa: E402
 from f1predict.data_sources.augmented import CalendarAugmentedDataSource  # noqa: E402
+from f1predict.domain import DriverRaceProbability, race_probability_rows_for_display  # noqa: E402
 from f1predict.prediction_anomaly import PredictionAnomalyAuditor  # noqa: E402
 from f1predict.run_tracking import PredictionRunRegistry  # noqa: E402
 
@@ -24,11 +25,25 @@ def _latest_packet_path() -> Path:
 
 
 def main() -> None:
+    display_rows = race_probability_rows_for_display(
+        [
+            DriverRaceProbability("win_leader", win=0.7, podium=0.7, points=0.7, expected_points=5.0, average_finish=8.0),
+            DriverRaceProbability("rank_leader", win=0.2, podium=0.9, points=1.0, expected_points=18.0, average_finish=2.0),
+        ]
+    )
+    assert [row["driver_id"] for row in display_rows] == ["rank_leader", "win_leader"]
+    assert [row["expected_rank"] for row in display_rows] == [1, 2]
+
     api = BackendApiV2(ROOT)
     response = api.handle_get("/api/v2/prediction-packets/latest", {"event_id": ["british_gp"]})
     assert response and response.status == 200
     payload = response.payload
     cache_context = payload.get("cache_context") or {}
+    probability_rows = payload["prediction"]["race_probabilities"]
+    assert len(probability_rows) == 22
+    assert [row.get("expected_rank") for row in probability_rows] == list(range(1, 23))
+    average_finishes = [float(row["average_finish"]) for row in probability_rows]
+    assert average_finishes == sorted(average_finishes), "API race_probabilities should be expected-rank ordered"
 
     packet_path = _latest_packet_path()
     season = CalendarAugmentedDataSource().load()

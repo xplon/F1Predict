@@ -294,7 +294,7 @@ class PredictionReport:
             "generated_at": self.generated_at,
             "knowledge_cutoff": self.knowledge_cutoff,
             "iterations": self.iterations,
-            "race_probabilities": [item.__dict__ for item in self.race_probabilities],
+            "race_probabilities": race_probability_rows_for_display(self.race_probabilities),
             "market_edges": [item.__dict__ for item in self.market_edges],
             "evidence": [item.__dict__ for item in self.evidence],
             "evidence_quality": [
@@ -322,6 +322,26 @@ class PredictionReport:
             "state_update_ledger": self.state_update_ledger,
             "prediction_impact_trace": self.prediction_impact_trace,
         }
+
+
+def race_probability_rows_for_display(rows: list[DriverRaceProbability]) -> list[dict[str, Any]]:
+    ranked = sorted(
+        rows,
+        key=lambda row: (
+            row.average_finish,
+            -row.expected_points,
+            -row.podium,
+            -row.win,
+            row.driver_id,
+        ),
+    )
+    return [
+        {
+            **row.__dict__,
+            "expected_rank": index,
+        }
+        for index, row in enumerate(ranked, start=1)
+    ]
 
 
 def race_event_to_dict(event: RaceEvent) -> dict[str, Any]:

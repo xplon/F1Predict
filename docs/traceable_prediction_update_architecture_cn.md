@@ -469,6 +469,12 @@ Hamilton race score +0.30000，所以更强。
 - top3/top5/top10/points 概率；
 - 当前 run_id、cutoff、数据更新时间。
 
+预计排名和冠军概率必须分开：
+
+- `race_probabilities` 作为全场预计排名表时，必须带 `expected_rank`，并按 `average_finish -> expected_points -> podium -> win` 排列；
+- `probability_summary.top_win_probabilities` 作为冠军概率摘要时，才按 `win` 排列；
+- 前端不能把冠军概率数组或模拟器内部顺序直接当作 22 名车手预计排名，否则零胜率车手的第 9 名以后展示会错位。
+
 ### 7.2 本次预测为什么变了
 
 按影响从大到小展示：
