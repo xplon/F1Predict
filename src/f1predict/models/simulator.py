@@ -32,9 +32,9 @@ class StrategyPlan:
 class SimulatorConfig:
     """Tunable parameters for the compact race-time simulator."""
 
-    config_id: str = "default_pace_separation_v1"
+    config_id: str = "default_pace_separation_track_position_v2"
     description: str = (
-        "Pace-separation simulator defaults selected from diagnostic replay calibration; "
+        "Pace-separation simulator defaults with source-backed track-position conversion; "
         "still not formal-ready without holdout validation."
     )
     qualifying_noise_sd: float = 0.38
@@ -544,7 +544,7 @@ class SingleRaceSimulator:
         return self._track_features(event).pit_loss_seconds
 
     def _track_position_penalty(self, event: RaceEvent) -> float:
-        return 0.055 + self._track_features(event).track_position_value * 0.20
+        return 0.18 + self._track_features(event).track_position_value * 0.55
 
     def _wet_probability(self, event: RaceEvent) -> float:
         return min(1.0, max(0.0, event.weather_prior.get("wet_probability", 0.0)))

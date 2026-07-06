@@ -252,8 +252,18 @@ def main() -> None:
         feature for feature in austrian_race_morning_features
         if feature.source.startswith("fastf1_qualifying_result")
     ]
+    austrian_qualifying_pace_features = [
+        feature
+        for feature in austrian_qualifying_features
+        if feature.target_type == "driver" and feature.metric == "qualifying_pace"
+    ]
+    austrian_grid_conversion_features = [
+        feature
+        for feature in austrian_qualifying_features
+        if feature.target_type == "driver" and feature.metric == "race_execution"
+    ]
     assert (
-        len([feature for feature in austrian_qualifying_features if feature.target_type == "driver"]) == 22
+        len(austrian_qualifying_pace_features) == 22
         and any(
             feature.target_id == "russell"
             and feature.metric == "qualifying_pace"
@@ -261,6 +271,11 @@ def main() -> None:
             for feature in austrian_qualifying_features
         )
     ), "same-event FastF1 qualifying results should become cutoff-safe qualifying/grid features after Q"
+    assert (
+        len(austrian_grid_conversion_features) == 22
+        and max(feature.value for feature in austrian_grid_conversion_features) > 0
+        and min(feature.value for feature in austrian_grid_conversion_features) < 0
+    ), "same-event FastF1 qualifying order should also enter race execution as a grid/traffic conversion signal"
     austrian_fp2_summaries = FastF1SessionLapRepository().latest_for_event(
         2026,
         austrian_event.name,
@@ -320,6 +335,13 @@ def main() -> None:
         feature for feature in british_race_morning_features
         if feature.source.startswith("fastf1_qualifying_result")
         and feature.target_type == "driver"
+        and feature.metric == "qualifying_pace"
+    ]
+    british_grid_conversion_features = [
+        feature for feature in british_race_morning_features
+        if feature.source.startswith("fastf1_qualifying_result")
+        and feature.target_type == "driver"
+        and feature.metric == "race_execution"
     ]
     british_with_qualifying_order = pipeline._event_with_fastf1_qualifying_order(
         season,
@@ -329,15 +351,24 @@ def main() -> None:
     assert (
         len(british_session_features) >= 70
         and len(british_qualifying_features) == 22
+        and len(british_grid_conversion_features) == 22
         and british_with_qualifying_order.feature_refs["fastf1_qualifying_order"]["driver_positions"][0]["driver_id"]
         == "antonelli"
     ), "British race-morning prediction should include cutoff-valid FP1/Q lap features and known qualifying order"
     british_track_vector = track_feature_vector(british_event)
+    british_track_position_penalty = SingleRaceSimulator(
+        season,
+        PaceModel(season, [], []),
+        iterations=1,
+    )._track_position_penalty(british_event)
     assert (
         british_track_vector.source_status == "source_backed_derived_proxy"
         and british_track_vector.corner_count == 18
         and british_track_vector.aero_efficiency_index > british_track_vector.traction_index
     ), "British GP track feature vector should use sourced Silverstone geometry as a high-speed/aero-sensitive layout"
+    assert (
+        british_track_position_penalty >= 0.30
+    ), "known grid position should have material source-backed track-position value on Silverstone-like circuits"
     assert (
         0.0 < british_track_vector.overtaking_index < 1.0
         and 17.5 <= british_track_vector.pit_loss_seconds <= 24.5
@@ -902,7 +933,7 @@ def main() -> None:
         packet.market_context["usable_snapshot_count"] >= 1
     ), "prediction packet should summarize cutoff-usable market snapshots"
     assert (
-        packet.model_context["simulator_config"]["config_id"] == "default_pace_separation_v1"
+        packet.model_context["simulator_config"]["config_id"] == "default_pace_separation_track_position_v2"
     ), "prediction packet should expose the active simulator config for run diff auditability"
     assert (
         packet.model_context["simulator_config"]["race_score_lap_time_scale"] == 0.66
@@ -1095,12 +1126,13 @@ def main() -> None:
     assert (
         fastf1_season_lookup[("team", "mercedes", "race_execution")].value < 0
     ), "FastF1 race_execution should distinguish grid conversion from raw Mercedes race pace"
-    alonso_race_score = PaceModel(season, report.evidence, report.feature_adjustments).score_breakdown(
+    isolated_alonso_race_execution_feature = fastf1_season_lookup[("driver", "alonso", "race_execution")]
+    alonso_race_score = PaceModel(season, [], [isolated_alonso_race_execution_feature]).score_breakdown(
         season.drivers["alonso"],
         british_event,
         mode="race",
     )
-    alonso_qualifying_score = PaceModel(season, report.evidence, report.feature_adjustments).score_breakdown(
+    alonso_qualifying_score = PaceModel(season, [], [isolated_alonso_race_execution_feature]).score_breakdown(
         season.drivers["alonso"],
         british_event,
         mode="qualifying",

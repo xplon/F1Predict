@@ -83,20 +83,20 @@ scripts/explainability_smoke_test.py
 最新诊断预测包：
 
 ```text
-reports/prediction_packets_v2/british_gp/2026-07-06T06_37_58_00_00/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+reports/prediction_packets_v2/british_gp/2026-07-06T07_48_46_00_00/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
 ```
 
 注册 run：
 
 ```text
-reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260706T063838_0000_22806fdba8.prediction_run.json
+reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260706T074952_0000_841054625f.prediction_run.json
 ```
 
 本次预测状态：
 
 ```text
-belief_state_id = british_gp_7cc88d5b1b_a2a7054bec
-state_update_count = 467
+belief_state_id = british_gp_b3b9b2e20a_e94bcafff3
+state_update_count = 489
 prediction_impact_trace_count = 23
 isolated_prediction_impact_count = 12
 status = diagnostic_only
@@ -106,26 +106,26 @@ blocker_codes = codex_evidence_quality_review_required, probability_calibration_
 按平均完赛名次排序的诊断结果：
 
 ```text
-01 Russell
-02 Antonelli
+01 Antonelli
+02 Russell
 03 Hamilton
-04 Norris
-05 Leclerc
+04 Leclerc
+05 Norris
 06 Piastri
 07 Verstappen
 08 Hadjar
 09 Gasly
-10 Colapinto
-11 Lindblad
+10 Lindblad
+11 Lawson
 12 Sainz
-13 Lawson
+13 Colapinto
 14 Albon
-15 Alonso
+15 Bearman
 16 Ocon
-17 Bearman
-18 Stroll
+17 Bortoleto
+18 Alonso
 19 Hulkenberg
-20 Bortoleto
+20 Stroll
 21 Bottas
 22 Perez
 ```
@@ -136,7 +136,25 @@ blocker_codes = codex_evidence_quality_review_required, probability_calibration_
 - 如果某个变化只来自 `seed://codex/...`，它只能作为开发链路测试，不能算有效预测进步；
 - 本次修正后，`seed-british-*` 的模型输入权重为 `0`，并且不再产生状态更新账本行。
 
-本次新旧 run diff 显示：修正 seed 输入门控后，概率指纹发生变化，但 22 名车手的 expected rank 没有变化；最大变化只在小幅概率/期望积分层面。这说明这次改动的主要意义不是“按用户观点重新排队”，而是堵住 seed 场景包继续影响预测的路径。
+2026-07-06 07:49 UTC 追加修正后，新旧 run diff 显示：
+
+```text
+base_run = british_gp_20260705T000000_0000_20260706T072132_0000_66421177e6
+candidate_run = british_gp_20260705T000000_0000_20260706T074952_0000_841054625f
+probability_changed = True
+changed_driver_count = 22
+material_driver_change_count = 15
+rank_change_count = 11
+max_abs_win_delta = 0.038334
+max_abs_expected_points_delta = 0.3858
+```
+
+这次变化不是因为用户说某个车队或车手应该更强/更弱，而是来自两条通用映射修正：
+
+- FastF1 同场排位分类现在除了进入 `qualifying_pace`，还会产生 `race_execution` 特征，用于表达发车位置带来的清洁空气、交通位置和首段窗口影响；该特征每名车手都有，按排位名次统一计算，不按车手名或车队名特判；
+- 模拟器的发车位置惩罚改为更强地读取 `track_feature_vector.track_position_value`，让赛道位置价值真正作用到正赛时间，而不是只在解释里出现。
+
+这次修正后，Leclerc/Hamilton 的同队排位张力从异常审计里消失：Leclerc 由第 5 升到第 4，领奖台概率由 0.2275 升到 0.2483；Hamilton 仍第 3，说明同场 P2/P3 信息已经影响最终概率，但还不足以完全覆盖 Hamilton 的官方积分、近期结果和其他来源化输入。这个结果应被解释为“来源化映射有效但仍不充分”，不能解释为“已经证明模型正确”。
 
 示例来源：
 
@@ -188,14 +206,15 @@ blocker_codes = codex_evidence_quality_review_required, probability_calibration_
 - Ferrari 的车队级输入会同时作用于两名车手；
 - Leclerc 的同场排位 P2 是明确正向输入；
 - Hamilton 的官方车手积分、近 3 场平均积分、同场排位 P3 是正向输入；
-- 当前差距仍可能偏大，需要继续检查车手级近期状态映射、练习赛长距离代理值、排位到正赛转换权重是否放大。
+- 2026-07-06 07:49 UTC 修正后，同场排位 P2/P3 已经通过 `race_execution` 和赛道位置价值进入正赛模拟，Leclerc 的期望积分和领奖台概率上升，并且 Leclerc/Hamilton 不再被异常审计标为“同队排位顺序张力”；
+- 当前 Hamilton 仍排在 Leclerc 前面，说明其他来源化输入仍然覆盖了同场排位优势。这个覆盖是否过强还没有被历史回放证明，仍是模型校准风险。
 
 正确解释应该是：
 
 ```text
 当前模型能说明哪些来源化输入推高/压低了两人状态，
 但不能再说“某个内部 race score 高，所以预测合理”。
-如果可追溯输入不足以证明这么大的队内差距，解释模块必须标记为模型校准风险。
+如果可追溯输入不足以证明队内差距，解释模块必须标记为模型校准风险。
 ```
 
 ## 7. Alonso/Aston Martin 问题的当前状态
@@ -218,9 +237,10 @@ Alonso 曾被放在“领奖台概率为 0 的车手”中的第一，这与 Ast
 当前结果仍有明显需要复核的地方：
 
 - Russell 和 Antonelli 的领先幅度可能过大；
-- Hamilton/Leclerc 的队内差距仍需校准；
+- Hamilton/Leclerc 的队内差距已比上一版缓和，但仍需要用长距离、保胎、策略和近期状态做历史回放校准；
 - Racing Bulls、Audi/Sauber、中游车队排序需要更多最近 3-5 站和同周末长距离信息支撑；
-- Gasly/Colapinto/Lindblad/Sainz 等中下游排序需要异常审计；
+- Alpine/Williams 的负向来源化输入仍和中游预测位置存在张力；
+- Alonso/Stroll 的同队顺序仍被异常审计标记，需要复核两人的正赛执行、队内策略和同周末数据；
 - 单站 1200 次蒙特卡洛采样仍不足以支撑小概率尾部结论；
 - 当前预测仍是 `diagnostic_only`，不具备稳定盈利 edge 的证明。
 
@@ -257,11 +277,11 @@ src/f1predict/prediction_anomaly.py
 
 最新离线审计能抓到的例子包括：
 
-- Leclerc/Hamilton：Leclerc 同场排位 P2、Hamilton P3，但预测中 Hamilton 明显在前，因此标记为“队友顺序张力”，要求用长距离、保胎、策略或近期状态证明这个覆盖是否合理；
 - Alonso/Stroll：同队排位顺序和预测顺序存在张力；
-- Racing Bulls：来源化输入有一部分正向，但最终位置仍偏低，需要复核近期走势是否被稀释；
 - Alpine/Williams：负向来源化输入与中游预测位置存在张力；
-- isolated 影响追踪覆盖不足：467 条状态更新中只有 12 组单条 isolated 重跑，解释必须区分“已进入状态向量”和“已证明单条影响”。
+- isolated 影响追踪覆盖不足：489 条状态更新中只有 12 组单条 isolated 重跑，解释必须区分“已进入状态向量”和“已证明单条影响”。
+
+上一版异常审计中的 Leclerc/Hamilton 与 Racing Bulls 条目已在 2026-07-06 07:49 UTC 新 run 中消失。这不能证明最终模型已经正确，但证明异常审计发现的问题已经至少有一部分通过通用映射修正反馈到了预测结果，而不是只停留在提示文本。
 
 前端新增“预测异常审计”区块，默认展示中文摘要、风险原因、支持来源和从“原始来源 -> 信息分析 -> 状态更新 -> 预测变化”的链条。它不会展示内部裸分数，也不会按车队/车手手动改结果。
 
@@ -303,7 +323,7 @@ src/f1predict/prediction_anomaly.py
 
 1. 实现每条状态更新的 isolated same-seed rerun，生成真正逐条 `PredictionImpactTrace`。
 2. 把最近 3-5 站的车队积分、完赛顺位、排位、长距离速度、可靠性做成更明确的车队状态层。
-3. 根据异常审计结果继续校准：垫底车队被抬高中游、同队排位更好者预测明显更差、近期变强车队被压低、信息更新没有改变预测。
+3. 根据异常审计结果继续校准，但校准只能改通用来源映射或通用模拟机制，不能按车队/车手名手调：垫底车队被抬高中游、同队排位更好者预测明显更差、近期变强车队被压低、信息更新没有改变预测。
 4. 继续降低无来源 seed prior 在单站预测中的影响，并要求 seed prior 逐步来源化。
 5. 继续收敛前端：减少非核心审计面板，把默认视图聚焦到预测结果、关键状态、来源链路、影响记录和异常审计。
 6. 用历史回放验证“结构化信息进入 BeliefState 后是否真的提高预测质量”，并严格标注诊断/正式比较的边界。

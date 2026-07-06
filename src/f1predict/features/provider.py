@@ -231,6 +231,28 @@ class ProcessedFeatureProvider:
                     ),
                 )
             )
+            track_position_value = round(self._clamp(centered * 0.055, -0.0275, 0.0275), 4)
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-qualifying-result:{season.season}:{event.event_id}:"
+                        f"{driver_id}:race_execution:{observed_at}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="driver",
+                    target_id=driver_id,
+                    metric="race_execution",
+                    value=track_position_value,
+                    confidence=0.66,
+                    observed_at=observed_at,
+                    explanation=(
+                        f"Same-event FastF1 qualifying classification before {event.name}: "
+                        f"P{position}/{driver_count}; used as a cutoff-valid starting-position and "
+                        "traffic/clean-air conversion signal for the race. It is not treated as raw car race pace."
+                    ),
+                )
+            )
 
         team_average_position = {
             team_id: mean(positions)
