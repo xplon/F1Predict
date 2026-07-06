@@ -83,6 +83,17 @@ class _TeamSupport:
     same_event_positive_count: int = 0
     same_event_negative_count: int = 0
     net_value: float = 0.0
+    positive_value: float = 0.0
+    negative_value: float = 0.0
+    team_positive_update_count: int = 0
+    team_negative_update_count: int = 0
+    team_recent_positive_count: int = 0
+    team_recent_negative_count: int = 0
+    team_same_event_positive_count: int = 0
+    team_same_event_negative_count: int = 0
+    team_net_value: float = 0.0
+    team_positive_value: float = 0.0
+    team_negative_value: float = 0.0
 
     def __post_init__(self) -> None:
         self.source_ids = set() if self.source_ids is None else self.source_ids
@@ -110,6 +121,53 @@ class _TeamSupport:
 
     def recent_bucket(self) -> str:
         recent_net = self.recent_positive_count - self.recent_negative_count
+        return _count_bucket(recent_net)
+
+    def team_bucket(self) -> str:
+        return _support_bucket(
+            self.team_net_value,
+            self.team_positive_update_count,
+            self.team_negative_update_count,
+        )
+
+    def team_recent_bucket(self) -> str:
+        recent_net = self.team_recent_positive_count - self.team_recent_negative_count
+        return _count_bucket(recent_net)
+
+    def team_weak_negative_with_counterevidence(self) -> bool:
+        return (
+            -0.09 < self.team_net_value <= -0.055
+            and self.team_positive_update_count >= 2
+            and self.team_positive_value >= 0.02
+            and (self.team_recent_positive_count > 0 or self.team_same_event_positive_count > 0)
+        )
+
+    def weak_negative_with_counterevidence(self) -> bool:
+        return (
+            -0.09 < self.net_value <= -0.055
+            and self.positive_update_count >= 2
+            and self.positive_value >= 0.02
+            and (self.recent_positive_count > 0 or self.same_event_positive_count > 0)
+        )
+
+
+def _support_bucket(net_value: float, positive_count: int, negative_count: int) -> str:
+    if net_value >= 0.16 and positive_count >= 4:
+        return "strong_positive"
+    if net_value >= 0.055 and positive_count >= 2:
+        return "positive"
+    if net_value > 0.018:
+        return "slight_positive"
+    if net_value <= -0.16 and negative_count >= 4:
+        return "strong_negative"
+    if net_value <= -0.055 and negative_count >= 2:
+        return "negative"
+    if net_value < -0.018:
+        return "slight_negative"
+    return "neutral"
+
+
+def _count_bucket(recent_net: int) -> str:
         if recent_net >= 5:
             return "positive"
         if recent_net <= -5:
@@ -119,6 +177,7 @@ class _TeamSupport:
         if recent_net < 0:
             return "slight_negative"
         return "neutral"
+
 
 
 class PredictionAnomalyAuditor:
@@ -256,8 +315,10 @@ class PredictionAnomalyAuditor:
             row.net_value += delta
             if delta > 0:
                 row.positive_update_count += 1
+                row.positive_value += delta
             elif delta < 0:
                 row.negative_update_count += 1
+                row.negative_value += abs(delta)
             source_id = str(update.get("source_id") or "")
             claim_id = str(update.get("claim_id") or "")
             update_id = str(update.get("update_id") or "")
@@ -278,6 +339,22 @@ class PredictionAnomalyAuditor:
                     row.same_event_positive_count += 1
                 elif delta < 0:
                     row.same_event_negative_count += 1
+            if target_type == "team":
+                row.team_net_value += delta
+                if delta > 0:
+                    row.team_positive_update_count += 1
+                    row.team_positive_value += delta
+                    if _is_recent_source(source_label):
+                        row.team_recent_positive_count += 1
+                    if _is_same_event_source(source_label):
+                        row.team_same_event_positive_count += 1
+                elif delta < 0:
+                    row.team_negative_update_count += 1
+                    row.team_negative_value += abs(delta)
+                    if _is_recent_source(source_label):
+                        row.team_recent_negative_count += 1
+                    if _is_same_event_source(source_label):
+                        row.team_same_event_negative_count += 1
         return support
 
     @staticmethod
@@ -313,11 +390,17 @@ class PredictionAnomalyAuditor:
             team_support = support.get(team_id)
             if team_support is None:
                 continue
-            bucket = team_support.bucket()
-            recent_bucket = team_support.recent_bucket()
+            bucket = team_support.team_bucket()
+            recent_bucket = team_support.team_recent_bucket()
             best_rank = team_rows[0].rank
             avg_rank = sum(row.rank for row in team_rows) / max(1, len(team_rows))
-            if bucket in {"strong_negative", "negative"} and (best_rank <= 12 or avg_rank <= 13.0):
+            weak_counterevidence = (
+                bucket == "negative"
+                and best_rank > 8
+                and avg_rank > 10.0
+                and team_support.team_weak_negative_with_counterevidence()
+            )
+            if bucket in {"strong_negative", "negative"} and (best_rank <= 12 or avg_rank <= 13.0) and not weak_counterevidence:
                 anomalies.append(
                     self._anomaly(
                         code="source_backed_negative_not_reflected",
@@ -332,7 +415,8 @@ class PredictionAnomalyAuditor:
                         ),
                         evidence_summary_zh=(
                             f"来源化状态更新整体为{_bucket_zh(bucket)}："
-                            f"{team_support.positive_update_count} 条正向、{team_support.negative_update_count} 条负向，"
+                            f"{team_support.team_positive_update_count} 条车队/赛车正向、"
+                            f"{team_support.team_negative_update_count} 条车队/赛车负向，"
                             f"其中近期/同周末信号为{_bucket_zh(recent_bucket)}。"
                         ),
                         model_risk_zh="如果负向的近期成绩、排位或速度信号已经进入状态向量，但预测仍在中游前列，说明旧先验、车手先验或排位到正赛映射可能仍然过强。",
@@ -357,7 +441,8 @@ class PredictionAnomalyAuditor:
                         ),
                         evidence_summary_zh=(
                             f"来源化状态更新整体为{_bucket_zh(bucket)}："
-                            f"{team_support.positive_update_count} 条正向、{team_support.negative_update_count} 条负向；"
+                            f"{team_support.team_positive_update_count} 条车队/赛车正向、"
+                            f"{team_support.team_negative_update_count} 条车队/赛车负向；"
                             f"近期窗口为{_bucket_zh(recent_bucket)}。"
                         ),
                         model_risk_zh="如果近期结构化表现已经转好但排名仍偏低，说明近期动量、升级/调校改善或同周末速度可能没有足够传导到模拟器。",

@@ -1973,6 +1973,10 @@ function renderEvidenceImpact(report) {
           .slice(0, 4)
           .map(row => rankDeltaText(row))
           .join("；");
+        const chain = (trace.source_to_prediction_chain || [])
+          .slice(0, 4)
+          .map(stage => `<p><strong>${escapeHtml(stage.stage || "")}</strong>：${escapeHtml(stage.text_zh || "")}</p>`)
+          .join("");
         return `
           <article class="impact-card">
             <div>
@@ -1984,6 +1988,7 @@ function renderEvidenceImpact(report) {
             <p>${escapeHtml(changed || "整体状态更新对比")}</p>
             <p>${escapeHtml(points || ranks || "本次同种子对比没有显著改变所展示车手。")}</p>
             <p>${escapeHtml(trace.interpretation_zh || "预测影响记录已生成。")}</p>
+            <div class="trace-chain">${chain || ""}</div>
           </article>
         `;
       })

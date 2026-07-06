@@ -48,6 +48,8 @@
 
 第七，`seed://` 场景包只能用于开发期链路测试和审计占位，不能当作外部事实来源。默认预测中，seed 场景 claim 必须被质量门控标记为 `seed_scenario_source`，模型输入权重为 0，状态更新权限为 `blocked`。只有替换成真实 source log、归档原文、发布时间和可复核证据后，才允许改变预测。
 
+第八，模型权重和模拟常数也不能因为用户一句话直接调整。即使调整是通用的、没有写死某个车队或车手，也必须有来源化证据、历史回放校准、同口径 diff 或参数学习报告支持。否则只能标为 diagnostic probe，不能注册成默认 latest，也不能在前端呈现为正式预测改进。
+
 ## 2. 总体链路
 
 ```mermaid
@@ -621,6 +623,14 @@ sidecar 必须记录：
 - 迭代数是否与源 run 匹配；
 - 覆盖了多少 claim / state update；
 - 每条 trace 的来源 claim、影响的状态因子、受影响车手、预测分布变化和解释文本。
+
+分页返回时，每条 trace 还必须尽量生成一条面向人的中文链路：
+
+```text
+原始来源 -> 信息分析 -> 状态更新 -> 预测变化
+```
+
+其中“原始来源”来自 `RawSourceRecord`，“信息分析”来自 claim/evidence/quality/factor trace，“状态更新”来自 update ledger，“预测变化”来自同种子 before/after 或 leave-one-information rerun。当前如果 trace 是整体聚合行，可能只有“预测变化”阶段；如果是单条 claim/source 行，必须展示完整链路或明确说明缺失哪一段。
 
 这解决的是可追溯性问题，不是预测质量问题。只有当 sidecar 使用与源 run 相同的输入、知识截止、随机种子策略和迭代数时，才能把某条 trace 作为更强的影响解释。低迭代 sidecar 只能叫诊断，不能叫正式 ablation 或正式效果证明。
 

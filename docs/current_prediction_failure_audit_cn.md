@@ -30,6 +30,13 @@ scripts/source_driven_contract_test.py
 - `BeliefState` 状态更新引擎会把 `seed_scenario_source` 的更新权限设为 `blocked`，因此它不会改变车队、车手、事件风险或模拟参数；
 - 用户举例只能触发信息源和模型链路审计，不能被改写成 seed 场景包再进入预测。
 
+2026-07-06 10:40 UTC 自我纠偏：
+
+- 曾经短暂生成过一条 `british_gp_20260705T000000_0000_20260706T104209_0000_c4515f938f` 诊断 run，它来自一次“提高赛车权重、降低车手先验”的通用启发式试验；
+- 这次试验不是针对某个车手或车队的实体特判，但也不是由新增外部来源、历史回放校准或已验证参数学习推出，因此不符合“预测变化必须来源驱动”的标准；
+- 该 run 已从默认 registry 和未提交预测产物中撤回，不能作为最新前端预测，也不能被描述成“模型已经因为用户指出问题而修正了排名”；
+- 后续如果要调整赛车/车手权重，必须通过来源化数据、历史 replay、同口径 diff、校准报告和影响追踪证明，而不是凭用户例子或直觉改常数。
+
 ## 2. 已修正：解释层不能再把内部裸分数当原因
 
 旧问题：
@@ -77,6 +84,14 @@ scripts/explainability_smoke_test.py
 ```
 
 这解决了旧系统最大的问题：解释不再从最终分数反推原因，而是从来源和状态更新正向追踪。
+
+2026-07-06 追加实现：impact trace sidecar 的分页行现在不仅给出 `impact_status`，还会公开一条中文链路：
+
+```text
+原始来源 -> 信息分析 -> 状态更新 -> 预测变化
+```
+
+这条链路从 sidecar 缓存中的 `trace_context` 生成，会尽量连接 `source_id`、`claim_id`、质量审计、状态更新账本和同种子隔离重跑结果。它的目标是回答“这条信息凭什么影响预测”，而不是再展示一串没有来源解释的内部分数。
 
 ## 4. 当前 British GP 诊断预测状态
 
@@ -433,9 +448,21 @@ src/f1predict/prediction_anomaly.py
 2. 如果 sidecar 的 `trace_generation.comparison_status` 是 `diagnostic_iteration_mismatch`，说明隔离重跑迭代数与源 run 不一致，只能用于链路诊断，不能作为正式“这条信息精确改变了多少概率”的证明。
 3. 用户的例子仍然只能触发排查：代码层继续要求预测更新不能按车手/车队名写死，必须来自来源化数据、结构化特征和通用模拟机制。
 4. 当前模型质量仍是 `diagnostic_only`：sidecar 解决的是“能否追溯每条信息的边际影响”，不是“预测已经稳定有 edge”。
+5. 当前默认 latest 已确认仍是 `british_gp_20260705T000000_0000_20260706T092941_0000_b4fa317c0b`；由未验证启发式权重试验生成的 `c4515f938f` 不进入默认前端。
+
+当前已缓存 sidecar 对 b4fa run 的诊断覆盖为：
+
+```text
+state_update_count = 453
+impact_trace_covered_claim_count = 453
+impact_trace_uncovered_claim_count = 0
+trace_generation.comparison_status = diagnostic_iteration_mismatch
+```
+
+这说明“每条状态更新都能被分页追踪”已经可用；但因为该 sidecar 的隔离重跑迭代数与源 run 不一致，它仍只能用于解释链路和方向审计，不能作为正式概率变化证明。
 
 下一步不再是“把 sidecar 做出来”，而是：
 
-- 为最新 British GP run 生成同迭代数的正式 sidecar，或明确标注低迭代诊断 sidecar；
+- 为最新 British GP run 生成同迭代数的正式 sidecar，或继续明确标注低迭代诊断 sidecar；
 - 继续减少/替换 `seed://` 开发证据，让默认预测更多来自 FIA/F1 官方、FastF1、天气、赛道、可靠性、长距离和近期窗口数据；
-- 用历史回放验证每类状态更新是否真的改善预测，而不是只改善解释。
+- 用历史回放验证每类状态更新和每类权重修改是否真的改善预测，而不是只改善解释或迎合人工直觉。

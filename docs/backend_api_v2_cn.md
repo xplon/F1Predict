@@ -378,3 +378,11 @@ claim_id=<可选>
 - `coverage`：状态更新、claim 覆盖率、单条 isolated 覆盖率；
 - `pagination`：当前页和过滤后的 trace 数量；
 - `traces`：当前页 trace，而不是整包全量 trace。
+
+每条 `traces[]` 还会包含：
+
+- `supporting_sources`：该 trace 能关联到的来源摘要；
+- `source_to_prediction_chain`：中文解释链，通常按“原始来源 -> 信息分析 -> 状态更新 -> 预测变化”排列；
+- `additional_source_to_prediction_chains`：同一 trace 涉及多个 claim/source 时的补充链路。
+
+注意：这些字段解释的是已有 run 的缓存 sidecar。它们不会注册新的预测 run，也不会让前端默认排名改变。

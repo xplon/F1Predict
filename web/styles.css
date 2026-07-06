@@ -339,6 +339,22 @@ canvas {
   overflow-wrap: anywhere;
 }
 
+.trace-chain {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 5px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.trace-chain p {
+  margin: 0;
+}
+
+.trace-chain strong {
+  font-weight: 700;
+}
+
 .anomaly-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
