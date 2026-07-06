@@ -72,6 +72,9 @@ class PredictionRunRecord:
     information_intake_id: str | None
     information_intake_path: str | None
     summary: dict[str, Any]
+    belief_state_id: str | None = None
+    belief_state_update_fingerprint: str | None = None
+    model_version: str | None = None
     notes: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -92,6 +95,9 @@ class PredictionRunRecord:
             "probability_fingerprint": self.probability_fingerprint,
             "information_intake_id": self.information_intake_id,
             "information_intake_path": self.information_intake_path,
+            "belief_state_id": self.belief_state_id,
+            "belief_state_update_fingerprint": self.belief_state_update_fingerprint,
+            "model_version": self.model_version,
             "summary": self.summary,
             "notes": self.notes,
         }
@@ -143,6 +149,7 @@ class PredictionRunRegistry:
         evidence_fingerprint = self._evidence_fingerprint(packet)
         probability_fingerprint = self._probability_fingerprint(packet)
         intake_id, intake_path_text = self._intake_ref(information_intake_path)
+        belief_state = self._belief_state(packet)
         run_id = safe_name(
             f"{event_id}_{_stem_time(str(knowledge_cutoff) if knowledge_cutoff else None)}_"
             f"{_stem_time(str(generated_at) if generated_at else None)}_{str(packet_hash)[:10]}"
@@ -165,6 +172,9 @@ class PredictionRunRegistry:
             information_intake_id=intake_id,
             information_intake_path=intake_path_text,
             summary=self._summary(packet),
+            belief_state_id=belief_state.get("state_id"),
+            belief_state_update_fingerprint=belief_state.get("update_fingerprint"),
+            model_version="belief_state_v1",
             notes=notes,
         )
         return self.write(record)
@@ -226,6 +236,9 @@ class PredictionRunRegistry:
                 "evidence_fingerprint": record.evidence_fingerprint,
                 "probability_fingerprint": record.probability_fingerprint,
                 "information_intake_id": record.information_intake_id,
+                "belief_state_id": record.belief_state_id,
+                "belief_state_update_fingerprint": record.belief_state_update_fingerprint,
+                "model_version": record.model_version,
                 "path": str(path),
             }
         )
@@ -263,6 +276,9 @@ class PredictionRunRegistry:
             information_intake_id=payload.get("information_intake_id"),
             information_intake_path=payload.get("information_intake_path"),
             summary=dict(payload.get("summary") or {}),
+            belief_state_id=payload.get("belief_state_id"),
+            belief_state_update_fingerprint=payload.get("belief_state_update_fingerprint"),
+            model_version=payload.get("model_version"),
             notes=payload.get("notes"),
         )
 
@@ -276,6 +292,8 @@ class PredictionRunRegistry:
                 "model_context": packet.get("model_context"),
                 "evidence": prediction.get("evidence"),
                 "feature_adjustments": prediction.get("feature_adjustments"),
+                "belief_state": prediction.get("belief_state"),
+                "state_update_ledger": prediction.get("state_update_ledger"),
                 "event": prediction.get("event"),
                 "knowledge_cutoff": packet.get("knowledge_cutoff"),
                 "iterations": packet.get("iterations"),
@@ -299,8 +317,15 @@ class PredictionRunRegistry:
                 "probability_summary": packet.get("probability_summary"),
                 "race_probabilities": prediction.get("race_probabilities"),
                 "market_edges": prediction.get("market_edges"),
+                "prediction_impact_trace": prediction.get("prediction_impact_trace"),
             }
         )
+
+    @staticmethod
+    def _belief_state(packet: dict[str, Any]) -> dict[str, Any]:
+        prediction = packet.get("prediction") if isinstance(packet.get("prediction"), dict) else {}
+        belief_state = prediction.get("belief_state") if isinstance(prediction.get("belief_state"), dict) else {}
+        return belief_state
 
     @staticmethod
     def _summary(packet: dict[str, Any]) -> dict[str, Any]:
@@ -328,6 +353,9 @@ class PredictionRunRegistry:
         }
         codex_context = packet.get("codex_context") if isinstance(packet.get("codex_context"), dict) else {}
         market_context = packet.get("market_context") if isinstance(packet.get("market_context"), dict) else {}
+        belief_state = prediction.get("belief_state") if isinstance(prediction.get("belief_state"), dict) else {}
+        state_update_ledger = prediction.get("state_update_ledger") if isinstance(prediction.get("state_update_ledger"), list) else []
+        prediction_impact_trace = prediction.get("prediction_impact_trace") if isinstance(prediction.get("prediction_impact_trace"), list) else []
         return {
             "driver_probabilities": driver_probabilities,
             "ranked_driver_ids": [row["driver_id"] for row in ranked],
@@ -338,6 +366,9 @@ class PredictionRunRegistry:
             "evidence_count": int(codex_context.get("evidence_count") or 0),
             "factor_trace_count": int(codex_context.get("factor_trace_count") or 0),
             "factor_route_counts": codex_context.get("factor_route_counts") or {},
+            "belief_state_id": belief_state.get("state_id"),
+            "state_update_count": len(state_update_ledger),
+            "prediction_impact_trace_count": len(prediction_impact_trace),
             "market_snapshot_count": int(market_context.get("usable_snapshot_count") or 0),
             "market_edge_count": int(market_context.get("market_edge_count") or 0),
             "blocker_codes": list(packet.get("blocker_codes") or []),

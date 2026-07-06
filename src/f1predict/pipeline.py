@@ -6,6 +6,7 @@ from dataclasses import replace
 from datetime import datetime, timezone
 from typing import Protocol
 
+from f1predict.belief_state import BeliefStateBuilder, PredictionImpactTraceBuilder
 from f1predict.data_sources.augmented import CalendarAugmentedDataSource
 from f1predict.domain import DriverRaceProbability, EvidenceClaim, EvidenceImpact, EvidenceQuality
 from f1predict.domain import PredictionReport, RaceEvent, SeasonState, parse_dt, race_event_to_dict, utc_now
@@ -39,9 +40,12 @@ class PredictionPipeline:
         official_standings_repository: OfficialStandingsRepository | None = None,
         evidence_quality_scorer: EvidenceQualityScorer | None = None,
         factor_trace_builder: FactorTraceBuilder | None = None,
+        belief_state_builder: BeliefStateBuilder | None = None,
+        impact_trace_builder: PredictionImpactTraceBuilder | None = None,
         weather_forecast_provider: WeatherForecastProvider | None = None,
         iterations: int = 5000,
         simulator_config: SimulatorConfig | None = None,
+        isolated_impact_limit: int = 0,
     ) -> None:
         self.data_source = data_source or CalendarAugmentedDataSource()
         self.evidence_provider = evidence_provider or CodexEvidenceProvider()
@@ -50,9 +54,12 @@ class PredictionPipeline:
         self.official_standings_repository = official_standings_repository or OfficialStandingsRepository()
         self.evidence_quality_scorer = evidence_quality_scorer or EvidenceQualityScorer()
         self.factor_trace_builder = factor_trace_builder or FactorTraceBuilder()
+        self.belief_state_builder = belief_state_builder or BeliefStateBuilder()
+        self.impact_trace_builder = impact_trace_builder or PredictionImpactTraceBuilder()
         self.weather_forecast_provider = weather_forecast_provider or WeatherForecastProvider()
         self.iterations = iterations
         self.simulator_config = simulator_config or SimulatorConfig()
+        self.isolated_impact_limit = isolated_impact_limit
 
     def list_events(self) -> list[dict[str, object]]:
         season = self.data_source.load()
@@ -76,7 +83,36 @@ class PredictionPipeline:
         feature_adjustments = self.feature_provider.load_event_features(season, event, cutoff_dt)
         pre_model_quality = self.evidence_quality_scorer.score_event(event_id, evidence, [], cutoff_dt)
         evidence_input_weights = self._evidence_input_weights(pre_model_quality)
-        pace_model = PaceModel(season, evidence, feature_adjustments, evidence_weights=evidence_input_weights)
+        baseline_belief_state = self.belief_state_builder.build(
+            season,
+            event,
+            [],
+            [],
+            [],
+            knowledge_cutoff=knowledge_cutoff,
+        )
+        belief_state = self.belief_state_builder.build(
+            season,
+            event,
+            evidence,
+            feature_adjustments,
+            pre_model_quality,
+            knowledge_cutoff=knowledge_cutoff,
+        )
+        baseline_pace_model = PaceModel(season, [], [], belief_state=baseline_belief_state)
+        baseline_summary = SingleRaceSimulator(
+            season,
+            baseline_pace_model,
+            iterations=self.iterations,
+            config=self.simulator_config,
+        ).simulate_summary(event)
+        pace_model = PaceModel(
+            season,
+            evidence,
+            feature_adjustments,
+            evidence_weights=evidence_input_weights,
+            belief_state=belief_state,
+        )
         simulator = SingleRaceSimulator(
             season,
             pace_model,
@@ -94,6 +130,8 @@ class PredictionPipeline:
             feature_adjustments,
             probabilities,
             evidence_input_weights,
+            cutoff_dt,
+            knowledge_cutoff,
         )
         evidence_quality = self.evidence_quality_scorer.score_event(
             event_id,
@@ -107,6 +145,22 @@ class PredictionPipeline:
             evidence,
             evidence_impact,
             evidence_quality,
+        )
+        isolated_impact_rows = self._isolated_prediction_impacts(
+            season,
+            event,
+            evidence,
+            feature_adjustments,
+            pre_model_quality,
+            probabilities,
+            belief_state,
+            knowledge_cutoff,
+        )
+        prediction_impact_trace = self.impact_trace_builder.build(
+            baseline_summary.race_probabilities,
+            probabilities,
+            belief_state,
+            isolated_rows=isolated_impact_rows,
         )
 
         market_edges = []
@@ -179,7 +233,87 @@ class PredictionPipeline:
                 },
             ),
             factor_trace=factor_trace,
+            belief_state=belief_state.to_dict(),
+            state_update_ledger=[row.to_dict() for row in belief_state.update_ledger],
+            prediction_impact_trace=prediction_impact_trace,
         )
+
+    def _isolated_prediction_impacts(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        evidence: list[EvidenceClaim],
+        feature_adjustments,
+        evidence_quality: list[EvidenceQuality],
+        probabilities: list[DriverRaceProbability],
+        belief_state,
+        knowledge_cutoff: str | None,
+    ) -> list[dict[str, object]]:
+        if self.isolated_impact_limit <= 0:
+            return []
+        selected_groups = self._selected_isolated_update_groups(
+            belief_state.update_ledger,
+            self.isolated_impact_limit,
+        )
+        if not selected_groups:
+            return []
+        evidence_ids = {row.claim_id for row in evidence}
+        feature_ids = {row.feature_id for row in feature_adjustments}
+        rows: list[dict[str, object]] = []
+        for claim_id, updates in selected_groups:
+            if claim_id not in evidence_ids and claim_id not in feature_ids:
+                continue
+            counterfactual_evidence = [row for row in evidence if row.claim_id != claim_id]
+            counterfactual_features = [row for row in feature_adjustments if row.feature_id != claim_id]
+            counterfactual_quality = [row for row in evidence_quality if row.claim_id != claim_id]
+            counterfactual_weights = self._evidence_input_weights(counterfactual_quality)
+            counterfactual_belief_state = self.belief_state_builder.build(
+                season,
+                event,
+                counterfactual_evidence,
+                counterfactual_features,
+                counterfactual_quality,
+                knowledge_cutoff=knowledge_cutoff,
+            )
+            counterfactual_pace = PaceModel(
+                season,
+                counterfactual_evidence,
+                counterfactual_features,
+                evidence_weights=counterfactual_weights,
+                belief_state=counterfactual_belief_state,
+            )
+            counterfactual_probabilities = SingleRaceSimulator(
+                season,
+                counterfactual_pace,
+                iterations=self.iterations,
+                config=self.simulator_config,
+            ).simulate_summary(event).race_probabilities
+            rows.append(
+                self.impact_trace_builder.isolated_row(
+                    counterfactual_probabilities,
+                    probabilities,
+                    belief_state,
+                    claim_id,
+                    updates[0].source_id,
+                    updates,
+                )
+            )
+        return rows
+
+    @staticmethod
+    def _selected_isolated_update_groups(update_ledger, limit: int):
+        groups: dict[str, list[object]] = {}
+        for update in update_ledger:
+            claim_id = str(getattr(update, "claim_id", "") or "")
+            if not claim_id:
+                continue
+            groups.setdefault(claim_id, []).append(update)
+        scored = []
+        for claim_id, updates in groups.items():
+            score = max(abs(float(getattr(update, "delta", 0.0))) for update in updates)
+            scored.append((score, claim_id, updates))
+        scored.sort(key=lambda item: item[0], reverse=True)
+        return [(claim_id, updates) for _, claim_id, updates in scored[: max(0, limit)]]
 
     def _event_with_cutoff_weather_forecast(
         self,
@@ -327,11 +461,20 @@ class PredictionPipeline:
             if not features:
                 missing_features += 1
             pre_model_quality = self.evidence_quality_scorer.score_event(event.event_id, evidence, [], cutoff_dt)
+            belief_state = self.belief_state_builder.build(
+                season,
+                event,
+                evidence,
+                features,
+                pre_model_quality,
+                knowledge_cutoff=cutoff_text,
+            )
             pace_models[event.event_id] = PaceModel(
                 season,
                 evidence,
                 features,
                 evidence_weights=self._evidence_input_weights(pre_model_quality),
+                belief_state=belief_state,
             )
 
         forecast_iterations = iterations or max(600, min(self.iterations, 2500))
@@ -494,6 +637,8 @@ class PredictionPipeline:
         feature_adjustments,
         probabilities: list[DriverRaceProbability],
         evidence_input_weights: dict[str, float] | None = None,
+        cutoff_dt: datetime | None = None,
+        knowledge_cutoff: str | None = None,
     ) -> list[EvidenceImpact]:
         if not evidence:
             return []
@@ -508,11 +653,26 @@ class PredictionPipeline:
                 for claim_id, weight in (evidence_input_weights or {}).items()
                 if claim_id != claim.claim_id
             }
+            counterfactual_quality = self.evidence_quality_scorer.score_event(
+                event.event_id,
+                counterfactual_evidence,
+                [],
+                cutoff_dt,
+            )
+            counterfactual_belief_state = self.belief_state_builder.build(
+                season,
+                event,
+                counterfactual_evidence,
+                feature_adjustments,
+                counterfactual_quality,
+                knowledge_cutoff=knowledge_cutoff,
+            )
             counterfactual_pace = PaceModel(
                 season,
                 counterfactual_evidence,
                 feature_adjustments,
                 evidence_weights=counterfactual_weights,
+                belief_state=counterfactual_belief_state,
             )
             counterfactual_probabilities, _ = SingleRaceSimulator(
                 season,

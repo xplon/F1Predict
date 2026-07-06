@@ -1,72 +1,222 @@
-# 当前预测失败审计
+# 当前预测失败审计与修正状态
 
 生成日期：2026-07-06
 
-这份文档记录当前 British GP 预测和可解释性模块暴露出的真实问题。它不是辩护文档，而是后续修模型时必须优先处理的缺陷清单。
+这份文档记录 British GP 预测与可解释性模块的真实问题、已经完成的修正、仍未完成的缺口。它不是辩护文档，也不是正式盈利优势证明。当前所有结论仍是诊断级。
 
-## 1. 最大问题：解释层把内部权重当成原因
+## 1. 不能按用户举例手调结果
 
-之前的解释把“内部正赛能力分”拆成一串数值，例如车手基础能力、正赛攻防、保胎、湿地能力等，然后把这些数值当作原因。
+用户指出 Mercedes、Ferrari、Red Bull、Aston Martin、Cadillac、Racing Bulls、Audi、Leclerc、Hamilton、Alonso 等例子时，含义是暴露模型错误，而不是给模型贴标签。
 
-这是错误的。
+因此当前工程约束是：
 
-这些项目很多来自 `data/seed/demo_season.json` 的静态 seed prior，不是从本场排位、练习赛、近期分站成绩、车队升级、技术新闻或 Codex 证据直接计算出来的事实。因此它们不能回答“为什么预测如此”，只能暴露“模型里有什么未经充分校准的先验”。
+- 不允许因为用户一句话直接修改某个车队或车手的预测结果；
+- 不允许在预测更新代码里写 `if team == ...` 或 `if driver == ...` 这类实体特判来迎合预期；
+- 所有预测变化必须来自可追溯来源，例如 FastF1、F1 official standings、同场排位、练习赛圈速、近期分站结果、质量审计后的 Codex 证据；
+- 用户例子只能触发“检查信息链路/状态更新/模型权重是否合理”，不能成为模型输入。
 
-已经修正的原则：
+新增验证脚本：
+
+```text
+scripts/source_driven_contract_test.py
+```
+
+它扫描预测更新核心文件，阻止车队/车手 id 级硬编码进入 `BeliefState`、`PaceModel`、`PredictionPipeline` 和模拟器。这个检查不能证明模型已经公平，但能阻止最危险的手动补丁路径。
+
+## 2. 已修正：解释层不能再把内部裸分数当原因
+
+旧问题：
+
+解释模块曾经把内部正赛能力分拆成一串数值，例如车手基础能力、正赛攻防、保胎、湿地能力等，然后把这些数值当作原因。这是错误的，因为很多项目来自 `data/seed/demo_season.json` 的静态 seed prior，不是由本场新闻、排位、练习赛、近期分站成绩、车队升级或技术信息计算出来的事实。
+
+当前修正：
 
 - 面向人的解释不再展示无事实来源的内部权重数值；
-- API JSON 和 Codex 追问上下文也必须脱敏这些内部权重，避免前端绕过 Markdown 又把它们展示出来；
-- 可追溯输入可以解释，静态 seed prior 只能标成模型风险；
+- API JSON 和 Codex 追问上下文会移除 `score_breakdown`、原始权重、原始概率 delta 等内部字段；
+- 弱 seed prior 只作为高不确定度初始状态，并在公开上下文中标成模型风险；
 - 如果可追溯事实和预测方向冲突，解释模块必须直说这是模型校准问题。
 
-## 2. Ham/Lec 问题的真实含义
+验证：
 
-当前预测给 Lewis Hamilton 的冠军概率明显高于 Charles Leclerc，但两人同队，共享 Ferrari 的车队级正赛速度、排位速度和策略输入。
+```text
+scripts/explainability_smoke_test.py
+```
 
-可追溯事实里，Charles Leclerc 的同场排位是第 2，Lewis Hamilton 是第 3；这条事实并不支持把 Leclerc 明显压低。
+已检查公开解释、API 响应和 Codex prompt 中不暴露旧裸分数字段，并且必须包含 `BeliefState`、状态更新和预测影响记录。
 
-当前 Leclerc 被压低，主要不是因为系统找到了强事实证明他正赛一定差很多，而是因为：
+## 3. 已新增：全流程可追溯链路的基础实现
 
-- 本地 seed prior 给两名车手的基础能力、正赛攻防、保胎、湿地能力存在差异；
-- Leclerc 有部分练习赛长距离、可靠性和近期状态负向输入；
-- 这些输入被模型合成后放大了队内差距。
+当前已经新增并接入：
 
-所以正确解释不是“Leclerc 分数低所以胜率低”，而是：
+- `BeliefState`
+- `StateUpdateLedgerRow`
+- `PredictionImpactTrace`
+- `unsupported_static_priors`
+- `belief_state_id`
+- `source_fingerprint`
+- `update_fingerprint`
 
-> 当前可追溯输入不足以证明这么大的队内差距；模型可能放大了静态车手先验或近期特征映射。
+现在的解释主线变成：
 
-## 3. Alonso 问题的真实含义
+```text
+原始来源
+-> 信息抽取单元
+-> 标准化因子声明
+-> 证据质量门控
+-> 状态向量更新
+-> PaceModel/Simulator 读取状态
+-> 预测影响记录
+-> 中文解释/API 公开上下文
+```
 
-“为什么 Fernando Alonso 在所有领奖台概率为 0 的车手中排第一？”这个问题的重点不是“为什么他领奖台概率为 0”，而是“为什么他在这组人里排名最高”。
+这解决了旧系统最大的问题：解释不再从最终分数反推原因，而是从来源和状态更新正向追踪。
 
-当前可追溯事实并不支持 Aston Martin 很强：
+## 4. 当前 British GP 诊断预测状态
 
-- Alonso 同场排位是第 22；
-- Aston Martin 同场车队平均排位是第 21.5；
-- FastF1 本赛季车队强度重估里，Aston Martin 每站积分明显低于全场平均；
-- Alonso 和 Aston Martin 的部分同周末速度输入也是负向。
+最新诊断预测包：
 
-模型仍然把 Alonso 放到零领奖台组第一，主要说明静态 seed prior 仍在抬高他，尤其是车手经验类先验和 Aston Martin 的 seed 车队强度。这个结论应该标记为模型校准问题，而不是解释成合理预测。
+```text
+reports/prediction_packets/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+```
 
-## 4. 预测模型为什么没有充分体现车的好坏
+注册 run：
 
-当前系统确实有车队强度和近期分站分析，但它们没有足够压过旧先验。
+```text
+reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260706T054134_0000_b3062a6f70.prediction_run.json
+```
 
-核心原因：
+本次预测状态：
 
-- `PaceModel` 仍直接使用 seed 里的车队基础强度、车手基础能力、正赛攻防、保胎、湿地能力；
-- 近期分站、官方积分榜、同周末练习赛和排位特征虽然进入模型，但被限制在较小的修正范围；
-- 对中下游车队来说，静态车手先验可能比真实赛车状态更能影响排序；
-- 当前信息摄取还没有足够稳定地把“小红牛近期变强、Audi 中游、Aston Martin/Cadillac 垫底”这类结论结构化成强车队级输入；
-- 前端展示如果只显示最终概率，不显示“预测被哪些静态先验抬高/压低”，用户会看不到模型错误的来源。
+```text
+belief_state_id = british_gp_7cc88d5b1b_dc9778fdc5
+state_update_count = 471
+prediction_impact_trace_count = 23
+isolated_prediction_impact_count = 12
+status = diagnostic_only
+```
 
-## 5. 下一步必须改的模型方向
+按平均完赛名次排序的诊断结果：
 
-后续预测模型应优先做这些改动：
+```text
+01 Russell
+02 Antonelli
+03 Hamilton
+04 Norris
+05 Leclerc
+06 Piastri
+07 Verstappen
+08 Hadjar
+09 Gasly
+10 Colapinto
+11 Lindblad
+12 Sainz
+13 Lawson
+14 Albon
+15 Alonso
+16 Ocon
+17 Bearman
+18 Stroll
+19 Hulkenberg
+20 Bortoleto
+21 Bottas
+22 Perez
+```
 
-1. 给所有 seed prior 增加来源和置信度；没有来源的先验不能强力影响正式预测。
-2. 降低车手静态先验在单站预测中的权重，尤其是中下游车队。
-3. 提高近期车队/赛车强度、同周末排位和练习赛长距离对单站预测的权重。
-4. 把最近 3-5 站的车队积分、完赛顺位、排位、长距离速度、可靠性作为明确的车队状态层。
-5. 每次预测后自动生成异常审计：例如“垫底车队车手被排到中游前列”“同队排位更好者胜率反而极低”等。
-6. 前端只展示能追溯到事实的解释；无来源先验必须显示为“模型风险”，不能显示成原因。
+这比旧版本更合理的地方是：Aston Martin 和 Cadillac 已回到底部区间，Mercedes/Ferrari/McLaren/Red Bull 大致进入前部竞争区间。这里的变化不是按用户例子手调，而是现有来源化结构化输入通过通用 `BeliefState` 机制重新进入模型。
+
+示例来源：
+
+- Aston Martin 被压低：FastF1 同场车队平均排位 P21.5、赛前每站积分 0.12 vs 全场 9.18、F1 官方车队积分榜 P10/1 分；
+- Cadillac 被压低：FastF1 赛前每站积分 0.00 vs 全场 9.18、同场平均排位 P19、F1 官方车队积分榜 P11/0 分；
+- Ferrari 被抬高：FastF1 赛前每站积分 22.00 vs 全场 9.18、同场平均排位 P2.5、F1 官方车队积分榜 P2/204 分；
+- Leclerc 有同场排位 P2 的正向更新；Hamilton 有同场排位 P3、官方车手积分 P3/125 分、近 3 场平均积分较高等正向更新。
+
+## 5. 部分完成：单条信息的 isolated 影响追踪
+
+当前 `PredictionImpactTrace` 已经实现三类记录：
+
+- 弱 seed 初始状态 vs 完整 BeliefState 的同种子整体前后对比；
+- 影响最大的 12 条来源化信息的单条 isolated same-seed 重跑；
+- 其他高影响状态更新进入哪个模型表面的路由记录。
+
+新增 CLI 参数：
+
+```text
+--isolated-impact-limit N
+```
+
+本次 British GP 诊断包使用：
+
+```text
+--isolated-impact-limit 12
+```
+
+这使系统能对 top-N 信息严格回答：
+
+```text
+只移除这一条信息，其他输入、随机种子、模拟配置完全不变时，
+每个车手的排名分布、期望积分、领奖台概率具体变化多少？
+```
+
+仍未完成的部分是：还没有对全部 571 条来源化信息都做 isolated rerun。原因不是架构不支持，而是全量运行会显著增加生成预测包的时间。当前实现必须在解释中明确区分：
+
+- `isolated_same_seed_leave_one_information`：已经做了单条同种子重跑；
+- `state_update_route`：只证明信息进入状态向量和模拟表面，不能当作单条因果实验。
+
+## 6. Ham/Lec 问题的当前状态
+
+旧问题：
+
+系统曾经试图用一串内部分数解释 Hamilton 明显高于 Leclerc，这是不合格的。
+
+当前状态：
+
+- Ferrari 的车队级输入会同时作用于两名车手；
+- Leclerc 的同场排位 P2 是明确正向输入；
+- Hamilton 的官方车手积分、近 3 场平均积分、同场排位 P3 是正向输入；
+- 当前差距仍可能偏大，需要继续检查车手级近期状态映射、练习赛长距离代理值、排位到正赛转换权重是否放大。
+
+正确解释应该是：
+
+```text
+当前模型能说明哪些来源化输入推高/压低了两人状态，
+但不能再说“某个内部 race score 高，所以预测合理”。
+如果可追溯输入不足以证明这么大的队内差距，解释模块必须标记为模型校准风险。
+```
+
+## 7. Alonso/Aston Martin 问题的当前状态
+
+旧问题：
+
+Alonso 曾被放在“领奖台概率为 0 的车手”中的第一，这与 Aston Martin 的同场排位、赛季积分、近期速度信号冲突。
+
+当前状态：
+
+- Alonso 在最新诊断预测中为第 15；
+- Stroll 为第 18；
+- Aston Martin 不再被旧 seed prior 抬到中游前列；
+- 如果用户继续问“为什么 Alonso 是零领奖台组第一”，解释模块会先纠正前提，而不是顺着旧错误解释。
+
+这说明旧问题已有明显缓解，但仍需要历史回放验证，不能只凭一站诊断结果宣布完成。
+
+## 8. 仍需改进：整体排名仍不是最终可信模型
+
+当前结果仍有明显需要复核的地方：
+
+- Russell 和 Antonelli 的领先幅度可能过大；
+- Hamilton/Leclerc 的队内差距仍需校准；
+- Racing Bulls、Audi/Sauber、中游车队排序需要更多最近 3-5 站和同周末长距离信息支撑；
+- Gasly/Colapinto/Lindblad/Sainz 等中下游排序需要异常审计；
+- 单站 1200 次蒙特卡洛采样仍不足以支撑小概率尾部结论；
+- 当前预测仍是 `diagnostic_only`，不具备稳定盈利 edge 的证明。
+
+## 9. 下一步必须继续做的模型方向
+
+优先级从高到低：
+
+1. 实现每条状态更新的 isolated same-seed rerun，生成真正逐条 `PredictionImpactTrace`。
+2. 把最近 3-5 站的车队积分、完赛顺位、排位、长距离速度、可靠性做成更明确的车队状态层。
+3. 增加异常审计：垫底车队被抬高中游、同队排位更好者预测明显更差、近期变强车队被压低、信息更新没有改变预测。
+4. 继续降低无来源 seed prior 在单站预测中的影响，并要求 seed prior 逐步来源化。
+5. 前端改为展示预测结果、关键状态、来源链路、影响记录和异常审计，不展示裸内部权重。
+6. 用历史回放验证“结构化信息进入 BeliefState 后是否真的提高预测质量”，并严格标注诊断/正式比较的边界。

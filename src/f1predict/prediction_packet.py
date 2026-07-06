@@ -107,18 +107,24 @@ class PredictionPacket:
             lines.extend(["", "## Normalized Factor Trace", ""])
             lines.append(f"- Routed factors: `{self.codex_context.get('factor_trace_count', 0)}`")
             lines.append(f"- Observed probability movement: `{self.codex_context.get('factor_observed_movement_count', 0)}`")
-            lines.append(f"- Average model input weight: `{self.codex_context.get('average_model_input_weight', 'n/a')}`")
             for route, count in factor_route_counts.items():
                 lines.append(f"- `{route}`: {count}")
             for row in self.codex_context.get("factor_trace", [])[:8]:
                 lines.append(
                     f"- `{row.get('claim_id')}` {row.get('target_id')} -> `{row.get('metric')}` "
-                    f"-> `{row.get('route')}` ({row.get('route_status')}), "
-                    f"weight={row.get('model_input_weight')}, weighted={row.get('weighted_input_impact')}, "
-                    f"effective_race={row.get('effective_race_input')}, "
-                    f"context_multiplier={row.get('context_multiplier')}, "
-                    f"max_win_delta={_fmt_signed_pct(row.get('max_win_probability_delta'))}"
+                    f"-> `{row.get('route')}` ({row.get('route_status')}); "
+                    "raw internal impact values are kept in JSON for audit and omitted from Markdown."
                 )
+        if self.codex_context.get("belief_state_id"):
+            lines.extend(["", "## Traceable Belief State", ""])
+            lines.append(f"- Belief state: `{self.codex_context.get('belief_state_id')}`")
+            lines.append(f"- State updates: `{self.codex_context.get('state_update_count', 0)}`")
+            lines.append(f"- Prediction impact traces: `{self.codex_context.get('prediction_impact_trace_count', 0)}`")
+            lines.append(f"- Isolated same-seed traces: `{self.codex_context.get('isolated_prediction_impact_count', 0)}`")
+            lines.append(
+                "- Explanation path: raw source -> extracted information -> normalized factor -> "
+                "state update -> same-seed prediction impact."
+            )
         lines.extend(["", "## Market Context", ""])
         lines.append(f"- Usable snapshots: `{self.market_context.get('usable_snapshot_count', 0)}`")
         lines.append(f"- After-cutoff snapshots: `{self.market_context.get('after_cutoff_snapshot_count', 0)}`")
@@ -234,6 +240,8 @@ class PredictionPacketBuilder:
             "pipeline_class": pipeline.__class__.__name__,
             "simulator_config": pipeline.simulator_config.to_dict(),
             "track_feature_vector": track_vector,
+            "belief_state_enabled": True,
+            "isolated_impact_limit": pipeline.isolated_impact_limit,
         }
 
     def write(
@@ -271,11 +279,22 @@ class PredictionPacketBuilder:
         for row in report.factor_trace:
             factor_route_counts[row.route] = factor_route_counts.get(row.route, 0) + 1
             factor_status_counts[row.route_status] = factor_status_counts.get(row.route_status, 0) + 1
+        isolated_impact_count = sum(
+            1
+            for row in report.prediction_impact_trace
+            if row.get("trace_type") == "isolated_same_seed_leave_one_information"
+        )
         return {
             "evidence_count": len(report.evidence),
             "evidence_quality_count": len(report.evidence_quality),
             "evidence_impact_count": len(report.evidence_impact),
             "factor_trace_count": len(report.factor_trace),
+            "belief_state_id": (report.belief_state or {}).get("state_id"),
+            "belief_state_source_fingerprint": (report.belief_state or {}).get("source_fingerprint"),
+            "belief_state_update_fingerprint": (report.belief_state or {}).get("update_fingerprint"),
+            "state_update_count": len(report.state_update_ledger),
+            "prediction_impact_trace_count": len(report.prediction_impact_trace),
+            "isolated_prediction_impact_count": isolated_impact_count,
             "factor_observed_movement_count": factor_status_counts.get("observed_probability_movement", 0),
             "factor_route_counts": dict(sorted(factor_route_counts.items())),
             "factor_route_status_counts": dict(sorted(factor_status_counts.items())),
@@ -440,9 +459,12 @@ class PredictionPacketBuilder:
             official_standings_repository=self.pipeline.official_standings_repository,
             evidence_quality_scorer=self.pipeline.evidence_quality_scorer,
             factor_trace_builder=self.pipeline.factor_trace_builder,
+            belief_state_builder=self.pipeline.belief_state_builder,
+            impact_trace_builder=self.pipeline.impact_trace_builder,
             weather_forecast_provider=self.pipeline.weather_forecast_provider,
             iterations=iterations,
             simulator_config=self.pipeline.simulator_config,
+            isolated_impact_limit=self.pipeline.isolated_impact_limit,
         )
 
     def _codex_intake_context(self, event_id: str) -> dict[str, Any]:

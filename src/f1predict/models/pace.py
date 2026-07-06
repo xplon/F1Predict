@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
+from f1predict.belief_state import BeliefState
 from f1predict.domain import Driver, EvidenceClaim, FeatureAdjustment, RaceEvent, SeasonState
 from f1predict.models.technical_factors import technical_context_multiplier
 
@@ -17,11 +18,13 @@ class PaceModel:
         evidence: list[EvidenceClaim],
         feature_adjustments: list[FeatureAdjustment] | None = None,
         evidence_weights: dict[str, float] | None = None,
+        belief_state: BeliefState | None = None,
     ) -> None:
         self.season_state = season_state
         self.evidence = evidence
         self.feature_adjustments = feature_adjustments or []
         self.evidence_weights = evidence_weights or {}
+        self.belief_state = belief_state
         self._impact = self._aggregate_evidence(evidence, self.evidence_weights)
         self._feature_impact = self._aggregate_features(self.feature_adjustments)
 
@@ -30,6 +33,9 @@ class PaceModel:
 
     def score_breakdown(self, driver: Driver, event: RaceEvent, mode: str = "race") -> dict[str, float]:
         """Return the additive pace-score components used by the simulator."""
+
+        if self.belief_state is not None:
+            return self._belief_score_breakdown(driver, event, mode=mode)
 
         team = self.season_state.teams[driver.team_id]
         track_bonus = team.track_affinity.get(event.track_type, 0.0)
@@ -107,7 +113,49 @@ class PaceModel:
         total = sum(components.values())
         return {**components, "total": total}
 
+    def _belief_score_breakdown(self, driver: Driver, event: RaceEvent, mode: str = "race") -> dict[str, float]:
+        team_id = driver.team_id
+        wet_probability = self._effective_wet_probability(event)
+        car_overall = self.belief_state.car_value(team_id, "overall_pace")
+        car_race = self.belief_state.car_value(team_id, "race_pace")
+        car_qualifying = self.belief_state.car_value(team_id, "qualifying_pace")
+        driver_race = self.belief_state.driver_value(driver.driver_id, "race_pace")
+        driver_qualifying = self.belief_state.driver_value(driver.driver_id, "qualifying_ceiling")
+        driver_execution = self.belief_state.driver_value(driver.driver_id, "race_execution")
+        strategy = self.belief_state.team_ops_value(team_id, "strategy_quality")
+        tyre = self.belief_state.driver_value(driver.driver_id, "tyre_management")
+        wet_skill = self.belief_state.driver_value(driver.driver_id, "wet_skill") * wet_probability
+        technical = self._belief_contextual_technical(driver, event, mode)
+
+        if mode == "qualifying":
+            components = {
+                "belief_car_overall": car_overall * 0.85,
+                "belief_car_qualifying_pace": car_qualifying * 2.15,
+                "belief_car_race_pace_carryover": car_race * 0.55,
+                "belief_driver_qualifying_ceiling": driver_qualifying * 1.20,
+                "belief_driver_race_pace_carryover": driver_race * 0.35,
+                "belief_technical_track_fit": technical * 0.90,
+            }
+        else:
+            components = {
+                "belief_car_overall": car_overall * 0.85,
+                "belief_car_race_pace": car_race * 1.95,
+                "belief_driver_race_pace": driver_race * 0.85,
+                "belief_driver_race_execution": driver_execution * 0.62,
+                "belief_team_strategy": strategy * 0.24,
+                "belief_driver_tyre_management": tyre * 0.34,
+                "belief_driver_wet_skill": wet_skill * 0.55,
+                "belief_technical_track_fit": technical,
+            }
+        total = sum(components.values())
+        return {**components, "total": total}
+
     def reliability(self, driver: Driver) -> float:
+        if self.belief_state is not None:
+            rel = 0.94
+            rel += self.belief_state.car_value(driver.team_id, "reliability")
+            rel += self.belief_state.driver_value(driver.driver_id, "reliability")
+            return min(0.995, max(0.80, rel))
         team = self.season_state.teams[driver.team_id]
         rel = team.reliability + driver.reliability_modifier
         rel += self._impact[(driver.driver_id, "reliability")]
@@ -119,23 +167,51 @@ class PaceModel:
     def degradation_adjustment(self, driver: Driver, event: RaceEvent) -> float:
         """Positive values mean lower tyre degradation for this driver/team/event."""
 
+        if self.belief_state is not None:
+            return (
+                self.belief_state.car_value(driver.team_id, "tyre_deg")
+                + self.belief_state.driver_value(driver.driver_id, "tyre_management")
+            )
         return self._combined_metric(driver, event, "tyre_deg")
 
     def strategy_signal(self, driver: Driver, event: RaceEvent) -> float:
+        if self.belief_state is not None:
+            return self.belief_state.team_ops_value(driver.team_id, "strategy_quality")
         return self._combined_metric(driver, event, "strategy")
 
     def launch_adjustment(self, driver: Driver, event: RaceEvent) -> float:
         """Positive values improve start and first-lap conversion after the sampled grid."""
 
+        if self.belief_state is not None:
+            return self.belief_state.driver_value(driver.driver_id, "first_lap_gain")
         return (
             self._contextual_metric(driver, event, "launch_performance", mode="race")
             + self._contextual_metric(driver, event, "launch_performance", mode="race", features=True)
         )
 
     def _effective_wet_probability(self, event: RaceEvent) -> float:
+        if self.belief_state is not None:
+            return min(1.0, max(0.0, self.belief_state.event_value("wet_probability", event.weather_prior.get("wet_probability", 0.0))))
         event_adjustment = self._impact[(event.event_id, "wet_skill")]
         value = event.weather_prior.get("wet_probability", 0.0) + event_adjustment
         return min(1.0, max(0.0, value))
+
+    def _belief_contextual_technical(self, driver: Driver, event: RaceEvent, mode: str) -> float:
+        team_id = driver.team_id
+        metric_factors = {
+            "power_unit": "power_unit_peak",
+            "energy_recovery": "ers_deployment",
+            "straight_line_speed": "straight_line_speed",
+            "drag_efficiency": "aero_efficiency",
+            "low_speed_traction": "traction",
+            "upgrade_effect": "upgrade_delta",
+        }
+        total = 0.0
+        for metric, factor in metric_factors.items():
+            value = self.belief_state.car_value(team_id, factor)
+            if value:
+                total += value * self._metric_multiplier(metric, event, mode)
+        return total
 
     def _combined_metric(self, driver: Driver, event: RaceEvent, metric: str) -> float:
         return (

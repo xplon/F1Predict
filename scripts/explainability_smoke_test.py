@@ -1,4 +1,4 @@
-"""Lightweight smoke checks for prediction explainability."""
+"""Lightweight smoke checks for traceable prediction explainability."""
 
 from __future__ import annotations
 
@@ -14,37 +14,72 @@ from f1predict.api_v2 import BackendApiV2  # noqa: E402
 from f1predict.explainability import PredictionExplainer  # noqa: E402
 
 
+KNOWLEDGE_CUTOFF = "2026-07-05T00:00:00+00:00"
+
+
 def _assert(condition: bool, message: str) -> None:
     if not condition:
         raise AssertionError(message)
 
 
+def _assert_traceable_context(payload: dict, label: str) -> None:
+    context = payload["evidence_context"]
+    belief = context.get("belief_state_context") or {}
+    updates = context.get("state_update_context") or {}
+    impacts = context.get("prediction_impact_trace_context") or {}
+    _assert(belief.get("state_id"), f"{label}: BeliefState id should be present")
+    _assert(belief.get("raw_source_count", 0) > 0, f"{label}: raw source count should be present")
+    _assert(updates.get("top_updates"), f"{label}: state update rows should be present")
+    _assert(impacts.get("top_traces"), f"{label}: prediction impact traces should be present")
+    _assert(
+        impacts.get("isolated_prediction_impact_trace_count", 0) > 0,
+        f"{label}: isolated same-seed traces should be present",
+    )
+    _assert("score_breakdown" not in context, f"{label}: public context should redact score_breakdown")
+    _assert("model_prior_audit" in context, f"{label}: public context should include seed-prior audit")
+
+
+def _assert_no_raw_internal_fields(payload: dict, label: str) -> None:
+    text = json.dumps(payload, ensure_ascii=False)
+    forbidden = (
+        "score_breakdown",
+        "weighted_value",
+        "raw_signed_impact",
+        "weighted_input_impact",
+        "model_input_weight",
+        "race_top_components",
+        "qualifying_top_components",
+    )
+    for field in forbidden:
+        _assert(field not in text, f"{label}: public explanation should redact {field}")
+
+
 def main() -> None:
     explainer = PredictionExplainer(ROOT)
 
-    russell = explainer.answer("why is Russell first?", event_id="british_gp", max_evidence=5)
-    _assert(russell.question_type == "rank_explanation", "Russell first question should route as rank explanation")
+    russell = explainer.answer(
+        "why is Russell first?",
+        event_id="british_gp",
+        knowledge_cutoff=KNOWLEDGE_CUTOFF,
+        max_evidence=5,
+    )
+    _assert(russell.question_type == "rank_explanation", "Russell question should route as rank explanation")
     _assert("russell" in russell.detected_entities["drivers"], "Russell should be detected")
-    _assert("冠军概率第一" in russell.answer, "Rank answer should clarify win-probability vs expected-rank")
-    _assert(russell.evidence_context["score_breakdown"].get("russell"), "Russell score breakdown should be present")
+    _assert("BeliefState" in russell.answer, "Rank answer should mention the traceable BeliefState chain")
+    _assert(
+        "来源 -> 信息抽取 -> 因子声明 -> 状态更新 -> 预测分布变化" in russell.answer,
+        "Rank answer should describe the full traceability path",
+    )
     russell_public = russell.to_dict()
-    _assert(
-        "score_breakdown" not in russell_public["evidence_context"],
-        "Public explanation context should redact raw score breakdown",
-    )
-    _assert(
-        "model_prior_audit" in russell_public["evidence_context"],
-        "Public explanation context should keep a static-prior audit instead",
-    )
-    russell_public_text = json.dumps(russell_public, ensure_ascii=False)
-    for forbidden in ("weighted_value", "raw_signed_impact", "weighted_input_impact", "model_input_weight"):
-        _assert(forbidden not in russell_public_text, f"Public explanation should redact {forbidden}")
+    _assert_traceable_context(russell_public, "Russell")
+    _assert_no_raw_internal_fields(russell_public, "Russell")
     _assert("score_breakdown" not in russell.codex_prompt, "Codex prompt should not expose raw score breakdown")
     _assert("weighted_value" not in russell.codex_prompt, "Codex prompt should not expose raw feature weights")
 
     ferrari = explainer.answer(
-        "为什么勒克莱尔的胜率远低于同队的汉密尔顿？",
+        "\u4e3a\u4ec0\u4e48 Leclerc \u6bd4 Hamilton \u4f4e\u8fd9\u4e48\u591a\uff1f",
         event_id="british_gp",
+        knowledge_cutoff=KNOWLEDGE_CUTOFF,
         max_evidence=6,
     )
     _assert(ferrari.question_type == "driver_comparison", "Ferrari teammate question should route as comparison")
@@ -52,19 +87,31 @@ def main() -> None:
         {"hamilton", "leclerc"}.issubset(set(ferrari.detected_entities["drivers"])),
         "Hamilton and Leclerc should be detected",
     )
-    _assert("不能再用内部能力分差值来解释" in ferrari.answer, "Comparison should reject raw internal score explanations")
+    ferrari_public = ferrari.to_dict()
+    _assert_traceable_context(ferrari_public, "Ferrari comparison")
+    _assert_no_raw_internal_fields(ferrari_public, "Ferrari comparison")
     _assert("race" + " score" not in ferrari.answer, "User-facing answer should not expose raw English labels")
-    _assert("最明显的可追溯弱项" in ferrari.answer, "Comparison should separate weak inputs from supporting inputs")
-    _assert("静态车手先验" in ferrari.answer, "Comparison should flag amplified static-prior risk")
+    _assert(
+        "\u53ef\u8ffd\u6eaf\u94fe\u8def" in ferrari.answer,
+        "Comparison should explain via the traceable chain",
+    )
 
     zero_podium = explainer.answer(
-        "为什么阿隆索在所有podium概率为0的车手中排第一？",
+        "why is Alonso first among zero podium drivers?",
         event_id="british_gp",
+        knowledge_cutoff=KNOWLEDGE_CUTOFF,
         max_evidence=6,
     )
     _assert(zero_podium.question_type == "group_zero_podium", "Zero podium question should route as group explanation")
+    _assert("alonso" in zero_podium.detected_entities["drivers"], "Alonso should be detected")
     _assert(zero_podium.detected_entities["derived_groups"], "Zero podium derived group should be present")
-    _assert("采样分辨率" in zero_podium.answer, "Zero podium answer should warn about sampling resolution")
+    _assert(
+        "\u4e0d\u662f\u8fd9\u4e2a\u5206\u7ec4\u7b2c\u4e00" in zero_podium.answer,
+        "Zero podium answer should correct the stale Alonso premise when needed",
+    )
+    zero_public = zero_podium.to_dict()
+    _assert_traceable_context(zero_public, "Zero podium")
+    _assert_no_raw_internal_fields(zero_public, "Zero podium")
 
     api = BackendApiV2(ROOT)
     openapi = api.handle_get("/api/v2/openapi.json", {}).payload
@@ -75,24 +122,24 @@ def main() -> None:
     response = api.handle_post(
         "/api/v2/prediction-explanations",
         {},
-        {"event_id": "british_gp", "question": "why is Russell first?", "max_evidence": 4},
+        {
+            "event_id": "british_gp",
+            "knowledge_cutoff": KNOWLEDGE_CUTOFF,
+            "question": "why is Russell first?",
+            "max_evidence": 4,
+        },
     )
     _assert(response.status == 200, "API explanation POST should succeed")
     _assert(response.payload["question_type"] == "rank_explanation", "API explanation should route correctly")
     _assert("codex_prompt" in response.payload, "API explanation should include Codex prompt")
-    _assert(
-        "score_breakdown" not in response.payload["evidence_context"],
-        "API explanation should not expose raw score breakdown",
-    )
+    _assert_traceable_context(response.payload, "API")
+    _assert_no_raw_internal_fields(response.payload, "API")
     _assert(
         "score_breakdown" not in response.payload["codex_prompt"],
         "API Codex prompt should not expose raw score breakdown",
     )
-    response_public_text = json.dumps(response.payload, ensure_ascii=False)
-    for forbidden in ("weighted_value", "raw_signed_impact", "weighted_input_impact", "model_input_weight"):
-        _assert(forbidden not in response_public_text, f"API explanation should redact {forbidden}")
 
-    print("explainability smoke ok")
+    print("traceable explainability smoke ok")
 
 
 if __name__ == "__main__":

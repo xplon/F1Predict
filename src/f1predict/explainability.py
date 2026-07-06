@@ -457,6 +457,14 @@ class PredictionExplainer:
         features = self._feature_context(packet, season, selected_drivers, max_evidence=max_evidence)
         factor_traces = self._factor_trace_context(packet, season, selected_drivers, max_evidence=max_evidence)
         evidence_impacts = self._evidence_impact_context(packet, season, selected_drivers, max_evidence=max_evidence)
+        belief_state = self._belief_state_context(packet, season, selected_drivers, max_evidence=max_evidence)
+        state_updates = self._state_update_context(packet, season, selected_drivers, max_evidence=max_evidence)
+        prediction_impacts = self._prediction_impact_trace_context(
+            packet,
+            season,
+            selected_drivers,
+            max_evidence=max_evidence,
+        )
         score_breakdown = self._score_breakdown_context(packet, season, selected_drivers)
         qualifying = self._qualifying_context(packet, selected_drivers)
         track = (packet.get("model_context") or {}).get("track_feature_vector") or {}
@@ -469,6 +477,9 @@ class PredictionExplainer:
             "feature_context": features,
             "factor_trace_context": factor_traces,
             "evidence_impact_context": evidence_impacts,
+            "belief_state_context": belief_state,
+            "state_update_context": state_updates,
+            "prediction_impact_trace_context": prediction_impacts,
             "score_breakdown": score_breakdown,
             "qualifying_context": qualifying,
             "track_context": {
@@ -497,6 +508,13 @@ class PredictionExplainer:
                 ),
                 "strong_evidence_quality_count": (packet.get("codex_context") or {}).get(
                     "strong_evidence_quality_count"
+                ),
+                "state_update_count": (packet.get("codex_context") or {}).get("state_update_count"),
+                "prediction_impact_trace_count": (packet.get("codex_context") or {}).get(
+                    "prediction_impact_trace_count"
+                ),
+                "isolated_prediction_impact_count": (packet.get("codex_context") or {}).get(
+                    "isolated_prediction_impact_count"
                 ),
             },
         }
@@ -620,7 +638,262 @@ class PredictionExplainer:
         rows.sort(key=lambda row: abs(_as_float(row.get("max_win_probability_delta"))), reverse=True)
         return rows[:max_evidence]
 
+    def _belief_state_context(
+        self,
+        packet: dict[str, Any],
+        season: Any,
+        driver_ids: list[str],
+        max_evidence: int,
+    ) -> dict[str, Any]:
+        belief_state = (packet.get("prediction") or {}).get("belief_state") or {}
+        if not isinstance(belief_state, dict):
+            return {}
+        selected = set(driver_ids)
+        teams = {season.drivers[driver_id].team_id for driver_id in selected if driver_id in season.drivers}
+        driver_states = belief_state.get("driver_states") if isinstance(belief_state.get("driver_states"), dict) else {}
+        car_states = belief_state.get("car_states") if isinstance(belief_state.get("car_states"), dict) else {}
+        team_ops_states = belief_state.get("team_ops_states") if isinstance(belief_state.get("team_ops_states"), dict) else {}
+        event_risk = belief_state.get("event_risk_state") if isinstance(belief_state.get("event_risk_state"), dict) else {}
+        unsupported = belief_state.get("unsupported_static_priors") if isinstance(belief_state.get("unsupported_static_priors"), list) else []
+
+        selected_driver_states: dict[str, Any] = {}
+        for driver_id in driver_ids:
+            state = driver_states.get(driver_id) if isinstance(driver_states, dict) else None
+            driver = season.drivers.get(driver_id)
+            if not isinstance(state, dict) or driver is None:
+                continue
+            selected_driver_states[driver_id] = {
+                "driver_id": driver_id,
+                "team_id": driver.team_id,
+                "factors": _public_state_factors(
+                    state.get("factors") if isinstance(state.get("factors"), dict) else {},
+                    (
+                        "qualifying_ceiling",
+                        "race_pace",
+                        "race_execution",
+                        "tyre_management",
+                        "wet_skill",
+                        "first_lap_gain",
+                        "reliability",
+                    ),
+                ),
+            }
+
+        selected_team_states: dict[str, Any] = {}
+        for team_id in sorted(teams):
+            car_state = car_states.get(team_id) if isinstance(car_states, dict) else None
+            ops_state = team_ops_states.get(team_id) if isinstance(team_ops_states, dict) else None
+            selected_team_states[team_id] = {
+                "team_id": team_id,
+                "car_factors": _public_state_factors(
+                    car_state.get("factors") if isinstance(car_state, dict) and isinstance(car_state.get("factors"), dict) else {},
+                    (
+                        "overall_pace",
+                        "race_pace",
+                        "qualifying_pace",
+                        "straight_line_speed",
+                        "traction",
+                        "tyre_deg",
+                        "reliability",
+                        "upgrade_delta",
+                    ),
+                ),
+                "team_ops_factors": _public_state_factors(
+                    ops_state.get("factors") if isinstance(ops_state, dict) and isinstance(ops_state.get("factors"), dict) else {},
+                    ("strategy_quality", "pit_wall_risk", "setup_quality"),
+                ),
+            }
+
+        return {
+            "state_id": belief_state.get("state_id"),
+            "source_fingerprint": belief_state.get("source_fingerprint"),
+            "update_fingerprint": belief_state.get("update_fingerprint"),
+            "generated_at": belief_state.get("generated_at"),
+            "raw_source_count": len(belief_state.get("raw_sources") or []),
+            "extracted_unit_count": len(belief_state.get("extracted_units") or []),
+            "normalized_claim_count": len(belief_state.get("normalized_claims") or []),
+            "quality_profile_count": len(belief_state.get("quality_profiles") or []),
+            "state_update_count": len(belief_state.get("update_ledger") or []),
+            "unsupported_static_prior_count": len(unsupported),
+            "selected_driver_states": selected_driver_states,
+            "selected_team_states": selected_team_states,
+            "event_risk_state": {
+                "event_id": event_risk.get("entity_id"),
+                "factors": _public_state_factors(
+                    event_risk.get("factors") if isinstance(event_risk.get("factors"), dict) else {},
+                    ("wet_probability", "safety_car_probability", "red_flag_probability", "tyre_degradation_index"),
+                ),
+            },
+            "raw_source_samples": _public_raw_sources(belief_state.get("raw_sources") or [], limit=max_evidence),
+            "unsupported_static_prior_audit": _public_static_prior_audit(
+                unsupported,
+                selected_driver_ids=selected,
+                selected_team_ids=teams,
+                limit=max_evidence,
+            ),
+            "chain_note": (
+                "BeliefState 是本次解释的主线：原始来源先进入抽取单元和标准因子，"
+                "通过质量门控后才允许修改状态向量，预测只读取状态向量。"
+            ),
+        }
+
+    def _state_update_context(
+        self,
+        packet: dict[str, Any],
+        season: Any,
+        driver_ids: list[str],
+        max_evidence: int,
+    ) -> dict[str, Any]:
+        prediction = packet.get("prediction") or {}
+        belief_state = prediction.get("belief_state") if isinstance(prediction.get("belief_state"), dict) else {}
+        raw_sources = belief_state.get("raw_sources") if isinstance(belief_state.get("raw_sources"), list) else []
+        quality_profiles = belief_state.get("quality_profiles") if isinstance(belief_state.get("quality_profiles"), list) else []
+        normalized_claims = belief_state.get("normalized_claims") if isinstance(belief_state.get("normalized_claims"), list) else []
+        source_by_id = {
+            row.get("source_id"): row
+            for row in raw_sources
+            if isinstance(row, dict) and row.get("source_id")
+        }
+        quality_by_claim = {
+            row.get("claim_id"): row
+            for row in quality_profiles
+            if isinstance(row, dict) and row.get("claim_id")
+        }
+        claim_by_id = {
+            row.get("claim_id"): row
+            for row in normalized_claims
+            if isinstance(row, dict) and row.get("claim_id")
+        }
+        selected = set(driver_ids)
+        teams = {season.drivers[driver_id].team_id for driver_id in selected if driver_id in season.drivers}
+        event_id = str(packet.get("event_id") or prediction.get("event", {}).get("event_id") or "")
+        rows = prediction.get("state_update_ledger") or belief_state.get("update_ledger") or []
+        public_rows = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            if not _state_update_relevant(row, selected, teams, event_id):
+                continue
+            source = source_by_id.get(row.get("source_id")) or {}
+            quality = quality_by_claim.get(row.get("claim_id")) or {}
+            claim = claim_by_id.get(row.get("claim_id")) or {}
+            public_rows.append(
+                {
+                    "update_id": row.get("update_id"),
+                    "claim_id": row.get("claim_id"),
+                    "source_id": row.get("source_id"),
+                    "source_type": source.get("source_type"),
+                    "source_title": source.get("title"),
+                    "source_publisher": source.get("publisher"),
+                    "source_url": source.get("url"),
+                    "target_type": row.get("target_type"),
+                    "target_id": row.get("target_id"),
+                    "target_label": _target_label(row.get("target_type"), row.get("target_id"), season),
+                    "factor": row.get("factor"),
+                    "factor_label": _state_factor_label(row.get("factor")),
+                    "direction": row.get("direction"),
+                    "direction_label": _direction_label(row.get("direction")),
+                    "magnitude_bucket": row.get("magnitude_bucket"),
+                    "magnitude_label": _magnitude_label(row.get("magnitude_bucket")),
+                    "update_strength_bucket": row.get("update_strength_bucket"),
+                    "update_strength_label": _magnitude_label(row.get("update_strength_bucket")),
+                    "update_permission": row.get("update_permission"),
+                    "update_permission_label": _update_permission_label(row.get("update_permission")),
+                    "old_value_bucket": row.get("old_value_bucket"),
+                    "new_value_bucket": row.get("new_value_bucket"),
+                    "quality_reasons": [
+                        _quality_reason_label(reason)
+                        for reason in row.get("quality_reasons") or quality.get("reasons") or []
+                    ],
+                    "mechanism_zh": _mechanism_summary_zh(row.get("mechanism") or claim.get("mechanism")),
+                    "applicable_context": [_context_tag_label(item) for item in row.get("applicable_context") or []],
+                    "affected_model_surfaces": [
+                        _model_surface_label(item) for item in row.get("affected_model_surfaces") or []
+                    ],
+                    "sort_magnitude": abs(_as_float(row.get("delta"))),
+                }
+            )
+        public_rows.sort(key=lambda row: row["sort_magnitude"], reverse=True)
+        for row in public_rows:
+            row.pop("sort_magnitude", None)
+        return {
+            "total_state_update_count": len(rows) if isinstance(rows, list) else 0,
+            "selected_state_update_count": len(public_rows),
+            "top_updates": public_rows[:max_evidence],
+            "path_contract": (
+                "每条状态更新都对应 RawSourceRecord -> ExtractedInformationUnit -> "
+                "NormalizedFactorClaim -> EvidenceQualityProfile -> StateUpdateLedgerRow。"
+            ),
+        }
+
+    def _prediction_impact_trace_context(
+        self,
+        packet: dict[str, Any],
+        season: Any,
+        driver_ids: list[str],
+        max_evidence: int,
+    ) -> dict[str, Any]:
+        prediction = packet.get("prediction") or {}
+        traces = prediction.get("prediction_impact_trace") or []
+        if not isinstance(traces, list):
+            return {}
+        selected = set(driver_ids)
+        teams = {season.drivers[driver_id].team_id for driver_id in selected if driver_id in season.drivers}
+        event_id = str(packet.get("event_id") or prediction.get("event", {}).get("event_id") or "")
+        public_rows = []
+        for row in traces:
+            if not isinstance(row, dict):
+                continue
+            if not _impact_trace_relevant(row, selected, teams, event_id):
+                continue
+            public_rows.append(
+                {
+                    "impact_trace_id": row.get("impact_trace_id"),
+                    "trace_type": row.get("trace_type"),
+                    "trace_type_label": _trace_type_label(row.get("trace_type")),
+                    "update_id_or_group_id": row.get("update_id_or_group_id"),
+                    "claim_id": row.get("claim_id"),
+                    "source_id": row.get("source_id"),
+                    "probability_delta_bucket": row.get("probability_delta_bucket"),
+                    "probability_delta_label": _magnitude_label(row.get("probability_delta_bucket")),
+                    "changed_factors": _public_changed_factors(row.get("changed_factors") or [], season, limit=6),
+                    "affected_drivers": [
+                        _impact_driver_label(item, season)
+                        for item in row.get("affected_drivers") or []
+                    ][:8],
+                    "rank_changes": _public_rank_changes(row.get("rank_delta") or [], selected, season, limit=6),
+                    "points_changes": _public_points_changes(
+                        row.get("expected_points_delta") or [],
+                        selected,
+                        season,
+                        limit=6,
+                    ),
+                    "interpretation_zh": row.get("interpretation_zh"),
+                }
+            )
+        isolated_count = sum(
+            1
+            for row in traces
+            if isinstance(row, dict) and row.get("trace_type") == "isolated_same_seed_leave_one_information"
+        )
+        return {
+            "total_prediction_impact_trace_count": len(traces),
+            "isolated_prediction_impact_trace_count": isolated_count,
+            "selected_prediction_impact_trace_count": len(public_rows),
+            "top_traces": public_rows[:max_evidence],
+            "isolation_status": (
+                "当前已生成部分来源化信息的单条 isolated same-seed 重跑。"
+                if isolated_count
+                else (
+                    "当前已实现整体同种子前后对比和状态路由记录；"
+                    "单条信息 isolated rerun 仍是后续扩展，不能把路由记录误读成单条因果实验。"
+                )
+            ),
+        }
+
     def _score_breakdown_context(self, packet: dict[str, Any], season: Any, driver_ids: list[str]) -> dict[str, Any]:
+        if (packet.get("prediction") or {}).get("belief_state"):
+            return {}
         event_payload = packet.get("prediction", {}).get("event") or {}
         event = _race_event_from_packet(event_payload)
         evidence_rows = packet.get("prediction", {}).get("evidence") or []
@@ -723,11 +996,21 @@ class PredictionExplainer:
         feature_lines = self._driver_feature_lines(driver_id, context, team_lookup, driver_lookup, limit=4)
         score = context["score_breakdown"].get(driver_id, {})
         quali = self._qualifying_line(driver_id, context, driver_lookup)
+        if top_win["driver_id"] == driver_id:
+            first_line = (
+                f"这里要先区分两个口径：当前预测里 {name} 既是按平均完赛名次排序的第一，"
+                f"也是冠军概率第一。{name} 的平均完赛名次是 {driver['average_finish']:.3f}，"
+                f"预计排名为第 {driver['expected_rank']}，冠军概率是 {_pct(driver['win'])}。"
+            )
+        else:
+            first_line = (
+                f"这里要先区分两个口径：{name} 是按平均完赛名次排第一，"
+                f"不是按冠军概率排第一。当前预测里 {name} 的平均完赛名次是 {driver['average_finish']:.3f}，"
+                f"预计排名为第 {driver['expected_rank']}；冠军概率第一的是 "
+                f"{driver_lookup.get(top_win['driver_id'], top_win['driver_id'])}（{_pct(top_win['win'])}）。"
+            )
         lines = [
-            f"这里要先区分两个口径：{name} 是按平均完赛名次排第一，"
-            f"不是按冠军概率排第一。当前预测里 {name} 的平均完赛名次是 {driver['average_finish']:.3f}，"
-            f"预计排名为第 {driver['expected_rank']}；冠军概率第一的是 "
-            f"{driver_lookup.get(top_win['driver_id'], top_win['driver_id'])}（{_pct(top_win['win'])}）。",
+            first_line,
             f"{name} 能在平均完赛名次上排到第一，主要因为模型给了他很高的领奖台概率 "
             f"({_pct(driver['podium'])}) 和积分区概率 ({_pct(driver['points'])})，坏结果尾部比其他争冠车手略低。",
         ]
@@ -739,6 +1022,9 @@ class PredictionExplainer:
                 lines.append(note)
         if feature_lines:
             lines.append("最直接支撑这个判断的输入包括：" + "；".join(feature_lines) + "。")
+        chain_note = self._traceable_chain_note(context, driver_lookup, team_lookup, limit=3)
+        if chain_note:
+            lines.append(chain_note)
         lines.append(_diagnostic_sentence(packet))
         return "\n\n".join(lines)
 
@@ -767,6 +1053,7 @@ class PredictionExplainer:
         )
         same_team_note = self._same_team_note(high["driver_id"], low["driver_id"], context, team_lookup)
         impact_lines = self._impact_lines(context, driver_lookup, limit=3)
+        chain_note = self._traceable_chain_note(context, driver_lookup, team_lookup, limit=4)
         lines = [
             f"当前预测中，{high_name} 的冠军概率是 {_pct(high['win'])}，{low_name} 的冠军概率是 {_pct(low['win'])}；"
             f"领奖台概率分别是 {_pct(high['podium'])} 和 {_pct(low['podium'])}。"
@@ -787,6 +1074,8 @@ class PredictionExplainer:
         )
         if impact_lines:
             lines.append("Codex 证据层对这组对比的可见影响包括：" + "；".join(impact_lines) + "。")
+        if chain_note:
+            lines.append(chain_note)
         lines.append(_diagnostic_sentence(packet))
         return "\n\n".join(lines)
 
@@ -811,6 +1100,11 @@ class PredictionExplainer:
             f"{driver_lookup.get(row['driver_id'], row['driver_id'])} 平均完赛名次 {row['average_finish']:.3f}，期望积分 {row['expected_points']:.3f}"
             for row in next_rows
         )
+        zero_rank = {row["driver_id"]: index for index, row in enumerate(zero_rows, start=1)}
+        explicit_non_leaders = [
+            row for row in context["probability_rows"]
+            if row["podium"] <= 0.0 and row["driver_id"] != leader["driver_id"] and row["driver_id"] in zero_rank
+        ]
         feature_lines = self._driver_feature_lines(leader["driver_id"], context, team_lookup, driver_lookup, limit=4)
         score = context["score_breakdown"].get(leader["driver_id"], {})
         lines = [
@@ -819,6 +1113,14 @@ class PredictionExplainer:
             f"期望积分是 {leader['expected_points']:.3f}、积分区概率是 {_pct(leader['points'])}，"
             f"在零领奖台组里比后面的车手略好。",
         ]
+        if explicit_non_leaders:
+            corrections = []
+            for row in explicit_non_leaders[:3]:
+                corrections.append(
+                    f"{driver_lookup.get(row['driver_id'], row['driver_id'])} 现在不是这个分组第一，"
+                    f"而是零领奖台组第 {zero_rank[row['driver_id']]}，平均完赛名次 {row['average_finish']:.3f}"
+                )
+            lines.insert(0, "需要先纠正问题前提：" + "；".join(corrections) + "。")
         if comparison:
             lines.append(f"同组后续几名是：{comparison}。这个差距说明他更像是模型里的积分区边缘车手，而不是领奖台候选。")
         if score:
@@ -830,6 +1132,9 @@ class PredictionExplainer:
             lines.append(anomaly)
         if feature_lines:
             lines.append("相关输入包括：" + "；".join(feature_lines) + "。")
+        chain_note = self._traceable_chain_note(context, driver_lookup, team_lookup, limit=3)
+        if chain_note:
+            lines.append(chain_note)
         lines.append(
             "同时要注意：1200 次蒙特卡洛采样下，领奖台概率为 0 也可能是采样分辨率问题，"
             "它更准确的含义是“在当前采样和权重下没有抽到领奖台”，不是数学上的绝对不可能。"
@@ -860,6 +1165,9 @@ class PredictionExplainer:
             lines.append("主要输入：" + "；".join(feature_lines) + "。")
         if impact_lines:
             lines.append("Codex 证据影响：" + "；".join(impact_lines) + "。")
+        chain_note = self._traceable_chain_note(context, driver_lookup, team_lookup, limit=3)
+        if chain_note:
+            lines.append(chain_note)
         lines.append(_diagnostic_sentence(packet))
         return "\n\n".join(lines)
 
@@ -883,6 +1191,9 @@ class PredictionExplainer:
             f"安全车概率估计值为 {track.get('safety_car_probability')}，湿地概率估计值为 {track.get('wet_probability')}。",
             _diagnostic_sentence(packet),
         ]
+        chain_note = self._traceable_chain_note(context, driver_lookup, {}, limit=4)
+        if chain_note:
+            lines.insert(-1, chain_note)
         return "\n\n".join(lines)
 
     def _driver_feature_lines(
@@ -907,6 +1218,119 @@ class PredictionExplainer:
         lines = []
         for row in features[:limit]:
             lines.append(_feature_line(row, team_lookup, driver_lookup))
+        return lines
+
+    def _traceable_chain_note(
+        self,
+        context: dict[str, Any],
+        driver_lookup: dict[str, str],
+        team_lookup: dict[str, str],
+        limit: int,
+    ) -> str:
+        belief = context.get("belief_state_context") or {}
+        if not belief.get("state_id"):
+            return ""
+        counts = (
+            f"{belief.get('raw_source_count', 0)} 条原始来源、"
+            f"{belief.get('normalized_claim_count', 0)} 条标准化因子声明、"
+            f"{belief.get('state_update_count', 0)} 条状态更新、"
+            f"{(context.get('prediction_impact_trace_context') or {}).get('total_prediction_impact_trace_count', 0)} 条预测影响记录，"
+            f"其中 {(context.get('prediction_impact_trace_context') or {}).get('isolated_prediction_impact_trace_count', 0)} 条是单条信息同种子隔离重跑"
+        )
+        parts = [
+            f"BeliefState 可追溯链路方面，本次预测包记录了 {counts}；解释应该沿着"
+            "“来源 -> 信息抽取 -> 因子声明 -> 状态更新 -> 预测分布变化”读取。"
+        ]
+        update_lines = self._state_update_lines(context, driver_lookup, team_lookup, limit=limit)
+        if update_lines:
+            parts.append("与这个问题最相关的状态更新包括：" + "；".join(update_lines) + "。")
+        impact_lines = self._prediction_impact_lines(context, driver_lookup, limit=2)
+        if impact_lines:
+            parts.append("预测层影响记录显示：" + "；".join(impact_lines) + "。")
+        static_audit = belief.get("unsupported_static_prior_audit") or []
+        if static_audit:
+            targets = []
+            for row in static_audit[:3]:
+                target = row.get("target_id")
+                if row.get("target_type") == "driver":
+                    target = driver_lookup.get(str(target), str(target))
+                elif row.get("target_type") == "team":
+                    target = team_lookup.get(str(target), str(target))
+                targets.append(str(target))
+            parts.append(
+                "同时仍保留弱 seed 初始状态审计：" + "、".join(targets)
+                + " 的旧先验只能作为不确定初始值，不能单独当作预测原因。"
+            )
+        return "\n\n".join(parts)
+
+    @staticmethod
+    def _state_update_lines(
+        context: dict[str, Any],
+        driver_lookup: dict[str, str],
+        team_lookup: dict[str, str],
+        limit: int,
+    ) -> list[str]:
+        rows = (context.get("state_update_context") or {}).get("top_updates") or []
+        lines = []
+        for row in rows[:limit]:
+            target = row.get("target_label") or row.get("target_id")
+            if row.get("target_type") == "driver":
+                target = driver_lookup.get(str(row.get("target_id")), str(target))
+            elif row.get("target_type") == "team":
+                target = team_lookup.get(str(row.get("target_id")), str(target))
+            source = row.get("source_publisher") or row.get("source_title") or row.get("source_type") or "来源未命名"
+            reasons = "、".join(row.get("quality_reasons") or []) or "质量理由未展开"
+            surfaces = "、".join(row.get("affected_model_surfaces") or []) or "模型表面未标注"
+            return_line = (
+                f"{source} 使 {target} 的{row.get('factor_label')}从"
+                f"{_state_bucket_label(row.get('old_value_bucket'))}更新到"
+                f"{_state_bucket_label(row.get('new_value_bucket'))}，方向为{row.get('direction_label')}，"
+                f"更新权限为{row.get('update_permission_label')}，影响{surfaces}，依据是{reasons}"
+            )
+            mechanism = row.get("mechanism_zh")
+            if mechanism:
+                return_line += f"，机制：{mechanism}"
+            lines.append(return_line)
+        return lines
+
+    @staticmethod
+    def _prediction_impact_lines(
+        context: dict[str, Any],
+        driver_lookup: dict[str, str],
+        limit: int,
+    ) -> list[str]:
+        rows = (context.get("prediction_impact_trace_context") or {}).get("top_traces") or []
+        lines = []
+        for row in rows[:limit]:
+            if row.get("trace_type") == "same_seed_before_after":
+                rank_changes = row.get("rank_changes") or []
+                if rank_changes:
+                    changes = "、".join(
+                        f"{driver_lookup.get(item.get('driver_id'), item.get('driver_name') or item.get('driver_id'))}"
+                        f"{item.get('direction_label')}{item.get('magnitude_label')}"
+                        for item in rank_changes[:3]
+                    )
+                    lines.append(f"完整状态相对弱 seed 初始状态的同种子对比中，{changes}")
+                else:
+                    lines.append("完整状态相对弱 seed 初始状态已经生成同种子前后对比，但所选车手没有明显名次变化")
+            elif row.get("trace_type") == "state_update_route":
+                factors = row.get("changed_factors") or []
+                factor = factors[0] if factors else {}
+                lines.append(
+                    f"{factor.get('target_label') or factor.get('target_id')} 的{factor.get('factor_label')}更新"
+                    f"已经路由到模拟器，但当前记录仍是{row.get('probability_delta_label')}"
+                )
+            elif row.get("trace_type") == "isolated_same_seed_leave_one_information":
+                points_changes = row.get("points_changes") or []
+                if points_changes:
+                    changes = "、".join(
+                        f"{driver_lookup.get(item.get('driver_id'), item.get('driver_name') or item.get('driver_id'))}"
+                        f"在完整预测中{item.get('direction_label')}{item.get('magnitude_label')}"
+                        for item in points_changes[:3]
+                    )
+                    lines.append(f"相对移除单条信息 `{row.get('claim_id')}` 的同种子重跑，{changes}")
+                else:
+                    lines.append(f"单条信息 `{row.get('claim_id')}` 已做同种子隔离重跑，但对所选车手影响很小")
         return lines
 
     def _single_score_note(
@@ -1010,26 +1434,43 @@ class PredictionExplainer:
         feature_context = context.get("feature_context") or {}
         payload = feature_context.get(driver_id) or {}
         features = payload.get("features") or []
-        score = (context.get("score_breakdown") or {}).get(driver_id) or {}
         negative_facts = [
             row for row in features
             if _as_float(row.get("weighted_value")) < 0
             and row.get("metric") in {"race_pace", "qualifying_pace", "reliability"}
         ][:5]
-        unsupported = _unsupported_prior_labels(score.get("race_components") or {})
-        if not negative_facts or not unsupported:
+        belief = context.get("belief_state_context") or {}
+        static_priors = [
+            row for row in belief.get("unsupported_static_prior_audit") or []
+            if row.get("target_type") == "driver" and row.get("target_id") == driver_id
+        ]
+        if not negative_facts and not static_priors:
             return ""
         driver_name = driver_lookup.get(driver_id, driver_id)
         team_id = payload.get("team_id")
         team_name = team_lookup.get(team_id, team_id)
-        return (
+        parts = [
             f"这正是当前预测最值得怀疑的地方：{driver_name} 排在这个分组第一，并不是因为可追溯事实显示 "
-            f"{team_name} 近期很强。相反，可追溯输入里有明显负面信号："
-            + "；".join(_feature_line(row, team_lookup, driver_lookup, include_direction=False) for row in negative_facts)
-            + "。模型仍然把他放到这个分组第一，主要说明静态 seed 先验仍在抬高他，涉及"
-            + "、".join(unsupported)
-            + "等没有本场事实来源的先验。这个结论应标记为模型校准问题，而不是被解释成合理预测。"
-        )
+            f"{team_name} 近期很强。"
+        ]
+        if negative_facts:
+            parts.append(
+                "相反，可追溯输入里有明显负面信号："
+                + "；".join(_feature_line(row, team_lookup, driver_lookup, include_direction=False) for row in negative_facts)
+                + "。"
+            )
+        if static_priors:
+            fields = []
+            for row in static_priors:
+                fields.extend(row.get("fields") or [])
+            if fields:
+                parts.append(
+                    "弱 seed 初始状态审计里仍有 "
+                    + "、".join(list(dict.fromkeys(fields))[:5])
+                    + " 等旧先验；它们只能初始化状态，不能作为“他应该排在这里”的原因。"
+                )
+        parts.append("这个结论应标记为模型校准问题，而不是被解释成合理预测。")
+        return "".join(parts)
 
     @staticmethod
     def _impact_lines(context: dict[str, Any], driver_lookup: dict[str, str], limit: int) -> list[str]:
@@ -1135,10 +1576,34 @@ class PredictionExplainer:
                     "max_win_probability_delta": row.get("max_win_probability_delta"),
                 }
             )
+        for row in (context.get("state_update_context") or {}).get("top_updates") or []:
+            rows.append(
+                {
+                    "kind": "state_update",
+                    "label": f"{row.get('target_label') or row.get('target_id')}：{row.get('factor_label')}状态更新",
+                    "detail": (
+                        f"来源 {row.get('source_publisher') or row.get('source_title') or row.get('source_type')}，"
+                        f"从{_state_bucket_label(row.get('old_value_bucket'))}到"
+                        f"{_state_bucket_label(row.get('new_value_bucket'))}，"
+                        f"方向为{row.get('direction_label')}，更新权限为{row.get('update_permission_label')}。"
+                    ),
+                    "evidence_priority": 0.75,
+                }
+            )
+        for row in (context.get("prediction_impact_trace_context") or {}).get("top_traces") or []:
+            rows.append(
+                {
+                    "kind": "prediction_impact_trace",
+                    "label": f"{row.get('trace_type_label')}：{row.get('update_id_or_group_id')}",
+                    "detail": row.get("interpretation_zh") or "预测影响记录已生成。",
+                    "evidence_priority": 0.7,
+                }
+            )
         rows.sort(
             key=lambda row: max(
                 abs(_as_float(row.get("weighted_value"))),
                 abs(_as_float(row.get("max_win_probability_delta"))),
+                _as_float(row.get("evidence_priority")),
             ),
             reverse=True,
         )
@@ -1188,6 +1653,395 @@ def _read_json(path: Path | str) -> dict[str, Any]:
     return payload
 
 
+def _public_state_factors(factors: dict[str, Any], names: tuple[str, ...]) -> list[dict[str, Any]]:
+    rows = []
+    for name in names:
+        row = factors.get(name)
+        if not isinstance(row, dict):
+            continue
+        provenance = row.get("provenance") if isinstance(row.get("provenance"), list) else []
+        rows.append(
+            {
+                "factor": name,
+                "factor_label": _state_factor_label(name),
+                "bucket": row.get("bucket"),
+                "bucket_label": _state_bucket_label(row.get("bucket")),
+                "uncertainty_label": _uncertainty_label(row.get("uncertainty")),
+                "provenance": [_provenance_label(item) for item in provenance[:4]],
+                "provenance_count": len(provenance),
+            }
+        )
+    return rows
+
+
+def _public_raw_sources(rows: list[Any], limit: int) -> list[dict[str, Any]]:
+    public_rows = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        public_rows.append(
+            {
+                "source_id": row.get("source_id"),
+                "source_type": _source_type_label(row.get("source_type")),
+                "title": row.get("title"),
+                "publisher": row.get("publisher"),
+                "published_at": row.get("published_at"),
+                "url": row.get("url"),
+                "content_hash": row.get("content_hash"),
+            }
+        )
+    return public_rows[:limit]
+
+
+def _public_static_prior_audit(
+    rows: list[Any],
+    selected_driver_ids: set[str],
+    selected_team_ids: set[str],
+    limit: int,
+) -> list[dict[str, Any]]:
+    public_rows = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        target_type = str(row.get("target_type") or "")
+        target_id = str(row.get("target_id") or "")
+        if target_type == "driver" and target_id not in selected_driver_ids:
+            continue
+        if target_type == "team" and target_id not in selected_team_ids:
+            continue
+        public_rows.append(
+            {
+                "target_type": target_type,
+                "target_id": target_id,
+                "fields": [_identifier_to_zh(str(field)) for field in row.get("fields") or []],
+                "status": "弱 seed 初始状态",
+                "note": "这类先验只允许作为高不确定度初始状态，不能作为用户问题的直接原因。",
+            }
+        )
+    return public_rows[:limit]
+
+
+def _state_update_relevant(
+    row: dict[str, Any],
+    selected_driver_ids: set[str],
+    selected_team_ids: set[str],
+    event_id: str,
+) -> bool:
+    target_type = str(row.get("target_type") or "")
+    target_id = str(row.get("target_id") or "")
+    if target_type == "driver" and target_id in selected_driver_ids:
+        return True
+    if target_type == "team" and target_id in selected_team_ids:
+        return True
+    if target_type == "event" and target_id == event_id:
+        return True
+    return False
+
+
+def _impact_trace_relevant(
+    row: dict[str, Any],
+    selected_driver_ids: set[str],
+    selected_team_ids: set[str],
+    event_id: str,
+) -> bool:
+    if row.get("update_id_or_group_id") == "all_state_updates_vs_weak_seed_prior":
+        return True
+    affected = {str(item) for item in row.get("affected_drivers") or []}
+    if selected_driver_ids & affected:
+        return True
+    if affected & {f"team:{team_id}" for team_id in selected_team_ids}:
+        return True
+    for factor in row.get("changed_factors") or []:
+        if not isinstance(factor, dict):
+            continue
+        if _state_update_relevant(factor, selected_driver_ids, selected_team_ids, event_id):
+            return True
+    return False
+
+
+def _target_label(target_type: Any, target_id: Any, season: Any) -> str:
+    target_type = str(target_type or "")
+    target_id = str(target_id or "")
+    if target_type == "driver" and target_id in season.drivers:
+        return season.drivers[target_id].name
+    if target_type == "team" and target_id in season.teams:
+        return season.teams[target_id].name
+    if target_type == "event":
+        return "本场比赛"
+    return target_id
+
+
+def _state_factor_label(factor: Any) -> str:
+    labels = {
+        "overall_pace": "赛车整体速度",
+        "race_pace": "正赛速度",
+        "qualifying_pace": "排位速度",
+        "qualifying_ceiling": "排位上限",
+        "race_execution": "正赛执行",
+        "straight_line_speed": "直道速度",
+        "traction": "低速牵引",
+        "tyre_deg": "轮胎衰退",
+        "tyre_management": "保胎能力",
+        "wet_skill": "湿地适应",
+        "first_lap_gain": "起步和首圈",
+        "reliability": "可靠性",
+        "upgrade_delta": "升级效果",
+        "strategy_quality": "策略质量",
+        "pit_wall_risk": "策略墙风险",
+        "setup_quality": "调校质量",
+        "wet_probability": "湿地概率",
+        "safety_car_probability": "安全车概率",
+        "red_flag_probability": "红旗概率",
+        "tyre_degradation_index": "赛道轮胎衰退强度",
+    }
+    return labels.get(str(factor), _metric_label(factor))
+
+
+def _direction_label(direction: Any) -> str:
+    labels = {
+        "positive": "正向",
+        "negative": "负向",
+        "neutral": "中性",
+    }
+    return labels.get(str(direction), _identifier_to_zh(str(direction)))
+
+
+def _magnitude_label(bucket: Any) -> str:
+    labels = {
+        "large": "大幅",
+        "medium": "中等",
+        "small": "小幅",
+        "tiny": "很小",
+        "none": "无明显变化",
+        "high": "高",
+        "moderate": "中等",
+        "low": "低",
+        "not_isolated_yet": "尚未单条隔离重跑",
+    }
+    return labels.get(str(bucket), _identifier_to_zh(str(bucket)))
+
+
+def _state_bucket_label(bucket: Any) -> str:
+    labels = {
+        "strong_positive": "明显偏强",
+        "positive": "偏强",
+        "slight_positive": "略强",
+        "neutral": "中性",
+        "slight_negative": "略弱",
+        "negative": "偏弱",
+        "strong_negative": "明显偏弱",
+    }
+    return labels.get(str(bucket), _magnitude_label(bucket))
+
+
+def _uncertainty_label(value: Any) -> str:
+    uncertainty = _as_float(value, 1.0)
+    if uncertainty <= 0.40:
+        return "不确定性较低"
+    if uncertainty <= 0.65:
+        return "不确定性中等"
+    return "不确定性较高"
+
+
+def _update_permission_label(permission: Any) -> str:
+    labels = {
+        "blocked": "不允许更新",
+        "weak_update": "弱更新",
+        "normal_update": "正常更新",
+        "strong_update": "强更新",
+    }
+    return labels.get(str(permission), _identifier_to_zh(str(permission)))
+
+
+def _quality_reason_label(reason: Any) -> str:
+    labels = {
+        "source_backed_timing_data": "有计时数据来源",
+        "specific_event_observation": "具体到本场比赛周末",
+        "structured_recent_results": "来自结构化近期成绩",
+        "source_backed_points_or_classification": "有积分榜或排名来源",
+        "recent_window_structured_feature": "近期窗口结构化特征",
+        "low_confidence_context_feature": "低置信度背景特征",
+        "unscored_codex_claim": "Codex 证据尚未完整质量评分",
+        "seed_scenario_source": "种子场景来源，不能强更新",
+        "source_log_missing": "缺少来源日志，需要复核",
+    }
+    return labels.get(str(reason), _identifier_to_zh(str(reason)))
+
+
+def _mechanism_summary_zh(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return "缺少机制说明，不能作为强解释。"
+    pseudo_row = {
+        "feature_id": "",
+        "source": "",
+        "explanation": text,
+    }
+    translated = _feature_explanation_zh(pseudo_row)
+    if "原始说明未能可靠翻译" not in translated:
+        return translated
+    if len(text) <= 160:
+        return "机制说明：" + text
+    return "机制说明：" + text[:157] + "..."
+
+
+def _context_tag_label(value: Any) -> str:
+    text = str(value or "")
+    if text.startswith("track_type:"):
+        return "赛道类型：" + _track_type_label(text.split(":", 1)[1])
+    if text.startswith("demand_component:"):
+        return "赛道需求：" + _state_factor_label(text.split(":", 1)[1])
+    return _identifier_to_zh(text)
+
+
+def _model_surface_label(surface: Any) -> str:
+    labels = {
+        "race_pace_score": "正赛速度输入",
+        "qualifying_grid_sampler": "排位/发车位采样",
+        "stint_degradation": "分段轮胎衰退",
+        "strategy_plan": "进站策略计划",
+        "pit_strategy": "进站策略",
+        "safety_car_window": "安全车窗口",
+        "dnf_sampler": "退赛采样",
+        "wet_race_branch": "湿地比赛分支",
+    }
+    return labels.get(str(surface), _identifier_to_zh(str(surface)))
+
+
+def _source_type_label(source_type: Any) -> str:
+    labels = {
+        "structured_feature": "结构化特征",
+        "codex_evidence_claim": "Codex 证据声明",
+        "article": "文章",
+        "interview": "采访",
+        "timing_data": "计时数据",
+        "official_doc": "官方文件",
+    }
+    return labels.get(str(source_type), _identifier_to_zh(str(source_type)))
+
+
+def _provenance_label(value: Any) -> str:
+    labels = {
+        "weak_seed_team_base_strength": "弱 seed 车队强度初始值",
+        "weak_seed_track_affinity": "弱 seed 赛道适配初始值",
+        "weak_seed_team_reliability": "弱 seed 车队可靠性初始值",
+        "weak_seed_team_strategy": "弱 seed 车队策略初始值",
+        "weak_seed_driver_base_skill": "弱 seed 车手基础能力初始值",
+        "weak_seed_driver_qualifying": "弱 seed 车手排位初始值",
+        "weak_seed_driver_racecraft": "弱 seed 车手正赛攻防初始值",
+        "weak_seed_driver_tyre_management": "弱 seed 车手保胎初始值",
+        "weak_seed_driver_wet_skill": "弱 seed 车手湿地初始值",
+        "weak_seed_driver_reliability": "弱 seed 车手可靠性初始值",
+        "unobserved_initial_state": "尚未观测的初始状态",
+        "event.weather_prior": "赛事天气先验",
+        "track_feature_vector": "赛道特征向量",
+    }
+    return labels.get(str(value), _identifier_to_zh(str(value)))
+
+
+def _trace_type_label(trace_type: Any) -> str:
+    labels = {
+        "same_seed_before_after": "同种子前后对比",
+        "state_update_route": "状态更新路由记录",
+        "isolated_same_seed_leave_one_information": "单条信息同种子隔离对比",
+    }
+    return labels.get(str(trace_type), _identifier_to_zh(str(trace_type)))
+
+
+def _public_changed_factors(rows: list[Any], season: Any, limit: int) -> list[dict[str, Any]]:
+    public_rows = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        public_rows.append(
+            {
+                "target_type": row.get("target_type"),
+                "target_id": row.get("target_id"),
+                "target_label": _target_label(row.get("target_type"), row.get("target_id"), season),
+                "factor": row.get("factor"),
+                "factor_label": _state_factor_label(row.get("factor")),
+                "direction_label": _direction_label(row.get("direction")),
+                "magnitude_label": _magnitude_label(row.get("magnitude_bucket")),
+                "old_value_bucket": row.get("old_value_bucket"),
+                "new_value_bucket": row.get("new_value_bucket"),
+            }
+        )
+    return public_rows[:limit]
+
+
+def _impact_driver_label(value: Any, season: Any) -> str:
+    text = str(value or "")
+    if text.startswith("team:"):
+        team_id = text.split(":", 1)[1]
+        return season.teams[team_id].name if team_id in season.teams else text
+    if text == "all_drivers":
+        return "所有车手"
+    return season.drivers[text].name if text in season.drivers else text
+
+
+def _public_rank_changes(
+    rows: list[Any],
+    selected_driver_ids: set[str],
+    season: Any,
+    limit: int,
+) -> list[dict[str, Any]]:
+    public_rows = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        driver_id = str(row.get("driver_id") or "")
+        if selected_driver_ids and driver_id not in selected_driver_ids:
+            continue
+        delta = int(_as_float(row.get("expected_rank_delta")))
+        direction = "排名改善" if delta < 0 else "排名下降" if delta > 0 else "无明显排名变化"
+        public_rows.append(
+            {
+                "driver_id": driver_id,
+                "driver_name": season.drivers[driver_id].name if driver_id in season.drivers else driver_id,
+                "direction_label": direction,
+                "magnitude_label": f"{abs(delta)} 位" if delta else "无明显变化",
+            }
+        )
+    return public_rows[:limit]
+
+
+def _public_points_changes(
+    rows: list[Any],
+    selected_driver_ids: set[str],
+    season: Any,
+    limit: int,
+) -> list[dict[str, Any]]:
+    public_rows = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        driver_id = str(row.get("driver_id") or "")
+        if selected_driver_ids and driver_id not in selected_driver_ids:
+            continue
+        delta = _as_float(row.get("expected_points_delta"))
+        direction = "期望积分更高" if delta > 0.03 else "期望积分更低" if delta < -0.03 else "期望积分接近不变"
+        public_rows.append(
+            {
+                "driver_id": driver_id,
+                "driver_name": season.drivers[driver_id].name if driver_id in season.drivers else driver_id,
+                "direction_label": direction,
+                "magnitude_label": _points_delta_bucket(delta),
+            }
+        )
+    return public_rows[:limit]
+
+
+def _points_delta_bucket(delta: float) -> str:
+    magnitude = abs(delta)
+    if magnitude >= 2.0:
+        return "大幅"
+    if magnitude >= 0.6:
+        return "中等"
+    if magnitude >= 0.1:
+        return "小幅"
+    return "很小"
+
+
 def _public_evidence_context(context: dict[str, Any]) -> dict[str, Any]:
     """Return the user/API-visible context without raw internal score weights."""
 
@@ -1198,6 +2052,17 @@ def _public_evidence_context(context: dict[str, Any]) -> dict[str, Any]:
     _redact_public_evidence_impacts(public)
     _redact_public_track_context(public)
     audit: dict[str, Any] = {}
+    belief_context = public.get("belief_state_context")
+    if isinstance(belief_context, dict):
+        for row in belief_context.get("unsupported_static_prior_audit") or []:
+            if not isinstance(row, dict):
+                continue
+            audit[str(row.get("target_id"))] = {
+                "status": "weak_seed_prior_initialization_only",
+                "unsupported_static_prior_labels": row.get("fields") or [],
+                "note": row.get("note")
+                or "这些弱 seed 初始状态不能作为解释证据；需要来源化重估后才能强力影响预测。",
+            }
     if isinstance(score_breakdown, dict):
         for driver_id, score in score_breakdown.items():
             if not isinstance(score, dict):
@@ -1224,6 +2089,8 @@ def _public_evidence_context(context: dict[str, Any]) -> dict[str, Any]:
         "证据路线原始影响权重",
         "同种子对比原始概率差值",
         "未经来源化解释的归一化赛道指数",
+        "BeliefState 原始连续状态值",
+        "状态更新 raw delta",
     ]
     return public
 
@@ -1234,6 +2101,7 @@ def _public_supporting_evidence(rows: list[dict[str, Any]]) -> list[dict[str, An
         public = dict(row)
         public.pop("weighted_value", None)
         public.pop("max_win_probability_delta", None)
+        public.pop("evidence_priority", None)
         public_rows.append(public)
     return public_rows
 
@@ -1670,7 +2538,7 @@ def _mentions_first_rank(question: str) -> bool:
 
 def _mentions_zero_podium(question: str) -> bool:
     q = _compact(question)
-    return ("podium" in q or "领奖台" in q) and any(token in q for token in ("0", "零", "为0"))
+    return ("podium" in q or "领奖台" in q) and any(token in q for token in ("0", "零", "为0", "zero", "none", "no"))
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:

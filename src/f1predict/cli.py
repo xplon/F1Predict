@@ -92,6 +92,7 @@ def main() -> None:
     prediction_packet.add_argument("--event", default="british_gp")
     prediction_packet.add_argument("--knowledge-cutoff", default=None)
     prediction_packet.add_argument("--iterations", type=int, default=1200)
+    prediction_packet.add_argument("--isolated-impact-limit", type=int, default=0)
     prediction_packet.add_argument("--write", action="store_true")
     prediction_packet.add_argument("--output-dir", default="reports/prediction_packets")
     prediction_packet.add_argument("--register-run", action="store_true")
@@ -637,7 +638,12 @@ def main() -> None:
         )
         print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
     elif args.command == "prediction-packet":
-        builder = PredictionPacketBuilder(PredictionPipeline(iterations=args.iterations))
+        builder = PredictionPacketBuilder(
+            PredictionPipeline(
+                iterations=args.iterations,
+                isolated_impact_limit=args.isolated_impact_limit,
+            )
+        )
         if args.write:
             paths = builder.write(
                 args.event,

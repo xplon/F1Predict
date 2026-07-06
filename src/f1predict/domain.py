@@ -284,6 +284,9 @@ class PredictionReport:
     simulation_replay: list[dict[str, Any]]
     ai_judgement: dict[str, Any]
     factor_trace: list[FactorTrace] = field(default_factory=list)
+    belief_state: dict[str, Any] = field(default_factory=dict)
+    state_update_ledger: list[dict[str, Any]] = field(default_factory=list)
+    prediction_impact_trace: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -315,6 +318,9 @@ class PredictionReport:
                 }
                 for item in self.factor_trace
             ],
+            "belief_state": self.belief_state,
+            "state_update_ledger": self.state_update_ledger,
+            "prediction_impact_trace": self.prediction_impact_trace,
         }
 
 
