@@ -427,6 +427,8 @@ run_id=<可选>
 
 它用于前端和审计脚本区分“完整但低迭代诊断 sidecar”和“与源 run 同迭代的正式解释 sidecar”。
 
+当前 British GP 最新注册 run 已有 `formal_trace_ready` sidecar。这个 readiness 只说明解释缓存与源 run 同迭代、全覆盖；它不重新运行模拟、不注册 run、不改变前端默认预测排名，也不把 `diagnostic_only` 预测包提升为正式 edge。
+
 ### POST /api/v2/prediction-impact-traces/merge
 
 用途：合并多个 chunk sidecar。

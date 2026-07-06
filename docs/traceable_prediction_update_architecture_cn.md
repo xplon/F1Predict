@@ -645,6 +645,8 @@ sidecar 必须记录：
 
 前端/API 必须把 `formal_readiness.formal_ready = false` 的 sidecar 明确展示为诊断解释。即使它已经覆盖 453/453 条更新，只要 `trace_iterations != source_iterations`，就不能写成“正式同口径解释已完成”。这条规则用于防止把快跑 smoke 结果包装成正式证据。
 
+截至 2026-07-06 12:36 UTC，最新 British GP 注册 run 已生成同源 run 迭代数的 sidecar：`trace_iterations = source_iterations = 1200`，覆盖 `453/453` 条状态更新，`formal_readiness.formal_ready = true`。这只表示“解释链条已经同口径可审计”，不表示预测概率已经通过校准或盈利 edge 验证；预测包状态仍必须继续显示 `diagnostic_only`，直到历史回放和概率校准门通过。
+
 正式同迭代 sidecar 允许分块生成。生成接口可以用 `isolated_impact_offset` 和 `isolated_impact_limit` 只重跑一段 claim，例如第 0-49 条、第 50-99 条。分块 sidecar 必须标记 `trace_generation.chunk_mode = true`，并且 `formal_readiness.full_coverage = false`，直到所有分块被合并并覆盖全部 claim。这样可以把昂贵的 1200 次迭代全量 trace 变成可恢复任务，而不是一次性不可控长跑。
 
 分块合并也必须是显式步骤：`POST /api/v2/prediction-impact-traces/merge` 或 `merge-prediction-impact-trace-sidecars` CLI 会读取多个 chunk sidecar，按 `claim_id` / 来源组去重，重新计算 coverage，并把结果标记为 `merge_status = merged_chunks`。如果只合并了部分 chunk，`formal_readiness.formal_ready` 仍然必须是 `false`；只有同迭代且全覆盖的合并结果才能成为正式解释 sidecar。

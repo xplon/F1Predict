@@ -124,11 +124,13 @@ blocked_development_seed_evidence_count = 5
 state_update_count = 453
 embedded_prediction_impact_trace_count = 11
 embedded_isolated_prediction_impact_count = 0
-sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_e33fbbd4ba1b_20260706T120008_0000_5228c60b4e
-sidecar_trace_iterations = 5
+sidecar_id_previous_diagnostic = british_gp_british_gp_20260705T000000_0000_2026_e33fbbd4ba1b_20260706T120008_0000_5228c60b4e
+sidecar_id_latest_formal = british_gp_british_gp_20260705T000000_0000_2026_e33fbbd4ba1b_20260706T123600_0000_057974e605
+sidecar_trace_iterations = 1200
 sidecar_impact_trace_covered_claim_count = 453
 sidecar_impact_trace_uncovered_claim_count = 0
-sidecar_formal_ready = false
+sidecar_formal_status = formal_trace_ready
+sidecar_formal_ready = true
 status = diagnostic_only
 blocker_codes = probability_calibration_diagnostic_only
 warning_codes = codex_claims_require_review, blocked_development_seed_evidence_separated
@@ -167,6 +169,8 @@ warning_codes = codex_claims_require_review, blocked_development_seed_evidence_s
 - 如果某个变化只来自 `seed://codex/...`，它只能作为开发链路测试，不能算有效预测进步；
 - 本次修正后，`seed-british-*` 不再出现在默认公开 `evidence`、`evidence_quality`、`factor_trace` 或 `belief_state.raw_sources` 中；它们只保留在 `blocked_development_evidence` 审计区，且不能解释为预测变化来源；
 - 注册门记录本次新包为 `no_race_prediction_change`：排名和正赛概率没有改变，变化只是清理公开来源口径。
+
+换句话说，用户说“某队明显不合理”只能作为异常报告，不能作为标签或数值来源。允许发生预测变化的原因只有两类：第一，新增或修正了可追溯来源，并且该来源进入 `RawSourceRecord -> normalized_claim -> quality_profile -> state_update_ledger -> simulation`；第二，做了通用模型修订，并且有历史回放、校准报告或明确的模型修订证明。任何“因为用户一句话所以把某个车手/车队数值调高或调低”的改动，都应被 registration gate 和人工审计视为无效。
 
 2026-07-06 07:49 UTC 追加修正后，新旧 run diff 显示：
 
@@ -397,7 +401,7 @@ src/f1predict/prediction_anomaly.py
 历史离线 packet 中曾能抓到的例子包括：
 
 - Alpine：旧审计把车手层和车队/赛车层信号混在一起聚合，曾把 Alpine 标成“负向来源没有反映”。当前审计器已经改为分开计算 team-only 信号与 driver-level 信号；在 team-only 弱负向且存在正向反证时，不再把它当作硬异常；
-- 默认注册包 isolated 影响追踪覆盖不足：packet 内嵌 trace 仍只有 12 组单条 isolated 重跑和 4 组来源组 isolated 重跑；但已跟踪 sidecar 对同一个 b4fa run 覆盖 453/453 条状态更新，因此前端/API 不应再把“packet 内嵌 trace 少”说成“完整解释链缺失”。
+- 默认注册包 isolated 影响追踪覆盖不足：packet 内嵌 trace 仍只有少量单条 isolated 重跑和来源组 isolated 重跑；但已跟踪 sidecar 对最新注册 run 覆盖 453/453 条状态更新，因此前端/API 不应再把“packet 内嵌 trace 少”说成“完整解释链缺失”。
 
 2026-07-06 追加修正后，`GET /api/v2/prediction-packets/latest` 会在读取历史 packet 时用当前审计器重新计算 `prediction_anomaly_audit`，并把对应 run 的 sidecar 覆盖证据传入审计器。也就是说：
 
@@ -410,7 +414,7 @@ src/f1predict/prediction_anomaly.py
 当前 API 可见状态：
 
 ```text
-run = british_gp_20260705T000000_0000_20260706T092941_0000_b4fa317c0b
+run = british_gp_20260705T000000_0000_20260706T115913_0000_31f3f052bf
 prediction_anomaly_audit_source = api_runtime_recomputed
 impact_trace_source = sidecar
 impact_trace_covered_claim_count = 453
@@ -481,29 +485,32 @@ anomaly_count = 0
 2. 如果 sidecar 的 `trace_generation.comparison_status` 是 `diagnostic_iteration_mismatch`，说明隔离重跑迭代数与源 run 不一致，只能用于链路诊断，不能作为正式“这条信息精确改变了多少概率”的证明。
 3. 用户的例子仍然只能触发排查：代码层继续要求预测更新不能按车手/车队名写死，必须来自来源化数据、结构化特征和通用模拟机制。
 4. 当前模型质量仍是 `diagnostic_only`：sidecar 解决的是“能否追溯每条信息的边际影响”，不是“预测已经稳定有 edge”。
-5. 当前默认 latest 已确认仍是 `british_gp_20260705T000000_0000_20260706T092941_0000_b4fa317c0b`；由未验证启发式权重试验生成的 `c4515f938f` 不进入默认前端。
+5. 当前默认 latest 已确认是 `british_gp_20260705T000000_0000_20260706T115913_0000_31f3f052bf`；由未验证启发式权重试验生成的 `c4515f938f` 不进入默认前端。
 6. API/latest 会用当前审计器和对应 sidecar 重新计算前端可见的 `prediction_anomaly_audit`；这不是重新预测，也不会写 artifact。
 
-当前已缓存 sidecar 对 b4fa run 的诊断覆盖为：
+当前已缓存 sidecar 对最新注册 run 的正式解释覆盖为：
 
 ```text
 state_update_count = 453
+sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_e33fbbd4ba1b_20260706T123600_0000_057974e605
+source_iterations = 1200
+trace_iterations = 1200
+trace_generation.comparison_status = matched_source_run_iterations
 impact_trace_covered_claim_count = 453
 impact_trace_uncovered_claim_count = 0
-trace_generation.comparison_status = diagnostic_iteration_mismatch
-formal_readiness.status = diagnostic_iterations_full_coverage
-formal_readiness.formal_ready = false
+formal_readiness.status = formal_trace_ready
+formal_readiness.formal_ready = true
 ```
 
-这说明“每条状态更新都能被分页追踪”已经可用；但因为该 sidecar 的隔离重跑迭代数与源 run 不一致，它仍只能用于解释链路和方向审计，不能作为正式概率变化证明。
+这说明“每条状态更新都能被分页追踪”已经可用，并且这一次 sidecar 的隔离重跑迭代数与源 run 一致，可以作为同口径解释证据使用。它仍然不等于预测质量正式达标，因为预测包本身仍是 `diagnostic_only`，阻塞项仍是 `probability_calibration_diagnostic_only`。
 
-2026-07-06 追加守门：sidecar 和前端/API 现在会公开 `formal_readiness`。当前状态会显示“trace 已全覆盖，但仍是诊断迭代”，从而避免把 5 次迭代的快跑解释误说成 1200 次源 run 的正式同口径解释。
+2026-07-06 追加守门：sidecar 和前端/API 现在会公开 `formal_readiness`。低迭代 sidecar 会显示“trace 已全覆盖，但仍是诊断迭代”，从而避免把 5 次迭代的快跑解释误说成 1200 次源 run 的正式同口径解释；最新 1200 次 sidecar 则显示为 `formal_trace_ready`。
 
 2026-07-06 追加执行能力：`PredictionPipeline`、sidecar API 和 CLI 已支持 `isolated_impact_offset`。这让正式同迭代 sidecar 可以分块生成，而不是一次性对 453 条来源更新全部跑 1200 次迭代。分块结果会被标记为 `chunk_mode`，在合并成全覆盖 sidecar 前不会被认定为正式解释。
 
 随后新增 chunk merge：`POST /api/v2/prediction-impact-traces/merge` 和 `merge-prediction-impact-trace-sidecars` CLI 可以把多个 chunk sidecar 合并成一个分页 sidecar。当前 smoke 已验证两个 5 条 chunk 合并后覆盖 10/453 条，仍然被标为 `diagnostic_iterations_incomplete_coverage`，不会污染 latest，也不会被误认定为正式解释。
 
-2026-07-06 11:35 UTC 重新生成了最新 b4fa run 的诊断 sidecar 缓存：
+2026-07-06 11:35 UTC 重新生成了 b4fa run 的诊断 sidecar 缓存：
 
 ```text
 sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_fcd18dabfdfa_20260706T113531_0000_5228c60b4e
@@ -516,10 +523,25 @@ formal_readiness.formal_ready = false
 
 这次重写没有改变任何预测排名，也没有注册新的 prediction run。它修正的是解释缓存：sidecar 内现在包含 `trace_context`，分页行可以把 FastF1 同场排位、FastF1 近几站车队强度重估、F1 官方积分榜等结构化来源，连接到 `raw_sources -> normalized_claim -> quality_profile -> state_update_ledger -> same-seed impact trace`。也就是说，前端解释不再只能显示“某个 FastF1 claim_id 产生了变化”，而是能说明它来自哪类结构化来源、被映射成哪个状态因子、状态如何变化，以及同种子重跑后是否真的改变了预测分布。
 
-重要边界仍然不变：这个 sidecar 是 5 次迭代的诊断缓存，不能作为正式 1200 次同口径概率变化证明。它解决的是“链条能否追溯”的前端解释问题，不解决“预测是否已经有稳定 edge”的问题。
+重要边界仍然不变：这个 b4fa sidecar 是 5 次迭代的诊断缓存，不能作为正式 1200 次同口径概率变化证明。它解决的是“链条能否追溯”的前端解释问题，不解决“预测是否已经有稳定 edge”的问题。
+
+2026-07-06 12:36 UTC 又为最新注册 run 生成了 1200 次同迭代正式解释 sidecar：
+
+```text
+run_id = british_gp_20260705T000000_0000_20260706T115913_0000_31f3f052bf
+sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_e33fbbd4ba1b_20260706T123600_0000_057974e605
+source_iterations = 1200
+trace_iterations = 1200
+covered_claim_count = 453
+uncovered_claim_count = 0
+formal_readiness.status = formal_trace_ready
+formal_readiness.formal_ready = true
+```
+
+这次生成没有改变预测排名，也没有注册新的 prediction run。它只是把“每条来源更新到底有没有影响预测”的解释从低迭代诊断，升级为与源 run 同迭代数的正式解释缓存。API/latest 现在会优先选择这个 sidecar，因此前端可以展示正式解释链，但仍必须同时展示预测状态是 `diagnostic_only`。
 
 下一步不再是“把 sidecar 做出来”，而是：
 
-- 为最新 British GP run 生成同迭代数的正式 sidecar，或继续明确标注低迭代诊断 sidecar；
 - 继续减少/替换 `seed://` 开发证据，让默认预测更多来自 FIA/F1 官方、FastF1、天气、赛道、可靠性、长距离和近期窗口数据；
+- 把正式 sidecar 的链路解释接入前端默认问答和重点面板，而不是让用户看到孤立分数；
 - 用历史回放验证每类状态更新和每类权重修改是否真的改善预测，而不是只改善解释或迎合人工直觉。
