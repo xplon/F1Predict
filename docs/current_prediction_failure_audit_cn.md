@@ -37,6 +37,14 @@ scripts/source_driven_contract_test.py
 - 该 run 已从默认 registry 和未提交预测产物中撤回，不能作为最新前端预测，也不能被描述成“模型已经因为用户指出问题而修正了排名”；
 - 后续如果要调整赛车/车手权重，必须通过来源化数据、历史 replay、同口径 diff、校准报告和影响追踪证明，而不是凭用户例子或直觉改常数。
 
+2026-07-06 11:35 UTC 追加硬约束：
+
+- 新增 `PredictionRunRegistry.assess_registration_gate()`，在候选 prediction packet 注册前比较最新 run 与候选 run；
+- 如果正赛概率/排名发生变化，但 `evidence_fingerprint` 和 `BeliefState.update_fingerprint` 都没有变化，默认判定为 `model_only_prediction_change_blocked`，不能注册成 latest；
+- API `POST /api/v2/prediction-runs`、CLI `prediction-packet --register-run` 和 `register-prediction-run` 都已接入这个注册门；
+- 如果确实要注册模型修订型 run，必须显式传入模型修订证明文件。这样可以保留历史回放校准、参数学习等正当模型迭代路径，但不会把“没有新增来源或状态更新的概率变化”伪装成来源驱动预测改进；
+- `scripts/source_driven_contract_test.py` 现在不仅扫描实体级硬编码，还会构造一个“来源和 BeliefState 没变但正赛概率改变”的候选包，验证它会被注册门拦下。
+
 ## 2. 已修正：解释层不能再把内部裸分数当原因
 
 旧问题：
@@ -488,6 +496,21 @@ formal_readiness.formal_ready = false
 2026-07-06 追加执行能力：`PredictionPipeline`、sidecar API 和 CLI 已支持 `isolated_impact_offset`。这让正式同迭代 sidecar 可以分块生成，而不是一次性对 453 条来源更新全部跑 1200 次迭代。分块结果会被标记为 `chunk_mode`，在合并成全覆盖 sidecar 前不会被认定为正式解释。
 
 随后新增 chunk merge：`POST /api/v2/prediction-impact-traces/merge` 和 `merge-prediction-impact-trace-sidecars` CLI 可以把多个 chunk sidecar 合并成一个分页 sidecar。当前 smoke 已验证两个 5 条 chunk 合并后覆盖 10/453 条，仍然被标为 `diagnostic_iterations_incomplete_coverage`，不会污染 latest，也不会被误认定为正式解释。
+
+2026-07-06 11:35 UTC 重新生成了最新 b4fa run 的诊断 sidecar 缓存：
+
+```text
+sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_fcd18dabfdfa_20260706T113531_0000_5228c60b4e
+trace_generation.iterations = 5
+trace_generation.comparison_status = diagnostic_iteration_mismatch
+coverage.impact_trace_covered_claim_count = 453
+coverage.impact_trace_uncovered_claim_count = 0
+formal_readiness.formal_ready = false
+```
+
+这次重写没有改变任何预测排名，也没有注册新的 prediction run。它修正的是解释缓存：sidecar 内现在包含 `trace_context`，分页行可以把 FastF1 同场排位、FastF1 近几站车队强度重估、F1 官方积分榜等结构化来源，连接到 `raw_sources -> normalized_claim -> quality_profile -> state_update_ledger -> same-seed impact trace`。也就是说，前端解释不再只能显示“某个 FastF1 claim_id 产生了变化”，而是能说明它来自哪类结构化来源、被映射成哪个状态因子、状态如何变化，以及同种子重跑后是否真的改变了预测分布。
+
+重要边界仍然不变：这个 sidecar 是 5 次迭代的诊断缓存，不能作为正式 1200 次同口径概率变化证明。它解决的是“链条能否追溯”的前端解释问题，不解决“预测是否已经有稳定 edge”的问题。
 
 下一步不再是“把 sidecar 做出来”，而是：
 

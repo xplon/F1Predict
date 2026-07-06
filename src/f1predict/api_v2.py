@@ -254,12 +254,15 @@ class BackendApiV2:
         write_intake = bool(body.get("write_information_intake", True))
         compare_to_latest = bool(body.get("compare_to_latest", True))
         base_run_id = body.get("base_run_id")
+        allow_model_revision_registration = bool(body.get("allow_model_revision_registration", False))
+        model_revision_proof_path = body.get("model_revision_proof_path")
 
         base_record = None
         if base_run_id:
             base_record = self.registry.load(str(base_run_id))
         elif compare_to_latest:
             base_record = self.registry.latest(event_id, knowledge_cutoff=cutoff)
+        gate_base_record = base_record or self.registry.latest(event_id, knowledge_cutoff=cutoff)
 
         intake_record = None
         intake_path = None
@@ -295,8 +298,21 @@ class BackendApiV2:
             "registered": False,
             "prediction_run": None,
             "comparison": None,
+            "registration_gate": None,
         }
         if not register:
+            return result
+
+        packet_payload = json.loads(packet_paths["json"].read_text(encoding="utf-8"))
+        gate = self.registry.assess_registration_gate(
+            packet_payload,
+            base_record=gate_base_record,
+            allow_model_revision_registration=allow_model_revision_registration,
+            model_revision_proof_path=model_revision_proof_path,
+        )
+        result["registration_gate"] = gate.to_dict()
+        if not gate.allow_registration:
+            result["registration_blocked"] = True
             return result
 
         record = self.registry.register_packet(packet_paths["json"], information_intake_path=intake_path)

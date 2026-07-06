@@ -224,7 +224,9 @@ prediction_anomaly_audit
   "iterations": 1200,
   "register": true,
   "write_information_intake": true,
-  "compare_to_latest": true
+  "compare_to_latest": true,
+  "allow_model_revision_registration": false,
+  "model_revision_proof_path": null
 }
 ```
 
@@ -232,10 +234,18 @@ prediction_anomaly_audit
 
 1. 写入 information intake；
 2. 生成 prediction packet；
-3. 注册 prediction run；
-4. 如果存在同 event/cutoff 的上一版 run，自动生成 matched diff。
+3. 如果 `register=true`，先运行 registration gate；
+4. gate 通过后注册 prediction run；
+5. 如果存在同 event/cutoff 的上一版 run，自动生成 matched diff。
 
 注意：这是写 artifact 的接口，会改变 `data/intake`、`reports/prediction_packets_v2`、`reports/prediction_runs` 和可能的 `reports/prediction_diffs`。
+
+注册门规则：
+
+- 如果候选包改变了正赛概率/排名，但 `evidence_fingerprint` 和 `BeliefState.update_fingerprint` 都没有变化，默认返回 `registration_gate.status = model_only_prediction_change_blocked`，并且 `registered=false`；
+- 这种情况下 prediction packet 仍会写入输出目录，作为诊断产物保留，但不会成为前端 latest；
+- 如果确实是模型修订，例如历史回放校准或参数学习带来的通用模型变更，需要传入 `allow_model_revision_registration=true` 和一个存在的 `model_revision_proof_path`；
+- 即使 gate 允许模型修订型注册，也只能解释为模型修订诊断 run，不能解释为“新增来源信息导致预测改变”。
 
 API v2 默认把每次 prediction packet 写入唯一时间戳目录，避免同一个 event/cutoff 重复预测时覆盖旧 artifact。旧版 `prediction-packet` CLI 仍保留原行为，后续应该逐步迁移到 run-aware 输出。
 

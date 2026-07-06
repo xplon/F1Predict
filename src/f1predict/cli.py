@@ -100,6 +100,8 @@ def main() -> None:
     prediction_packet.add_argument("--register-run", action="store_true")
     prediction_packet.add_argument("--registry-root", default="reports/prediction_runs")
     prediction_packet.add_argument("--information-intake", default=None)
+    prediction_packet.add_argument("--allow-model-revision-registration", action="store_true")
+    prediction_packet.add_argument("--model-revision-proof", default=None)
 
     impact_trace_sidecar = sub.add_parser(
         "prediction-impact-trace-sidecar",
@@ -631,6 +633,8 @@ def main() -> None:
     register_prediction_run.add_argument("--information-intake", default=None)
     register_prediction_run.add_argument("--registry-root", default="reports/prediction_runs")
     register_prediction_run.add_argument("--notes", default=None)
+    register_prediction_run.add_argument("--allow-model-revision-registration", action="store_true")
+    register_prediction_run.add_argument("--model-revision-proof", default=None)
 
     diff_prediction_runs = sub.add_parser(
         "diff-prediction-runs",
@@ -682,7 +686,23 @@ def main() -> None:
             )
             payload = {name: str(path) for name, path in paths.items()}
             if args.register_run:
-                record = PredictionRunRegistry(args.registry_root).register_packet(
+                registry = PredictionRunRegistry(args.registry_root)
+                packet_payload = _read_json(paths["json"])
+                event_id = str(packet_payload.get("event_id") or args.event)
+                cutoff = packet_payload.get("knowledge_cutoff") or args.knowledge_cutoff
+                base_record = registry.latest(event_id, knowledge_cutoff=str(cutoff) if cutoff else None)
+                gate = registry.assess_registration_gate(
+                    packet_payload,
+                    base_record=base_record,
+                    allow_model_revision_registration=args.allow_model_revision_registration,
+                    model_revision_proof_path=args.model_revision_proof,
+                )
+                payload["registration_gate"] = gate.to_dict()
+                if not gate.allow_registration:
+                    payload["registration_blocked"] = True
+                    print(json.dumps(payload, ensure_ascii=False, indent=2))
+                    return
+                record = registry.register_packet(
                     paths["json"],
                     information_intake_path=args.information_intake,
                 )
@@ -1476,12 +1496,33 @@ def main() -> None:
             payload["path"] = str(path)
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     elif args.command == "register-prediction-run":
-        record = PredictionRunRegistry(args.registry_root).register_packet(
+        registry = PredictionRunRegistry(args.registry_root)
+        packet_payload = _read_json(args.packet)
+        event_id = str(packet_payload.get("event_id") or packet_payload.get("prediction", {}).get("event", {}).get("event_id") or "")
+        cutoff = packet_payload.get("knowledge_cutoff")
+        base_record = registry.latest(event_id, knowledge_cutoff=str(cutoff) if cutoff else None) if event_id else None
+        gate = registry.assess_registration_gate(
+            packet_payload,
+            base_record=base_record,
+            allow_model_revision_registration=args.allow_model_revision_registration,
+            model_revision_proof_path=args.model_revision_proof,
+        )
+        if not gate.allow_registration:
+            payload = {
+                "registered": False,
+                "registration_blocked": True,
+                "registration_gate": gate.to_dict(),
+            }
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            raise SystemExit(2)
+        record = registry.register_packet(
             args.packet,
             information_intake_path=args.information_intake,
             notes=args.notes,
         )
-        print(json.dumps(record.to_dict(), ensure_ascii=False, indent=2))
+        payload = record.to_dict()
+        payload["registration_gate"] = gate.to_dict()
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
     elif args.command == "diff-prediction-runs":
         differ = MatchedPredictionDiff(
             registry=PredictionRunRegistry(args.registry_root),

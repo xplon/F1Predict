@@ -103,6 +103,38 @@ class PredictionRunRecord:
         }
 
 
+@dataclass(frozen=True)
+class PredictionRunRegistrationGate:
+    status: str
+    allow_registration: bool
+    blocker_codes: tuple[str, ...]
+    warning_codes: tuple[str, ...]
+    base_run_id: str | None
+    input_changed: bool
+    evidence_changed: bool
+    probability_changed: bool
+    race_probability_changed: bool
+    belief_state_update_changed: bool
+    model_revision_proof_path: str | None
+    summary_zh: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "allow_registration": self.allow_registration,
+            "blocker_codes": list(self.blocker_codes),
+            "warning_codes": list(self.warning_codes),
+            "base_run_id": self.base_run_id,
+            "input_changed": self.input_changed,
+            "evidence_changed": self.evidence_changed,
+            "probability_changed": self.probability_changed,
+            "race_probability_changed": self.race_probability_changed,
+            "belief_state_update_changed": self.belief_state_update_changed,
+            "model_revision_proof_path": self.model_revision_proof_path,
+            "summary_zh": self.summary_zh,
+        }
+
+
 class PredictionRunRegistry:
     """Append-only registry for prediction artifacts.
 
@@ -220,6 +252,134 @@ class PredictionRunRegistry:
             return None
         return max(rows, key=lambda row: (row.created_at, row.run_id))
 
+    def load_packet_for_record(self, record: PredictionRunRecord) -> dict[str, Any] | None:
+        if not record.prediction_packet_path:
+            return None
+        path = Path(record.prediction_packet_path)
+        candidates = [path]
+        if not path.is_absolute():
+            candidates.extend([self.root.parent.parent / path, self.root / path])
+        for candidate in candidates:
+            if candidate.exists():
+                return _read_json(candidate)
+        return None
+
+    def assess_registration_gate(
+        self,
+        packet: dict[str, Any],
+        *,
+        base_record: PredictionRunRecord | None = None,
+        base_packet: dict[str, Any] | None = None,
+        allow_model_revision_registration: bool = False,
+        model_revision_proof_path: Path | str | None = None,
+    ) -> PredictionRunRegistrationGate:
+        if base_record is None:
+            return PredictionRunRegistrationGate(
+                status="no_base_run",
+                allow_registration=True,
+                blocker_codes=(),
+                warning_codes=("no_base_run_for_registration_gate",),
+                base_run_id=None,
+                input_changed=True,
+                evidence_changed=True,
+                probability_changed=True,
+                race_probability_changed=True,
+                belief_state_update_changed=True,
+                model_revision_proof_path=str(model_revision_proof_path) if model_revision_proof_path else None,
+                summary_zh="没有可比较的旧 run；允许注册，但不能据此声称预测改进来自新增来源。",
+            )
+        if base_packet is None:
+            base_packet = self.load_packet_for_record(base_record)
+
+        candidate_input = self._input_fingerprint(packet)
+        candidate_evidence = self._evidence_fingerprint(packet)
+        candidate_probability = self._probability_fingerprint(packet)
+        candidate_belief = self._belief_state(packet).get("update_fingerprint")
+        input_changed = candidate_input != base_record.input_fingerprint
+        evidence_changed = candidate_evidence != base_record.evidence_fingerprint
+        probability_changed = candidate_probability != base_record.probability_fingerprint
+        belief_state_update_changed = candidate_belief != base_record.belief_state_update_fingerprint
+        race_probability_changed = probability_changed
+        if base_packet is not None:
+            race_probability_changed = (
+                self._race_probability_fingerprint(packet)
+                != self._race_probability_fingerprint(base_packet)
+            )
+
+        if not race_probability_changed:
+            return PredictionRunRegistrationGate(
+                status="no_race_prediction_change",
+                allow_registration=True,
+                blocker_codes=(),
+                warning_codes=(),
+                base_run_id=base_record.run_id,
+                input_changed=input_changed,
+                evidence_changed=evidence_changed,
+                probability_changed=probability_changed,
+                race_probability_changed=False,
+                belief_state_update_changed=belief_state_update_changed,
+                model_revision_proof_path=str(model_revision_proof_path) if model_revision_proof_path else None,
+                summary_zh="正赛排名/概率没有变化；允许注册，但这不是预测效果改进。",
+            )
+
+        if evidence_changed or belief_state_update_changed:
+            return PredictionRunRegistrationGate(
+                status="source_state_driven_prediction_change",
+                allow_registration=True,
+                blocker_codes=(),
+                warning_codes=(),
+                base_run_id=base_record.run_id,
+                input_changed=input_changed,
+                evidence_changed=evidence_changed,
+                probability_changed=probability_changed,
+                race_probability_changed=True,
+                belief_state_update_changed=belief_state_update_changed,
+                model_revision_proof_path=str(model_revision_proof_path) if model_revision_proof_path else None,
+                summary_zh="预测变化伴随证据或 BeliefState 更新变化；可以注册为来源/状态驱动的诊断 run。",
+            )
+
+        proof_path = Path(model_revision_proof_path) if model_revision_proof_path else None
+        proof_exists = bool(proof_path and proof_path.exists())
+        if allow_model_revision_registration and proof_exists:
+            return PredictionRunRegistrationGate(
+                status="model_revision_proof_allowed",
+                allow_registration=True,
+                blocker_codes=(),
+                warning_codes=("model_revision_not_source_state_change",),
+                base_run_id=base_record.run_id,
+                input_changed=input_changed,
+                evidence_changed=False,
+                probability_changed=probability_changed,
+                race_probability_changed=True,
+                belief_state_update_changed=False,
+                model_revision_proof_path=str(proof_path),
+                summary_zh=(
+                    "预测变化没有伴随证据或 BeliefState 更新变化，但提供了模型修订证明；"
+                    "允许注册为模型修订诊断 run，仍不能声称来自新增来源。"
+                ),
+            )
+
+        blockers = ["non_source_driven_prediction_change"]
+        if allow_model_revision_registration and not proof_exists:
+            blockers.append("model_revision_proof_missing")
+        return PredictionRunRegistrationGate(
+            status="model_only_prediction_change_blocked",
+            allow_registration=False,
+            blocker_codes=tuple(blockers),
+            warning_codes=(),
+            base_run_id=base_record.run_id,
+            input_changed=input_changed,
+            evidence_changed=False,
+            probability_changed=probability_changed,
+            race_probability_changed=True,
+            belief_state_update_changed=False,
+            model_revision_proof_path=str(model_revision_proof_path) if model_revision_proof_path else None,
+            summary_zh=(
+                "新包改变了正赛预测，但证据 fingerprint 和 BeliefState 更新 fingerprint 都没有变化；"
+                "这更像模型/常数/启发式改动，默认不能注册成 latest。"
+            ),
+        )
+
     def _write_index(self, record: PredictionRunRecord, path: Path) -> None:
         payload = self._index()
         rows = [row for row in payload.get("runs", []) if row.get("run_id") != record.run_id]
@@ -318,6 +478,16 @@ class PredictionRunRegistry:
                 "race_probabilities": prediction.get("race_probabilities"),
                 "market_edges": prediction.get("market_edges"),
                 "prediction_impact_trace": prediction.get("prediction_impact_trace"),
+            }
+        )
+
+    @staticmethod
+    def _race_probability_fingerprint(packet: dict[str, Any]) -> str:
+        prediction = packet.get("prediction") if isinstance(packet.get("prediction"), dict) else {}
+        return _canonical_hash(
+            {
+                "probability_summary": packet.get("probability_summary"),
+                "race_probabilities": prediction.get("race_probabilities"),
             }
         )
 
