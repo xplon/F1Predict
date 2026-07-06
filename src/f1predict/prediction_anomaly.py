@@ -151,6 +151,21 @@ class _TeamSupport:
         )
 
 
+@dataclass(frozen=True)
+class _ImpactTraceEvidence:
+    traces: list[dict[str, Any]]
+    source: str
+    sidecar_id: str | None = None
+    comparison_status: str | None = None
+    covered_claim_count: int = 0
+    uncovered_claim_count: int = 0
+    claim_count: int = 0
+
+    @property
+    def diagnostic_only(self) -> bool:
+        return self.source == "sidecar" and self.comparison_status != "matched_source_run_iterations"
+
+
 def _support_bucket(net_value: float, positive_count: int, negative_count: int) -> str:
     if net_value >= 0.16 and positive_count >= 4:
         return "strong_positive"
@@ -168,22 +183,27 @@ def _support_bucket(net_value: float, positive_count: int, negative_count: int) 
 
 
 def _count_bucket(recent_net: int) -> str:
-        if recent_net >= 5:
-            return "positive"
-        if recent_net <= -5:
-            return "negative"
-        if recent_net > 0:
-            return "slight_positive"
-        if recent_net < 0:
-            return "slight_negative"
-        return "neutral"
-
+    if recent_net >= 5:
+        return "positive"
+    if recent_net <= -5:
+        return "negative"
+    if recent_net > 0:
+        return "slight_positive"
+    if recent_net < 0:
+        return "slight_negative"
+    return "neutral"
 
 
 class PredictionAnomalyAuditor:
     """Build a Chinese source-backed anomaly report for one prediction."""
 
-    def build(self, season: SeasonState, report: PredictionReport | dict[str, Any]) -> dict[str, Any]:
+    def build(
+        self,
+        season: SeasonState,
+        report: PredictionReport | dict[str, Any],
+        *,
+        impact_trace_sidecar: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         rows = self._prediction_rows(season, report)
         if not rows:
             return self._empty("没有可审计的车手排名。")
@@ -191,7 +211,9 @@ class PredictionAnomalyAuditor:
         ledger = _as_list(report_dict.get("state_update_ledger"))
         belief_state = _as_dict(report_dict.get("belief_state"))
         features = _as_list(report_dict.get("feature_adjustments"))
-        impact_trace = _as_list(report_dict.get("prediction_impact_trace"))
+        embedded_impact_trace = _as_list(report_dict.get("prediction_impact_trace"))
+        trace_evidence = _impact_trace_evidence(embedded_impact_trace, impact_trace_sidecar)
+        impact_trace = trace_evidence.traces
         sources = {
             str(row.get("source_id")): row
             for row in _as_list(belief_state.get("raw_sources"))
@@ -212,7 +234,7 @@ class PredictionAnomalyAuditor:
                 ledger,
             )
         )
-        anomalies.extend(self._impact_trace_gap_anomalies(ledger, impact_trace, sources))
+        anomalies.extend(self._impact_trace_gap_anomalies(ledger, trace_evidence, sources))
         anomalies = self._deduplicate_anomalies(anomalies)
         anomalies.sort(key=lambda row: (_severity_priority(row.get("severity")), row.get("anomaly_id", "")), reverse=True)
         limited = anomalies[:12]
@@ -236,12 +258,24 @@ class PredictionAnomalyAuditor:
                     for row in impact_trace
                     if row.get("trace_type") == "isolated_same_seed_leave_one_information"
                 ),
+                "embedded_isolated_trace_count": sum(
+                    1
+                    for row in embedded_impact_trace
+                    if row.get("trace_type") == "isolated_same_seed_leave_one_information"
+                ),
                 "isolated_source_group_trace_count": sum(
                     1
                     for row in impact_trace
                     if row.get("trace_type") == "isolated_same_seed_leave_source_group"
                 ),
                 "route_only_trace_count": sum(1 for row in impact_trace if row.get("trace_type") == "state_update_route"),
+                "impact_trace_source": trace_evidence.source,
+                "impact_trace_sidecar_id": trace_evidence.sidecar_id,
+                "impact_trace_sidecar_comparison_status": trace_evidence.comparison_status,
+                "impact_trace_sidecar_diagnostic_only": trace_evidence.diagnostic_only,
+                "impact_trace_claim_count": trace_evidence.claim_count,
+                "impact_trace_covered_claim_count": trace_evidence.covered_claim_count,
+                "impact_trace_uncovered_claim_count": trace_evidence.uncovered_claim_count,
             },
             "anomalies": limited,
         }
@@ -550,9 +584,10 @@ class PredictionAnomalyAuditor:
     def _impact_trace_gap_anomalies(
         self,
         ledger: list[dict[str, Any]],
-        impact_trace: list[dict[str, Any]],
+        trace_evidence: _ImpactTraceEvidence,
         sources: dict[str, dict[str, Any]],
     ) -> list[dict[str, Any]]:
+        impact_trace = trace_evidence.traces
         isolated_claims = {
             str(row.get("claim_id"))
             for row in impact_trace
@@ -566,6 +601,8 @@ class PredictionAnomalyAuditor:
             if claim_id
         }
         covered_claims = isolated_claims | grouped_claims
+        if trace_evidence.source == "sidecar" and trace_evidence.uncovered_claim_count == 0 and covered_claims:
+            return []
         routed_updates = [
             row
             for row in ledger
@@ -733,6 +770,46 @@ def _field(row: Any, name: str) -> Any:
 
 def _as_list(value: Any) -> list[dict[str, Any]]:
     return [item for item in value if isinstance(item, dict)] if isinstance(value, list) else []
+
+
+def _impact_trace_evidence(
+    embedded_impact_trace: list[dict[str, Any]],
+    sidecar: dict[str, Any] | None,
+) -> _ImpactTraceEvidence:
+    if isinstance(sidecar, dict):
+        sidecar_traces = _as_list(sidecar.get("traces"))
+        if sidecar_traces:
+            coverage = _as_dict(sidecar.get("coverage"))
+            generation = _as_dict(sidecar.get("trace_generation"))
+            return _ImpactTraceEvidence(
+                traces=sidecar_traces,
+                source="sidecar",
+                sidecar_id=str(sidecar.get("sidecar_id") or "") or None,
+                comparison_status=str(generation.get("comparison_status") or "") or None,
+                claim_count=int(_float(coverage.get("impact_trace_claim_count"))),
+                covered_claim_count=int(_float(coverage.get("impact_trace_covered_claim_count"))),
+                uncovered_claim_count=int(_float(coverage.get("impact_trace_uncovered_claim_count"))),
+            )
+    embedded_claims = {
+        str(row.get("claim_id"))
+        for row in embedded_impact_trace
+        if row.get("trace_type") == "isolated_same_seed_leave_one_information" and row.get("claim_id")
+    }
+    grouped_claims = {
+        str(claim_id)
+        for row in embedded_impact_trace
+        if row.get("trace_type") == "isolated_same_seed_leave_source_group"
+        for claim_id in _as_values(row.get("claim_ids"))
+        if claim_id
+    }
+    covered_claims = embedded_claims | grouped_claims
+    return _ImpactTraceEvidence(
+        traces=embedded_impact_trace,
+        source="embedded_packet",
+        claim_count=len(covered_claims),
+        covered_claim_count=len(covered_claims),
+        uncovered_claim_count=0,
+    )
 
 
 def _as_values(value: Any) -> list[Any]:

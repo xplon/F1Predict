@@ -9,6 +9,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from f1predict.api_v2 import BackendApiV2  # noqa: E402
 from f1predict.data_sources.augmented import CalendarAugmentedDataSource  # noqa: E402
 from f1predict.prediction_anomaly import PredictionAnomalyAuditor  # noqa: E402
 from f1predict.run_tracking import PredictionRunRegistry  # noqa: E402
@@ -23,23 +24,33 @@ def _latest_packet_path() -> Path:
 
 
 def main() -> None:
+    api = BackendApiV2(ROOT)
+    response = api.handle_get("/api/v2/prediction-packets/latest", {"event_id": ["british_gp"]})
+    assert response and response.status == 200
+    payload = response.payload
+    cache_context = payload.get("cache_context") or {}
+
     packet_path = _latest_packet_path()
-    payload = json.loads(packet_path.read_text(encoding="utf-8"))
     season = CalendarAugmentedDataSource().load()
-    audit = PredictionAnomalyAuditor().build(season, payload["prediction"])
+    sidecar = api.impact_trace_store.latest(event_id="british_gp", run_id=cache_context.get("run_id"))
+    audit = PredictionAnomalyAuditor().build(season, payload["prediction"], impact_trace_sidecar=sidecar)
     packet_audit = payload.get("prediction_anomaly_audit")
     assert packet_audit, f"latest packet missing prediction_anomaly_audit: {packet_path}"
     assert packet_audit["status"] == audit["status"]
+    assert packet_audit["anomaly_count"] == audit["anomaly_count"]
+    assert cache_context.get("prediction_anomaly_audit_source") == "api_runtime_recomputed"
 
     assert audit["coverage"]["driver_count"] == 22
     assert audit["coverage"]["state_update_count"] > 0
     assert audit["coverage"]["seed_or_blocked_update_count"] == 0
-    assert audit["anomaly_count"] > 0
+    assert audit["coverage"]["impact_trace_source"] == "sidecar"
+    assert audit["coverage"]["impact_trace_covered_claim_count"] == 453
+    assert audit["coverage"]["impact_trace_uncovered_claim_count"] == 0
     assert "用户" not in json.dumps(audit, ensure_ascii=False)
     assert "model_input_weight" not in json.dumps(audit, ensure_ascii=False)
 
     anomalies = audit["anomalies"]
-    assert any(row["code"] == "impact_trace_incomplete_for_material_updates" for row in anomalies)
+    assert not any(row["code"] == "impact_trace_incomplete_for_material_updates" for row in anomalies)
     assert not any(
         row["code"] == "source_backed_negative_not_reflected" and row.get("target_id") == "alpine"
         for row in anomalies

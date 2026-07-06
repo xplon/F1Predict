@@ -634,6 +634,8 @@ sidecar 必须记录：
 
 这解决的是可追溯性问题，不是预测质量问题。只有当 sidecar 使用与源 run 相同的输入、知识截止、随机种子策略和迭代数时，才能把某条 trace 作为更强的影响解释。低迭代 sidecar 只能叫诊断，不能叫正式 ablation 或正式效果证明。
 
+异常审计也必须 sidecar-aware：如果主 prediction packet 只内嵌 top-N trace，但同一个 `run_id` 已有完整 sidecar，前端/API 的异常审计应该使用 sidecar 覆盖证据，而不是继续把“主包内嵌 trace 少”报告成解释链缺失。历史 packet 文件仍保持不可变；API 可以运行时刷新审计视图，但不能借此改变预测概率或排名。
+
 用户指出“某个车队不合理”时，正确动作仍然是：
 
 ```text

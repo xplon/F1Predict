@@ -17,6 +17,7 @@ from f1predict.explainability import PredictionExplainer
 from f1predict.impact_trace_sidecar import PredictionImpactTraceSidecarStore
 from f1predict.intelligence.codex import CodexEvidenceProvider
 from f1predict.pipeline import PredictionPipeline
+from f1predict.prediction_anomaly import PredictionAnomalyAuditor
 from f1predict.prediction_packet import PredictionPacketBuilder
 from f1predict.run_tracking import InformationIntakeStore, MatchedPredictionDiff, PredictionRunRegistry
 from f1predict.storage import safe_name
@@ -593,7 +594,35 @@ class BackendApiV2:
             "probability_fingerprint": record.probability_fingerprint,
             "knowledge_cutoff": record.knowledge_cutoff,
         }
+        self._refresh_prediction_anomaly_audit(payload, record)
         return payload
+
+    def _refresh_prediction_anomaly_audit(self, payload: dict[str, Any], record) -> None:
+        prediction = payload.get("prediction")
+        if not isinstance(prediction, dict):
+            return
+        sidecar = None
+        try:
+            sidecar = self.impact_trace_store.latest(event_id=record.event_id, run_id=record.run_id)
+        except (OSError, ValueError, json.JSONDecodeError):
+            sidecar = None
+        season = PredictionPipeline(iterations=1).data_source.load()
+        payload["prediction_anomaly_audit"] = PredictionAnomalyAuditor().build(
+            season,
+            prediction,
+            impact_trace_sidecar=sidecar,
+        )
+        cache_context = payload.setdefault("cache_context", {})
+        if isinstance(cache_context, dict):
+            cache_context["prediction_anomaly_audit_source"] = "api_runtime_recomputed"
+            cache_context["prediction_anomaly_audit_sidecar_id"] = (
+                sidecar.get("sidecar_id") if isinstance(sidecar, dict) else None
+            )
+            cache_context["prediction_anomaly_audit_sidecar_comparison_status"] = (
+                _as_dict(sidecar.get("trace_generation")).get("comparison_status")
+                if isinstance(sidecar, dict)
+                else None
+            )
 
     def _load_prediction_diff(self, diff_id: str) -> dict[str, Any] | None:
         root = self.root / "reports" / "prediction_diffs"
@@ -620,6 +649,10 @@ def _bool_query(query: dict[str, list[str]], key: str, default: bool = False) ->
     if value is None:
         return default
     return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def _as_dict(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
 
 
 def _relative_to_root(path: Path | str | None, root: Path) -> Path | str | None:

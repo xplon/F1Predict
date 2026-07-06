@@ -380,10 +380,29 @@ src/f1predict/prediction_anomaly.py
 - 同队排位/发车位来源和预测顺序存在明显张力；
 - 大量状态更新只有 route-only 记录，还没有 isolated same-seed 因果对比。
 
-最新离线审计能抓到的例子包括：
+历史离线 packet 中曾能抓到的例子包括：
 
-- Alpine：负向同周末来源与 Gasly 第 9 的预测位置存在张力，需要继续复核同周末长距离、可靠性和车手层输入是否覆盖过强；
-- 默认注册包 isolated 影响追踪覆盖不足：453 条状态更新中有 12 组单条 isolated 重跑和 4 组来源组 isolated 重跑，共覆盖 87 条状态更新；全量模式已经能覆盖 453/453，但还没有做成前端友好的 sidecar/分页读取。
+- Alpine：旧审计把车手层和车队/赛车层信号混在一起聚合，曾把 Alpine 标成“负向来源没有反映”。当前审计器已经改为分开计算 team-only 信号与 driver-level 信号；在 team-only 弱负向且存在正向反证时，不再把它当作硬异常；
+- 默认注册包 isolated 影响追踪覆盖不足：packet 内嵌 trace 仍只有 12 组单条 isolated 重跑和 4 组来源组 isolated 重跑；但已跟踪 sidecar 对同一个 b4fa run 覆盖 453/453 条状态更新，因此前端/API 不应再把“packet 内嵌 trace 少”说成“完整解释链缺失”。
+
+2026-07-06 追加修正后，`GET /api/v2/prediction-packets/latest` 会在读取历史 packet 时用当前审计器重新计算 `prediction_anomaly_audit`，并把对应 run 的 sidecar 覆盖证据传入审计器。也就是说：
+
+```text
+历史 packet 文件本身保持不可变；
+前端看到的 anomaly audit 来自 API 运行时刷新；
+刷新只改变审计展示，不改变预测概率、排名、packet hash 或 run registry。
+```
+
+当前 API 可见状态：
+
+```text
+run = british_gp_20260705T000000_0000_20260706T092941_0000_b4fa317c0b
+prediction_anomaly_audit_source = api_runtime_recomputed
+impact_trace_source = sidecar
+impact_trace_covered_claim_count = 453
+impact_trace_uncovered_claim_count = 0
+anomaly_count = 0
+```
 
 上一版异常审计中的 Leclerc/Hamilton 与 Racing Bulls 条目已在 2026-07-06 07:49 UTC 新 run 中消失；Williams 与 Alonso/Stroll 条目已在 2026-07-06 08:20 UTC 新 run 中消失。这不能证明最终模型已经正确，但证明异常审计发现的问题已经至少有一部分通过通用映射修正反馈到了预测结果，而不是只停留在提示文本。
 
@@ -449,6 +468,7 @@ src/f1predict/prediction_anomaly.py
 3. 用户的例子仍然只能触发排查：代码层继续要求预测更新不能按车手/车队名写死，必须来自来源化数据、结构化特征和通用模拟机制。
 4. 当前模型质量仍是 `diagnostic_only`：sidecar 解决的是“能否追溯每条信息的边际影响”，不是“预测已经稳定有 edge”。
 5. 当前默认 latest 已确认仍是 `british_gp_20260705T000000_0000_20260706T092941_0000_b4fa317c0b`；由未验证启发式权重试验生成的 `c4515f938f` 不进入默认前端。
+6. API/latest 会用当前审计器和对应 sidecar 重新计算前端可见的 `prediction_anomaly_audit`；这不是重新预测，也不会写 artifact。
 
 当前已缓存 sidecar 对 b4fa run 的诊断覆盖为：
 

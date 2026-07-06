@@ -9,9 +9,14 @@ full race forecast.
 from __future__ import annotations
 
 from collections import Counter
+from pathlib import Path
+import sys
 
-from f1predict.pipeline import PredictionPipeline
-from f1predict.prediction_packet import PredictionPacketBuilder
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from f1predict.pipeline import PredictionPipeline  # noqa: E402
+from f1predict.prediction_packet import PredictionPacketBuilder  # noqa: E402
 
 
 def main() -> None:

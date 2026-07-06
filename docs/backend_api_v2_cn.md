@@ -189,7 +189,10 @@ knowledge_cutoff=2026-07-05T00:00:00+00:00  # 可选
     "packet_path": "<relative-path>",
     "packet_payload_sha256": "<sha256>",
     "input_fingerprint": "<sha256>",
-    "probability_fingerprint": "<sha256>"
+    "probability_fingerprint": "<sha256>",
+    "prediction_anomaly_audit_source": "api_runtime_recomputed",
+    "prediction_anomaly_audit_sidecar_id": "<sidecar-id-or-null>",
+    "prediction_anomaly_audit_sidecar_comparison_status": "matched_source_run_iterations | diagnostic_iteration_mismatch | null"
   }
 }
 ```
@@ -201,6 +204,8 @@ prediction_anomaly_audit
 ```
 
 用途是展示“来源事实、状态更新和最终排名之间是否存在张力”。它只做诊断和解释，不会反向修改预测概率。前端“预测异常审计”区块读取这个字段，展示中文摘要、支持来源、状态更新链条和需要复核的模型风险。
+
+注意：`GET /prediction-packets/latest` 和 `GET /prediction-runs/{run_id}/packet` 会在读取历史 packet 后，用当前 `PredictionAnomalyAuditor` 重新计算前端可见的 `prediction_anomaly_audit`。如果该 run 有缓存 sidecar，审计会使用 sidecar 的 full trace 覆盖证据。这个刷新不重新运行模拟、不写 artifact、不改变 packet hash，也不会改变预测排名。
 
 ### GET /api/v2/prediction-runs/{run_id}/packet
 
