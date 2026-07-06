@@ -47,6 +47,7 @@ class PredictionPipeline:
         iterations: int = 5000,
         simulator_config: SimulatorConfig | None = None,
         isolated_impact_limit: int = 0,
+        isolated_impact_offset: int = 0,
         isolated_source_group_limit: int = 0,
     ) -> None:
         self.data_source = data_source or CalendarAugmentedDataSource()
@@ -62,6 +63,7 @@ class PredictionPipeline:
         self.iterations = iterations
         self.simulator_config = simulator_config or SimulatorConfig()
         self.isolated_impact_limit = isolated_impact_limit
+        self.isolated_impact_offset = max(0, int(isolated_impact_offset))
         self.isolated_source_group_limit = isolated_source_group_limit
 
     def list_events(self) -> list[dict[str, object]]:
@@ -259,6 +261,7 @@ class PredictionPipeline:
             selected_groups = self._selected_isolated_update_groups(
                 belief_state.update_ledger,
                 self.isolated_impact_limit,
+                self.isolated_impact_offset,
             )
             for claim_id, updates in selected_groups:
                 if claim_id not in evidence_ids and claim_id not in feature_ids:
@@ -387,7 +390,7 @@ class PredictionPipeline:
         return rows
 
     @staticmethod
-    def _selected_isolated_update_groups(update_ledger, limit: int):
+    def _selected_isolated_update_groups(update_ledger, limit: int, offset: int = 0):
         groups: dict[str, list[object]] = {}
         for update in update_ledger:
             claim_id = str(getattr(update, "claim_id", "") or "")
@@ -399,9 +402,12 @@ class PredictionPipeline:
             score = max(abs(float(getattr(update, "delta", 0.0))) for update in updates)
             scored.append((score, claim_id, updates))
         scored.sort(key=lambda item: item[0], reverse=True)
+        safe_offset = max(0, int(offset))
         if limit < 0:
-            return [(claim_id, updates) for _, claim_id, updates in scored]
-        return [(claim_id, updates) for _, claim_id, updates in scored[: max(0, limit)]]
+            selected = scored[safe_offset:]
+        else:
+            selected = scored[safe_offset : safe_offset + max(0, limit)]
+        return [(claim_id, updates) for _, claim_id, updates in selected]
 
     @classmethod
     def _selected_isolated_source_groups(

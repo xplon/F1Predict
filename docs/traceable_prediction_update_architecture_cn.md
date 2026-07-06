@@ -639,6 +639,8 @@ sidecar 必须记录：
 
 前端/API 必须把 `formal_readiness.formal_ready = false` 的 sidecar 明确展示为诊断解释。即使它已经覆盖 453/453 条更新，只要 `trace_iterations != source_iterations`，就不能写成“正式同口径解释已完成”。这条规则用于防止把快跑 smoke 结果包装成正式证据。
 
+正式同迭代 sidecar 允许分块生成。生成接口可以用 `isolated_impact_offset` 和 `isolated_impact_limit` 只重跑一段 claim，例如第 0-49 条、第 50-99 条。分块 sidecar 必须标记 `trace_generation.chunk_mode = true`，并且 `formal_readiness.full_coverage = false`，直到所有分块被合并并覆盖全部 claim。这样可以把昂贵的 1200 次迭代全量 trace 变成可恢复任务，而不是一次性不可控长跑。
+
 用户指出“某个车队不合理”时，正确动作仍然是：
 
 ```text

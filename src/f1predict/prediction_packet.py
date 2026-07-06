@@ -267,6 +267,7 @@ class PredictionPacketBuilder:
             "track_feature_vector": track_vector,
             "belief_state_enabled": True,
             "isolated_impact_limit": pipeline.isolated_impact_limit,
+            "isolated_impact_offset": pipeline.isolated_impact_offset,
             "isolated_source_group_limit": pipeline.isolated_source_group_limit,
         }
 
@@ -520,6 +521,7 @@ class PredictionPacketBuilder:
             iterations=iterations,
             simulator_config=self.pipeline.simulator_config,
             isolated_impact_limit=self.pipeline.isolated_impact_limit,
+            isolated_impact_offset=self.pipeline.isolated_impact_offset,
             isolated_source_group_limit=self.pipeline.isolated_source_group_limit,
         )
 

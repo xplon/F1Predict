@@ -39,6 +39,7 @@ class PredictionImpactTraceSidecarStore:
         knowledge_cutoff: str | None = None,
         iterations: int | None = None,
         isolated_impact_limit: int = -1,
+        isolated_impact_offset: int = 0,
         isolated_source_group_limit: int = 0,
     ) -> dict[str, Any]:
         source_record = self._source_record(event_id, run_id, knowledge_cutoff)
@@ -51,6 +52,7 @@ class PredictionImpactTraceSidecarStore:
             PredictionPipeline(
                 iterations=trace_iterations,
                 isolated_impact_limit=isolated_impact_limit,
+                isolated_impact_offset=isolated_impact_offset,
                 isolated_source_group_limit=isolated_source_group_limit,
             ),
             reports_root=self.root / "reports",
@@ -98,7 +100,9 @@ class PredictionImpactTraceSidecarStore:
             "trace_generation": {
                 "iterations": trace_iterations,
                 "isolated_impact_limit": isolated_impact_limit,
+                "isolated_impact_offset": isolated_impact_offset,
                 "isolated_source_group_limit": isolated_source_group_limit,
+                "chunk_mode": isolated_impact_offset > 0 or isolated_impact_limit > 0,
                 "comparison_status": comparison_status,
                 "status_zh": _comparison_status_zh(comparison_status),
                 "note_zh": (

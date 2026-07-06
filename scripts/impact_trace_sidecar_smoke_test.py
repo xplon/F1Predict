@@ -68,6 +68,30 @@ def main() -> None:
     _assert(pagination["has_more"], "Smoke page should have more rows available")
     _assert(payload["traces"], "Sidecar page should include trace rows")
 
+    chunk_response = api.handle_post(
+        "/api/v2/prediction-impact-traces",
+        {},
+        {
+            "event_id": "british_gp",
+            "iterations": 3,
+            "isolated_impact_limit": 5,
+            "isolated_impact_offset": 10,
+            "isolated_source_group_limit": 0,
+            "write": False,
+            "limit": 20,
+        },
+    )
+    _assert(chunk_response.status == 201, "Chunked sidecar POST should succeed")
+    chunk = chunk_response.payload
+    _assert(chunk["trace_generation"]["chunk_mode"] is True, "Chunked sidecar should mark chunk mode")
+    _assert(chunk["trace_generation"]["isolated_impact_offset"] == 10, "Chunked sidecar should preserve offset")
+    _assert(chunk["coverage"]["impact_trace_single_claim_coverage_count"] == 5, "Chunk should cover exactly five claims")
+    _assert(chunk["formal_readiness"]["full_coverage"] is False, "Chunked trace is not full coverage")
+    _assert(
+        chunk["formal_readiness"]["status"] == "diagnostic_iterations_incomplete_coverage",
+        "Low-iteration chunk should be diagnostic and incomplete",
+    )
+
     latest_readiness = api.handle_get(
         "/api/v2/prediction-impact-traces/readiness",
         {"event_id": ["british_gp"]},

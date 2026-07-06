@@ -371,11 +371,14 @@ claim_id=<可选>
   "run_id": "可选",
   "iterations": 1200,
   "isolated_impact_limit": -1,
+  "isolated_impact_offset": 0,
   "isolated_source_group_limit": 0,
   "write": true,
   "limit": 40
 }
 ```
+
+`isolated_impact_offset` 用于分块生成 sidecar。例如 `isolated_impact_limit=50, isolated_impact_offset=100` 表示只生成排序后第 100-149 条状态更新的 isolated trace。分块 sidecar 会标记 `trace_generation.chunk_mode = true`，并且在合并全覆盖前 `formal_readiness.formal_ready = false`。
 
 关键字段：
 - `source_run`：sidecar 解释的是哪一个已注册 run，包括 input/evidence/probability fingerprint；

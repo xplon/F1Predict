@@ -110,6 +110,7 @@ def main() -> None:
     impact_trace_sidecar.add_argument("--knowledge-cutoff", default=None)
     impact_trace_sidecar.add_argument("--iterations", type=int, default=None)
     impact_trace_sidecar.add_argument("--isolated-impact-limit", type=int, default=-1)
+    impact_trace_sidecar.add_argument("--isolated-impact-offset", type=int, default=0)
     impact_trace_sidecar.add_argument("--isolated-source-group-limit", type=int, default=0)
     impact_trace_sidecar.add_argument("--write", action="store_true")
     impact_trace_sidecar.add_argument("--output-dir", default="reports/prediction_impact_traces")
@@ -690,6 +691,7 @@ def main() -> None:
             knowledge_cutoff=args.knowledge_cutoff,
             iterations=args.iterations,
             isolated_impact_limit=args.isolated_impact_limit,
+            isolated_impact_offset=args.isolated_impact_offset,
             isolated_source_group_limit=args.isolated_source_group_limit,
         )
         payload = page_sidecar(sidecar, limit=args.limit, offset=args.offset)

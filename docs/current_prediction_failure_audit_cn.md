@@ -485,6 +485,8 @@ formal_readiness.formal_ready = false
 
 2026-07-06 追加守门：sidecar 和前端/API 现在会公开 `formal_readiness`。当前状态会显示“trace 已全覆盖，但仍是诊断迭代”，从而避免把 5 次迭代的快跑解释误说成 1200 次源 run 的正式同口径解释。
 
+2026-07-06 追加执行能力：`PredictionPipeline`、sidecar API 和 CLI 已支持 `isolated_impact_offset`。这让正式同迭代 sidecar 可以分块生成，而不是一次性对 453 条来源更新全部跑 1200 次迭代。分块结果会被标记为 `chunk_mode`，在合并成全覆盖 sidecar 前不会被认定为正式解释。
+
 下一步不再是“把 sidecar 做出来”，而是：
 
 - 为最新 British GP run 生成同迭代数的正式 sidecar，或继续明确标注低迭代诊断 sidecar；

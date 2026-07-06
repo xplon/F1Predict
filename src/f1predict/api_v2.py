@@ -524,6 +524,7 @@ class BackendApiV2:
         iterations_value = body.get("iterations") or _first(query, "iterations", None)
         iterations = int(iterations_value) if iterations_value is not None else None
         isolated_impact_limit = int(body.get("isolated_impact_limit") or _first(query, "isolated_impact_limit", "-1"))
+        isolated_impact_offset = int(body.get("isolated_impact_offset") or _first(query, "isolated_impact_offset", "0"))
         isolated_source_group_limit = int(
             body.get("isolated_source_group_limit") or _first(query, "isolated_source_group_limit", "0")
         )
@@ -537,6 +538,7 @@ class BackendApiV2:
             knowledge_cutoff=str(cutoff) if cutoff else None,
             iterations=iterations,
             isolated_impact_limit=isolated_impact_limit,
+            isolated_impact_offset=isolated_impact_offset,
             isolated_source_group_limit=isolated_source_group_limit,
         )
         path = None
