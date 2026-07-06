@@ -158,6 +158,7 @@ scripts/explainability_smoke_test.py
 -> 标准化因子声明
 -> 证据质量门控
 -> 状态向量更新
+-> 模拟路由
 -> PaceModel/Simulator 读取状态
 -> 预测影响记录
 -> 中文解释/API 公开上下文
@@ -168,10 +169,12 @@ scripts/explainability_smoke_test.py
 2026-07-06 追加实现：impact trace sidecar 的分页行现在不仅给出 `impact_status`，还会公开一条中文链路：
 
 ```text
-原始来源 -> 信息分析 -> 状态更新 -> 预测变化
+原始来源 -> 信息分析 -> 状态更新 -> 模拟路由 -> 预测变化
 ```
 
 这条链路从 sidecar 缓存中的 `trace_context` 生成，会尽量连接 `source_id`、`claim_id`、质量审计、状态更新账本和同种子隔离重跑结果。它的目标是回答“这条信息凭什么影响预测”，而不是再展示一串没有来源解释的内部分数。
+
+2026-07-06 追加实现：公开 trace 链条现在增加了“模拟路由”阶段。该阶段优先读取 `factor_trace` 的 route/model surface；如果是结构化 FastF1 特征且没有单独 factor trace，则读取状态更新账本中的 `affected_model_surfaces`。这样前端不再从“状态更新”直接跳到“预测变化”，而是会说明该状态进入了 `race_pace_score`、`qualifying_grid_sampler`、`reliability` 等哪个模拟器表面。该改动只增强解释链路，不改变任何预测数值。
 
 ## 4. 当前 British GP 诊断预测状态
 
@@ -496,7 +499,7 @@ anomaly_count = 0
 
 上一版异常审计中的 Leclerc/Hamilton 与 Racing Bulls 条目已在 2026-07-06 07:49 UTC 新 run 中消失；Williams 与 Alonso/Stroll 条目已在 2026-07-06 08:20 UTC 新 run 中消失。这不能证明最终模型已经正确，但证明异常审计发现的问题已经至少有一部分通过通用映射修正反馈到了预测结果，而不是只停留在提示文本。
 
-前端新增“预测异常审计”区块，默认展示中文摘要、风险原因、支持来源和从“原始来源 -> 信息分析 -> 状态更新 -> 预测变化”的链条。它不会展示内部裸分数，也不会按车队/车手手动改结果。
+前端新增“预测异常审计”区块，默认展示中文摘要、风险原因、支持来源和从“原始来源 -> 信息分析 -> 状态更新 -> 模拟路由 -> 预测变化”的链条。它不会展示内部裸分数，也不会按车队/车手手动改结果。
 
 这项修正的意义：
 

@@ -72,6 +72,16 @@ def main() -> None:
     _assert(pagination["returned_trace_count"] == 7, "Sidecar response should be paginated")
     _assert(pagination["has_more"], "Smoke page should have more rows available")
     _assert(payload["traces"], "Sidecar page should include trace rows")
+    claim_trace = next((row for row in payload["traces"] if row.get("claim_id")), None)
+    _assert(claim_trace is not None, "Sidecar page should include a claim-level trace")
+    chain = claim_trace.get("source_to_prediction_chain") or []
+    stage_names = [row.get("stage") for row in chain]
+    _assert(
+        stage_names[:5] == ["原始来源", "信息分析", "状态更新", "模拟路由", "预测变化"],
+        "Claim trace should expose the source-to-state-to-simulator-to-prediction chain",
+    )
+    route_stage = next((row for row in chain if row.get("stage") == "模拟路由"), {})
+    _assert("模拟器表面" in route_stage.get("text_zh", ""), "Simulation route stage should name model surfaces")
 
     chunk_response = api.handle_post(
         "/api/v2/prediction-impact-traces",

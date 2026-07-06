@@ -959,7 +959,7 @@ function renderPredictionAnomalyCard(row) {
     .map(source => `<span class="pill">${escapeHtml(source.publisher || source.source_type_zh || "来源")}: ${escapeHtml(shortHash(source.title || source.source_id))}</span>`)
     .join("");
   const chain = (row.source_to_prediction_chain || [])
-    .slice(0, 4)
+    .slice(0, 5)
     .map(stage => `<p><strong>${escapeHtml(stage.stage || "")}</strong>：${escapeHtml(stage.text_zh || "")}</p>`)
     .join("");
   const severityClass = String(row.severity || "low").replace(/[^a-z0-9_-]/gi, "");
@@ -2182,7 +2182,7 @@ function renderEvidenceImpact(report) {
           <h3>完整影响追踪缓存未生成</h3>
           <span class="pill">主包快速样本</span>
         </div>
-        <p>当前只展示预测主包内嵌的少量 trace；完整“原始信息 -> 状态更新 -> 预测变化”需要先生成 sidecar。</p>
+        <p>当前只展示预测主包内嵌的少量 trace；完整“原始来源 -> 信息分析 -> 状态更新 -> 模拟路由 -> 预测变化”需要先生成 sidecar。</p>
       </article>
     `;
   document.getElementById("evidenceImpactList").innerHTML = rows.length
@@ -2202,7 +2202,7 @@ function renderEvidenceImpact(report) {
           .map(row => rankDeltaText(row))
           .join("；");
         const chain = (trace.source_to_prediction_chain || [])
-          .slice(0, 4)
+          .slice(0, 5)
           .map(stage => `<p><strong>${escapeHtml(stage.stage || "")}</strong>：${escapeHtml(stage.text_zh || "")}</p>`)
           .join("");
         return `

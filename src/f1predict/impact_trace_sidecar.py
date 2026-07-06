@@ -605,6 +605,7 @@ def _claim_chain(row: dict[str, Any], claim_id: str, context: dict[str, Any]) ->
         }
     )
     stages.append({"stage": "状态更新", "text_zh": _state_update_text(update_rows, quality)})
+    stages.append({"stage": "模拟路由", "text_zh": _simulation_route_text(factor_trace, update_rows)})
     stages.append({"stage": "预测变化", "text_zh": _prediction_change_text(row)})
     return stages
 
@@ -618,6 +619,7 @@ def _source_chain(row: dict[str, Any], source_id: str, context: dict[str, Any]) 
         {"stage": "原始来源", "text_zh": _source_text(source, source_id)},
         {"stage": "信息分析", "text_zh": "该来源组包含多条结构化信息；分页 trace 会列出对应 claim_id。"},
         {"stage": "状态更新", "text_zh": _state_update_text(update_rows, {})},
+        {"stage": "模拟路由", "text_zh": _simulation_route_text({}, update_rows)},
         {"stage": "预测变化", "text_zh": _prediction_change_text(row)},
     ]
 
@@ -700,6 +702,42 @@ def _state_update_text(update_rows: list[dict[str, Any]], quality: dict[str, Any
         )
     suffix = f"；另有 {len(update_rows) - 4} 条同 claim 更新" if len(update_rows) > 4 else ""
     return "；".join(phrases) + suffix + "。"
+
+
+def _simulation_route_text(factor_trace: dict[str, Any], update_rows: list[dict[str, Any]]) -> str:
+    surfaces = []
+    if factor_trace.get("model_surface"):
+        surfaces.append(str(factor_trace["model_surface"]))
+    for update in update_rows:
+        surfaces.extend(str(item) for item in update.get("affected_model_surfaces", []) if item)
+    surfaces = list(dict.fromkeys(surfaces))
+
+    route = factor_trace.get("route")
+    route_text = ""
+    if isinstance(route, dict):
+        route_bits = []
+        for key in ("source_state", "model_surface", "route_formula_id", "track_context_multiplier"):
+            if route.get(key) is not None:
+                route_bits.append(f"{key}={route.get(key)}")
+        route_text = "；路由配置：" + "，".join(route_bits) if route_bits else ""
+    elif route:
+        route_text = f"；路由配置：{route}"
+
+    route_status = factor_trace.get("route_status")
+    status_text = f"；路由状态：{route_status}" if route_status else ""
+    notes = factor_trace.get("route_notes") or []
+    note_text = "；路由说明：" + "，".join(str(item) for item in notes[:3]) if notes else ""
+
+    if surfaces:
+        surface_text = "、".join(surfaces[:8])
+        extra = f"；另有 {len(surfaces) - 8} 个表面" if len(surfaces) > 8 else ""
+        return (
+            f"该状态不会直接写入胜率，而是进入模拟器表面：{surface_text}{extra}"
+            f"{status_text}{route_text}{note_text}。"
+        )
+    if route_status or route_text or note_text:
+        return f"该状态有路由审计记录，但未列出具体模拟器表面{status_text}{route_text}{note_text}。"
+    return "未找到明确模拟路由；这条 trace 只能证明状态更新和预测变化，不能完整解释模型表面。"
 
 
 def _prediction_change_text(row: dict[str, Any]) -> str:

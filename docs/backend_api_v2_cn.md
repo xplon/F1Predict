@@ -403,7 +403,7 @@ claim_id=<可选>
 每条 `traces[]` 还会包含：
 
 - `supporting_sources`：该 trace 能关联到的来源摘要；
-- `source_to_prediction_chain`：中文解释链，通常按“原始来源 -> 信息分析 -> 状态更新 -> 预测变化”排列；
+- `source_to_prediction_chain`：中文解释链，通常按“原始来源 -> 信息分析 -> 状态更新 -> 模拟路由 -> 预测变化”排列；
 - `additional_source_to_prediction_chains`：同一 trace 涉及多个 claim/source 时的补充链路。
 
 响应还包含 `formal_readiness`：

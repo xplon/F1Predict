@@ -634,10 +634,10 @@ sidecar 必须记录：
 分页返回时，每条 trace 还必须尽量生成一条面向人的中文链路：
 
 ```text
-原始来源 -> 信息分析 -> 状态更新 -> 预测变化
+原始来源 -> 信息分析 -> 状态更新 -> 模拟路由 -> 预测变化
 ```
 
-其中“原始来源”来自 `RawSourceRecord`，“信息分析”来自 claim/evidence/quality/factor trace，“状态更新”来自 update ledger，“预测变化”来自同种子 before/after 或 leave-one-information rerun。当前如果 trace 是整体聚合行，可能只有“预测变化”阶段；如果是单条 claim/source 行，必须展示完整链路或明确说明缺失哪一段。
+其中“原始来源”来自 `RawSourceRecord`，“信息分析”来自 claim/evidence/quality/factor trace，“状态更新”来自 update ledger，“模拟路由”来自 factor route 或 update ledger 的 `affected_model_surfaces`，“预测变化”来自同种子 before/after 或 leave-one-information rerun。当前如果 trace 是整体聚合行，可能只有“预测变化”阶段；如果是单条 claim/source 行，必须展示完整链路或明确说明缺失哪一段。
 
 这解决的是可追溯性问题，不是预测质量问题。只有当 sidecar 使用与源 run 相同的输入、知识截止、随机种子策略和迭代数时，才能把某条 trace 作为更强的影响解释。低迭代 sidecar 只能叫诊断，不能叫正式 ablation 或正式效果证明。
 
