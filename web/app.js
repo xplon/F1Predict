@@ -204,7 +204,7 @@ async function loadPrediction() {
 
 function loadPredictionAuxiliaryPanels(encodedEventId, requestSeq) {
   const requests = [
-    ["packet", `/api/prediction-packet?event_id=${encodedEventId}&iterations=1200`],
+    ["packet", `/api/prediction-packet?event_id=${encodedEventId}&iterations=1200&isolated_impact_limit=12`],
     ["researchPlan", `/api/codex-research-plan?event_id=${encodedEventId}`],
     ["sourceCandidates", `/api/source-candidates?event_id=${encodedEventId}`],
     ["researchPreflight", `/api/research-preflight?event_id=${encodedEventId}`]
@@ -538,8 +538,9 @@ function render() {
   renderResearchPlan();
   renderSourceCandidates();
   renderResearchPreflight();
-  renderEvidenceImpact(report.evidence_impact || []);
-  renderTechnicalFactorTrace(report);
+  const traceablePrediction = currentTraceablePrediction(report);
+  renderEvidenceImpact(traceablePrediction);
+  renderTechnicalFactorTrace(traceablePrediction);
   renderEvidenceQuality(report.evidence_quality || []);
   renderEvidence(report.evidence);
   renderFeatures(report.feature_adjustments || []);
@@ -557,6 +558,10 @@ function render() {
   renderModelErrorReview();
   renderSimulatorCalibration();
   renderReplayFreeze();
+}
+
+function currentTraceablePrediction(fallbackReport = state.report) {
+  return state.packet?.prediction || fallbackReport || {};
 }
 
 function renderPredictionPending(eventId) {
@@ -641,12 +646,14 @@ function renderPredictionPacket() {
   document.getElementById("packetSummary").innerHTML = `
     <div class="packet-hash">${escapeHtml(String(packet.packet_payload_sha256 || "").slice(0, 18))}</div>
     <div class="packet-grid">
-      <div><span>Market snaps</span><strong>${market.usable_snapshot_count || 0}</strong></div>
-      <div><span>Positive gaps</span><strong>${market.positive_edge_count || 0}</strong></div>
-      <div><span>Quality rows</span><strong>${codex.evidence_quality_count || 0}</strong></div>
-      <div><span>Weak quality</span><strong>${codex.weak_evidence_quality_count || 0}</strong></div>
-      <div><span>Candidate ready</span><strong>${intake.candidate_review_ready_count || 0}</strong></div>
-      <div><span>Preflight</span><strong>${escapeHtml(intake.research_preflight_status || "missing")}</strong></div>
+      <div><span>BeliefState</span><strong>${escapeHtml(shortHash(codex.belief_state_id))}</strong></div>
+      <div><span>状态更新</span><strong>${codex.state_update_count || 0}</strong></div>
+      <div><span>影响追踪</span><strong>${codex.prediction_impact_trace_count || 0}</strong></div>
+      <div><span>单条重跑</span><strong>${codex.isolated_prediction_impact_count || 0}</strong></div>
+      <div><span>原始来源</span><strong>${packet.prediction?.belief_state?.raw_sources?.length || 0}</strong></div>
+      <div><span>市场快照</span><strong>${market.usable_snapshot_count || 0}</strong></div>
+      <div><span>弱证据</span><strong>${codex.weak_evidence_quality_count || 0}</strong></div>
+      <div><span>预检</span><strong>${escapeHtml(intake.research_preflight_status || "missing")}</strong></div>
     </div>
     <div class="packet-flags">${blockerText}</div>
     <div class="packet-flags">${warningText}</div>
@@ -1447,15 +1454,15 @@ function outcomeLabel(row) {
 
 function renderAiJudgement(judgement) {
   const notes = judgement.risk_notes.length
-    ? judgement.risk_notes.map(note => `<p>${note}</p>`).join("")
-    : "<p>No special risk notes.</p>";
+    ? judgement.risk_notes.map(note => `<p>${escapeHtml(note)}</p>`).join("")
+    : "<p>没有额外风险说明。</p>";
   document.getElementById("aiJudgement").innerHTML = `
-    <span class="pill">${judgement.evidence_count} evidence claims</span>
-    <span class="pill">${judgement.strong_evidence_quality_count || 0} strong quality</span>
-    <span class="pill">${judgement.weak_evidence_quality_count || 0} weak quality</span>
-    <span class="pill">${judgement.feature_adjustment_count || 0} data features</span>
-    <span class="pill">${judgement.positive_edge_count} positive model gaps</span>
-    <p>${judgement.summary}</p>
+    <span class="pill">${judgement.evidence_count} 条证据声明</span>
+    <span class="pill">${judgement.strong_evidence_quality_count || 0} 条强来源</span>
+    <span class="pill">${judgement.weak_evidence_quality_count || 0} 条弱/待复核</span>
+    <span class="pill">${judgement.feature_adjustment_count || 0} 条结构化特征</span>
+    <span class="pill">${judgement.positive_edge_count} 条正向市场差异</span>
+    <p>${escapeHtml(judgement.summary || "")}</p>
     ${notes}
   `;
 }
@@ -1606,19 +1613,19 @@ function renderSourceCandidates() {
     const targets = (row.target_hints || []).join(" / ") || "targets n/a";
     const routePreview = (row.route_preview || []).slice(0, 3)
       .map(preview => {
-        const context = preview.context_multiplier == null ? "" : ` context ${Number(preview.context_multiplier).toFixed(3)}`;
+        const context = preview.context_multiplier == null ? "" : " | 赛道适配会影响该路由";
         const demand = preview.track_demand_component
-          ? ` demand ${preview.track_demand_component}${preview.track_demand_value == null ? "" : ` ${Number(preview.track_demand_value).toFixed(2)}`}`
+          ? ` | 赛道需求：${factorLabel(preview.track_demand_component)}`
           : "";
-        return `${preview.metric || "metric"} -> ${preview.route || "route n/a"} (${preview.model_surface || "surface n/a"}${context}${demand})`;
+        return `${factorLabel(preview.metric)} -> ${surfaceLabel(preview.model_surface || preview.route)}${context}${demand}`;
       })
       .join(" | ");
     const bandPreview = (row.impact_band_guidance || [])
       .map(band => band.band)
       .filter(Boolean)
       .join(" / ");
-    const reliability = row.source_reliability == null ? "n/a" : pct(row.source_reliability);
-    const relevance = row.relevance_score == null ? "n/a" : Number(row.relevance_score).toFixed(2);
+    const reliability = reliabilityBand(row.source_reliability);
+    const relevance = relevanceBand(row.relevance_score);
     return `
       <article class="preflight-card ${row.status === "candidate_blocked" ? "blocking" : ""}">
         <div>
@@ -1626,10 +1633,10 @@ function renderSourceCandidates() {
           <span class="pill">${escapeHtml(row.status || "status n/a")}</span>
           <span class="pill">${escapeHtml(row.source_class || "source n/a")}</span>
         </div>
-        <p>${escapeHtml(row.source || row.title || "source")} | reliability ${escapeHtml(reliability)}</p>
-        <p>${escapeHtml(metrics)} | ${escapeHtml(targets)} | relevance ${escapeHtml(relevance)}</p>
+        <p>${escapeHtml(row.source || row.title || "source")} | 来源等级：${escapeHtml(reliability)}</p>
+        <p>${escapeHtml(metrics)} | ${escapeHtml(targets)} | 相关性：${escapeHtml(relevance)}</p>
         <p>${escapeHtml(routePreview || "route preview n/a")}</p>
-        <p>impact bands ${escapeHtml(bandPreview || "n/a")} | magnitude chosen later from source content</p>
+        <p>影响幅度需要等来源内容被抽取、审计和归一化后再确定。</p>
         <p>${escapeHtml(row.cutoff_status || "cutoff n/a")} | ${escapeHtml(row.task_link_status || "task link n/a")}</p>
         <p>task ${escapeHtml(row.task_id || "unlinked")} | event ${escapeHtml(row.event_id || report.event_id || "n/a")}</p>
         ${row.url ? `<code>${escapeHtml(row.url)}</code>` : ""}
@@ -1694,7 +1701,7 @@ function renderResearchPreflight() {
     ["Candidate Match", `${candidateAudit.matched_source_count || 0}/${preflight.source_count || 0}`],
     ["Blocking", blocking],
     ["Warnings", warnings],
-    ["Avg weight", preflight.average_model_input_weight == null ? "n/a" : Number(preflight.average_model_input_weight).toFixed(3)],
+    ["Update gate", preflight.valid_claim_count ? "reviewed" : "missing"],
     ["Source", preflight.source || "live"]
   ];
   summaryElement.innerHTML = summaryRows
@@ -1753,9 +1760,8 @@ function renderResearchPreflight() {
       "factor_contract_missing_technical_mechanism",
       "factor_contract_missing_track_context"
     ].includes(code));
-    const context = row.context_multiplier == null ? "n/a" : Number(row.context_multiplier).toFixed(3);
     const demand = row.track_demand_component
-      ? `${row.track_demand_component} ${row.track_demand_value == null ? "n/a" : Number(row.track_demand_value).toFixed(2)}`
+      ? `${row.track_demand_component}`
       : "demand n/a";
     return `
       <article class="preflight-card claim-row ${row.route_status === "unsupported_metric" || contractBlocking ? "blocking" : ""}">
@@ -1765,7 +1771,7 @@ function renderResearchPreflight() {
         </div>
         <p>${escapeHtml(row.quality_status || "quality n/a")} | conflict ${escapeHtml(row.conflict_status || "n/a")}</p>
         <p>${escapeHtml(contract)}</p>
-        <p>weight ${pct(row.model_input_weight)} | weighted ${signedNumber(row.weighted_input_impact ?? row.signed_input_impact)} | effective ${signedNumber(row.effective_race_input ?? row.signed_input_impact)} | context ${escapeHtml(context)} | ${escapeHtml(demand)}</p>
+        <p>更新方向 ${escapeHtml(row.direction || "n/a")} | 赛道需求 ${escapeHtml(demand)} | ${escapeHtml(row.source_status || "source n/a")}</p>
         <div class="preflight-flags">${flags}</div>
       </article>
     `;
@@ -1788,171 +1794,126 @@ function renderEvidenceQuality(rows) {
     ? rows.slice(0, 10).map(row => {
         const flags = (row.risk_flags || [])
           .slice(0, 4)
-          .map(flag => `<span class="pill">${escapeHtml(flag)}</span>`)
-          .join("");
-        const reasons = (row.reasons || [])
-          .slice(0, 3)
-          .map(reason => `<p>${escapeHtml(reason)}</p>`)
+          .map(flag => `<span class="pill">${escapeHtml(reasonLabel(flag))}</span>`)
           .join("");
         return `
           <article class="quality-card ${row.quality_status === "strong" ? "quality-strong" : ""}">
             <div>
               <h3>${escapeHtml(row.claim_id)}</h3>
-              <span class="pill">${escapeHtml(row.quality_status)}</span>
-              <span class="pill">${escapeHtml(row.impact_level)}</span>
+              <span class="pill">${escapeHtml(qualityStatusLabel(row.quality_status))}</span>
+              <span class="pill">${escapeHtml(impactLevelLabel(row.impact_level))}</span>
             </div>
-            <div class="impact-score">
-              <span>quality</span>
-              <strong>${pct(row.quality_score)}</strong>
-            </div>
-            <p>${escapeHtml(row.source_status)} | source ${row.source_reliability == null ? "n/a" : pct(row.source_reliability)}</p>
-            <p>${escapeHtml(row.triangulation_status || "triangulation n/a")} | ${row.independent_source_count || 0} independent source groups</p>
-            <p>${escapeHtml(row.conflict_status || "no_conflict")} | ${row.conflicting_claim_count || 0} opposing claims</p>
-            <p>model input weight ${pct(row.model_input_weight)}</p>
-            <p>input ${signedNumber(row.signed_input_impact)} | max win ${row.max_win_probability_delta == null ? "n/a" : signedPct(row.max_win_probability_delta)}</p>
-            <div class="quality-flags">${flags || "<span class=\"pill\">no flags</span>"}</div>
-            ${reasons}
+            <p>来源时效：${escapeHtml(sourceStatusLabel(row.source_status))}</p>
+            <p>独立佐证：${escapeHtml(triangulationLabel(row.triangulation_status))}</p>
+            <p>冲突检查：${escapeHtml(conflictLabel(row.conflict_status))}</p>
+            <p>更新权限由来源、时效、机制、独立佐证和冲突检查共同决定；种子场景来源会被阻断入模。</p>
+            <div class="quality-flags">${flags || "<span class=\"pill\">没有风险标签</span>"}</div>
           </article>
         `;
       }).join("")
-    : "<p>No Codex evidence quality audit for this event.</p>";
+    : "<p>当前分站没有 Codex 证据质量审计。</p>";
 }
 
 function renderEvidence(rows) {
-  document.getElementById("evidenceList").innerHTML = rows.length
-    ? rows.map(row => `
+  const sortedRows = rows.slice().sort((a, b) => Number(isSeedClaim(a)) - Number(isSeedClaim(b)));
+  document.getElementById("evidenceList").innerHTML = sortedRows.length
+    ? sortedRows.map(row => {
+        const seed = isSeedClaim(row);
+        return `
         <article class="evidence-card">
-          <h3>${row.target_id} | ${row.claim_type}</h3>
-          <span class="pill">${row.metric} ${row.direction}</span>
-          <p>${row.evidence_text}</p>
-          <p>${row.reasoning}</p>
+          <h3>${escapeHtml(targetDisplay(row.target_type, row.target_id))} | ${escapeHtml(factorLabel(row.metric))}</h3>
+          <span class="pill">${escapeHtml(directionLabel(row.direction))} | ${seed ? "开发占位，已阻断入模" : "可追溯证据声明"}</span>
+          <p>${escapeHtml(row.evidence_text || "该声明缺少证据文本。")}</p>
+          <p>${escapeHtml(row.reasoning || "该声明缺少机制说明。")}</p>
+          <p>来源：${escapeHtml(row.source || "未知来源")} | ${escapeHtml(row.source_url || "无 URL")}</p>
         </article>
-      `).join("")
-    : "<p>No Codex evidence loaded for this event.</p>";
+      `;
+      }).join("")
+    : "<p>当前分站还没有 Codex 证据声明。</p>";
 }
 
-function renderEvidenceImpact(rows) {
+function renderEvidenceImpact(report) {
+  const traces = Array.isArray(report?.prediction_impact_trace) ? report.prediction_impact_trace : [];
+  const rows = traces.slice().sort((a, b) => tracePriority(b) - tracePriority(a));
   document.getElementById("evidenceImpactList").innerHTML = rows.length
-    ? rows.slice(0, 8).map(row => {
-        const affected = (row.affected_outcomes || [])
+    ? rows.slice(0, 12).map(trace => {
+        const changed = (trace.changed_factors || [])
+          .slice(0, 3)
+          .map(factor => `${targetDisplay(factor.target_type, factor.target_id)} ${factorLabel(factor.factor)} ${directionLabel(factor.direction)}`)
+          .join("；");
+        const points = (trace.expected_points_delta || [])
           .slice(0, 4)
-          .map(outcome => {
-            const driver = driverNames[outcome.driver_id] || outcome.driver_id;
-            return `${driver} ${signedPct(outcome.win_delta)}`;
-          })
-          .join(" | ");
+          .map(row => predictionDeltaText(row))
+          .join("；");
+        const ranks = (trace.rank_delta || [])
+          .slice(0, 4)
+          .map(row => rankDeltaText(row))
+          .join("；");
         return `
           <article class="impact-card">
             <div>
-              <h3>${row.target_id} | ${row.metric}</h3>
-              <span class="pill">${row.direction} input ${signedNumber(row.signed_input_impact)}</span>
+              <h3>${escapeHtml(traceTypeLabel(trace.trace_type))}</h3>
+              <span class="pill">${escapeHtml(magnitudeLabel(trace.probability_delta_bucket))}</span>
+              ${trace.claim_id ? `<span class="pill">${escapeHtml(shortHash(trace.claim_id))}</span>` : ""}
             </div>
-            <div class="impact-score">
-              <span>max win delta</span>
-              <strong>${signedPct(row.max_win_probability_delta)}</strong>
-            </div>
-            <p>${affected || "No direct probability path"}</p>
-            <p>${row.interpretation}</p>
+            <p>${escapeHtml(changed || "整体状态更新对比")}</p>
+            <p>${escapeHtml(points || ranks || "本次同种子对比没有显著改变所展示车手。")}</p>
+            <p>${escapeHtml(trace.interpretation_zh || "预测影响记录已生成。")}</p>
           </article>
         `;
       }).join("")
-    : "<p>No Codex evidence impact diagnostics for this event.</p>";
+    : "<p>当前预测还没有可展示的预测影响追踪。</p>";
 }
 
 function renderTechnicalFactorTrace(report) {
-  const evidence = Array.isArray(report?.evidence) ? report.evidence : [];
-  const evidenceByClaim = new Map(evidence.map(row => [row.claim_id, row]));
-  const impacts = new Map((report?.evidence_impact || []).map(row => [row.claim_id, row]));
-  const qualities = new Map((report?.evidence_quality || []).map(row => [row.claim_id, row]));
-  const serverTrace = Array.isArray(report?.factor_trace) ? report.factor_trace : [];
-  const rows = (serverTrace.length
-    ? serverTrace.map(trace => ({
-        evidence: evidenceByClaim.get(trace.claim_id) || trace,
-        impact: impacts.get(trace.claim_id) || trace,
-        quality: qualities.get(trace.claim_id) || trace,
-        trace
-      }))
-    : evidence
-        .filter(row => technicalMetrics.has(row.metric))
-        .map(row => ({
-          evidence: row,
-          impact: impacts.get(row.claim_id) || null,
-          quality: qualities.get(row.claim_id) || null,
-          trace: null
-        })))
-    .sort((a, b) => {
-      const aImpact = Math.abs(Number(a.impact?.max_win_probability_delta) || 0);
-      const bImpact = Math.abs(Number(b.impact?.max_win_probability_delta) || 0);
-      return bImpact - aImpact;
-    });
+  const rows = Array.isArray(report?.state_update_ledger) ? report.state_update_ledger : [];
+  const beliefState = report?.belief_state || {};
+  const sources = new Map((beliefState.raw_sources || []).map(row => [row.source_id, row]));
+  const selectedRows = rows
+    .slice()
+    .sort((a, b) => Math.abs(Number(b.delta) || 0) - Math.abs(Number(a.delta) || 0))
+    .slice(0, 18);
 
   document.getElementById("technicalTraceStatus").textContent =
-    rows.length ? `${rows.length} normalized factors` : "No routed factors";
-  document.getElementById("technicalTraceList").innerHTML = rows.length
-    ? rows.map(({ evidence: claim, impact, quality, trace }) => {
-        const affected = (trace?.affected_outcomes || impact?.affected_outcomes || [])
+    rows.length ? `${rows.length} 条状态更新` : "没有状态更新";
+  document.getElementById("technicalTraceList").innerHTML = selectedRows.length
+    ? selectedRows.map(update => {
+        const source = sources.get(update.source_id) || {};
+        const reasons = (update.quality_reasons || [])
           .slice(0, 3)
-          .map(outcome => technicalAffectedText(outcome))
+          .map(reason => `<span class="pill">${escapeHtml(reasonLabel(reason))}</span>`)
           .join("");
-        const qualityText = quality
-          ? `${quality.quality_status} | source ${quality.source_reliability == null ? "n/a" : pct(quality.source_reliability)}`
-          : "quality n/a";
-        const delta = (trace?.max_win_probability_delta ?? impact?.max_win_probability_delta) == null
-          ? "n/a"
-          : signedPct(trace?.max_win_probability_delta ?? impact.max_win_probability_delta);
-        const weightedInput = (trace?.weighted_input_impact ?? trace?.signed_input_impact ?? impact?.signed_input_impact) == null
-          ? signedNumber(claimSignedImpact(claim))
-          : signedNumber(trace?.weighted_input_impact ?? trace?.signed_input_impact ?? impact.signed_input_impact);
-        const effectiveRaceInput = (trace?.effective_race_input ?? trace?.weighted_input_impact ?? impact?.signed_input_impact) == null
-          ? signedNumber(claimSignedImpact(claim))
-          : signedNumber(trace?.effective_race_input ?? trace?.weighted_input_impact ?? impact.signed_input_impact);
-        const contextMultiplier = trace?.context_multiplier == null
-          ? "n/a"
-          : Number(trace.context_multiplier).toFixed(3);
-        const demand = trace?.track_demand_component
-          ? `${trace.track_demand_component} ${trace.track_demand_value == null ? "n/a" : Number(trace.track_demand_value).toFixed(2)}`
-          : "demand n/a";
-        const routeLabel = trace?.model_surface || metricRoute(claim.metric);
-        const routeStatus = trace?.route_status ? ` | ${trace.route_status}` : "";
-        const notes = Array.isArray(trace?.route_notes) && trace.route_notes.length
-          ? `<p>${escapeHtml(trace.route_notes.slice(0, 2).join(" "))}</p>`
-          : "";
+        const surfaces = (update.affected_model_surfaces || [])
+          .slice(0, 3)
+          .map(surface => `<span class="pill">${escapeHtml(surfaceLabel(surface))}</span>`)
+          .join("");
         return `
-          <article class="technical-trace-card ${claim.direction === "negative" ? "negative-factor" : ""}">
+          <article class="technical-trace-card ${update.direction === "negative" ? "negative-factor" : ""}">
             <div class="technical-route">
-              <h3>${escapeHtml(driverNames[claim.target_id] || teamNames[claim.target_id] || claim.target_id)}</h3>
-              <span class="pill">${escapeHtml(claim.claim_type)}</span>
+              <h3>${escapeHtml(targetDisplay(update.target_type, update.target_id))}</h3>
+              <span class="pill">${escapeHtml(factorLabel(update.factor))}</span>
               <span class="route-arrow">-></span>
-              <span class="pill">${escapeHtml(metricLabel(claim.metric))}</span>
+              <span class="pill">${escapeHtml(directionLabel(update.direction))}</span>
               <span class="route-arrow">-></span>
-              <span class="pill">${escapeHtml(routeLabel)}</span>
+              <span class="pill">${escapeHtml(permissionLabel(update.update_permission))}</span>
             </div>
             <div class="technical-score">
-              <span>effective</span>
-              <strong>${effectiveRaceInput}</strong>
-              <span>weighted ${weightedInput}</span>
-              <span>max win ${delta}</span>
+              <span>状态</span>
+              <strong>${escapeHtml(bucketLabel(update.old_value_bucket))} -> ${escapeHtml(bucketLabel(update.new_value_bucket))}</strong>
+              <span>${escapeHtml(magnitudeLabel(update.magnitude_bucket))}</span>
             </div>
             <div class="technical-copy">
-              <p>${escapeHtml(claim.evidence_text || "No evidence text available in this legacy trace row.")}</p>
-              <p>${escapeHtml(claim.reasoning || "No reasoning text available in this legacy trace row.")}</p>
-              ${notes}
+              <p>来源：${escapeHtml(source.publisher || source.source_type || "未知来源")} | ${escapeHtml(source.title || update.claim_id || "无标题")}</p>
+              <p>${escapeHtml(update.mechanism || "没有机制说明。")}</p>
               <div class="factor-meta">
-                <span>${escapeHtml(qualityText + routeStatus)}</span>
-                <span>confidence ${pct(claim.confidence)}</span>
-                <span>uncertainty ${pct(claim.uncertainty)}</span>
-                <span>weight ${pct(trace?.model_input_weight ?? quality?.model_input_weight)}</span>
-                <span>context ${escapeHtml(contextMultiplier)}</span>
-                <span>${escapeHtml(demand)}</span>
+                ${reasons || "<span>质量理由未展开</span>"}
+                ${surfaces || "<span>模型表面未标注</span>"}
               </div>
-            </div>
-            <div class="technical-affected">
-              ${affected || "<span>No direct probability movement</span>"}
             </div>
           </article>
         `;
       }).join("")
-    : "<p>No normalized factor claims loaded for this event.</p>";
+    : "<p>当前预测还没有状态更新账本。</p>";
 }
 
 function technicalAffectedText(outcome) {
@@ -2008,13 +1969,13 @@ function renderFeatures(rows) {
   document.getElementById("featureList").innerHTML = top.length
     ? top.map(row => `
         <article class="evidence-card">
-          <h3>${driverNames[row.target_id] || row.target_id} | ${row.metric}</h3>
-          <span class="pill">${signedPct(row.value)} x ${(row.confidence * 100).toFixed(0)}%</span>
-          <p>${row.explanation}</p>
-          <p>${row.source}</p>
+          <h3>${targetDisplay(row.target_type, row.target_id)} | ${factorLabel(row.metric)}</h3>
+          <span class="pill">${directionLabel(row.value >= 0 ? "positive" : "negative")} | ${magnitudeLabel(featureMagnitudeBucket(row))}</span>
+          <p>${escapeHtml(row.explanation || "该特征缺少中文机制说明，需要补充来源解释。")}</p>
+          <p>来源：${escapeHtml(row.source || "未记录来源")}</p>
         </article>
       `).join("")
-    : "<p>No processed data features loaded for this event.</p>";
+    : "<p>当前分站还没有可展示的结构化数据特征。</p>";
 }
 
 function renderChronologicalReplay() {
@@ -2736,6 +2697,7 @@ function renderModelErrorReview() {
   if (!report) {
     return;
   }
+  const events = (report.events || []).filter(row => !row.hit);
   const summary = report.summary || {};
   document.getElementById("modelErrorStatus").textContent =
     `${report.status} | misses ${report.missed_events || 0}/${report.reviewed_events || 0}`;
@@ -2743,8 +2705,7 @@ function renderModelErrorReview() {
     ["Hit rate", summary.top_pick_hit_rate == null ? "n/a" : pct(summary.top_pick_hit_rate)],
     ["Actual top 3", `${report.actual_winners_ranked_top3 || 0}/${report.reviewed_events || 0}`],
     ["Miss p gap", summary.mean_probability_gap_on_misses == null ? "n/a" : signedPct(summary.mean_probability_gap_on_misses)],
-    ["Race gap", summary.mean_race_score_gap_on_misses == null ? "n/a" : Number(summary.mean_race_score_gap_on_misses).toFixed(3)],
-    ["Feature gap", summary.mean_feature_gap_on_misses == null ? "n/a" : Number(summary.mean_feature_gap_on_misses).toFixed(3)],
+    ["Miss count", report.missed_events || events.length || 0],
     ["Source", report.source || "disk"]
   ];
   document.getElementById("modelErrorSummary").innerHTML = summaryRows
@@ -2756,7 +2717,6 @@ function renderModelErrorReview() {
     `)
     .join("");
 
-  const events = (report.events || []).filter(row => !row.hit);
   const findings = report.findings || [];
   document.getElementById("modelErrorList").innerHTML = [
     `<article class="model-error-card">
@@ -2778,7 +2738,7 @@ function renderModelErrorReview() {
       const candidates = row.candidate_drivers || [];
       const topCandidates = candidates.slice(0, 3).map(candidate => {
         const name = driverNames[candidate.driver_id] || candidate.driver_id;
-        return `${name} ${pct(candidate.win_probability)} race ${Number(candidate.race_score).toFixed(2)} qual ${Number(candidate.qualifying_score).toFixed(2)}`;
+        return `${name} win ${pct(candidate.win_probability)}`;
       });
       return `
         <article class="model-error-card diagnostic-miss">
@@ -2795,9 +2755,6 @@ function renderModelErrorReview() {
           <div>
             <p>Actual rank ${row.actual_winner_rank}</p>
             <p>Top p ${pct(row.top_pick_probability)} | actual ${pct(row.actual_winner_probability)}</p>
-            <p>Race gap ${Number(row.race_score_gap_top_minus_actual).toFixed(3)}</p>
-            <p>Qual gap ${Number(row.qualifying_score_gap_top_minus_actual).toFixed(3)}</p>
-            <p>Feature gap ${Number(row.feature_gap_top_minus_actual).toFixed(3)}</p>
           </div>
         </article>
       `;
@@ -3139,6 +3096,313 @@ function renderMarketAudit(rows) {
         `;
       }).join("")
     : "";
+}
+
+function tracePriority(trace) {
+  if (trace.trace_type === "isolated_same_seed_leave_one_information") {
+    return 300 + impactBucketScore(trace.probability_delta_bucket);
+  }
+  if (trace.trace_type === "same_seed_before_after") {
+    return 200 + impactBucketScore(trace.probability_delta_bucket);
+  }
+  return 100 + impactBucketScore(trace.probability_delta_bucket);
+}
+
+function impactBucketScore(bucket) {
+  const scores = {
+    large: 4,
+    medium: 3,
+    small: 2,
+    very_small: 1,
+    tiny: 1,
+    not_isolated_yet: 0
+  };
+  return scores[String(bucket)] || 0;
+}
+
+function traceTypeLabel(type) {
+  const labels = {
+    same_seed_before_after: "完整状态同种子对比",
+    isolated_same_seed_leave_one_information: "单条信息隔离重跑",
+    state_update_route: "状态更新路由"
+  };
+  return labels[String(type)] || String(type || "预测影响");
+}
+
+function targetDisplay(targetType, targetId) {
+  if (targetType === "driver") {
+    return driverNames[targetId] || targetId || "车手";
+  }
+  if (targetType === "team") {
+    return teamNames[targetId] || targetId || "车队";
+  }
+  if (targetType === "event") {
+    return "本场比赛";
+  }
+  return targetId || "对象";
+}
+
+function factorLabel(factor) {
+  const labels = {
+    overall_pace: "赛车整体速度",
+    race_pace: "正赛速度",
+    qualifying_pace: "排位速度",
+    qualifying_ceiling: "排位上限",
+    race_execution: "正赛执行",
+    power_unit: "动力单元",
+    energy_recovery: "能量回收/部署",
+    straight_line_speed: "直道速度",
+    drag_efficiency: "气动效率",
+    traction: "低速牵引",
+    low_speed_traction: "低速牵引",
+    tyre_deg: "轮胎衰退",
+    tyre_management: "保胎能力",
+    wet_skill: "湿地能力",
+    reliability: "可靠性",
+    strategy_quality: "策略质量",
+    strategy: "策略质量",
+    upgrade_delta: "升级效果",
+    upgrade_effect: "升级效果",
+    first_lap_gain: "起步首圈",
+    launch_performance: "起步表现",
+    wet_probability: "湿地概率",
+    safety_car_probability: "安全车概率"
+  };
+  return labels[String(factor)] || metricLabel(factor);
+}
+
+function directionLabel(direction) {
+  const labels = {
+    positive: "正向",
+    negative: "负向",
+    neutral: "中性"
+  };
+  return labels[String(direction)] || String(direction || "方向未知");
+}
+
+function bucketLabel(bucket) {
+  const labels = {
+    strong_positive: "明显偏强",
+    positive: "偏强",
+    slight_positive: "略强",
+    neutral: "中性",
+    slight_negative: "略弱",
+    negative: "偏弱",
+    strong_negative: "明显偏弱"
+  };
+  return labels[String(bucket)] || magnitudeLabel(bucket);
+}
+
+function magnitudeLabel(bucket) {
+  const labels = {
+    large: "大幅",
+    medium: "中等",
+    small: "小幅",
+    very_small: "很小",
+    tiny: "很小",
+    none: "无明显变化",
+    high: "高",
+    moderate: "中等",
+    low: "低",
+    not_isolated_yet: "尚未单条重跑"
+  };
+  return labels[String(bucket)] || String(bucket || "幅度未知");
+}
+
+function featureMagnitudeBucket(row) {
+  const value = Math.abs(Number(row?.value || 0) * Number(row?.confidence || 0));
+  if (value >= 0.12) {
+    return "large";
+  }
+  if (value >= 0.06) {
+    return "medium";
+  }
+  if (value >= 0.02) {
+    return "small";
+  }
+  if (value > 0) {
+    return "very_small";
+  }
+  return "none";
+}
+
+function isSeedClaim(row) {
+  return String(row?.source_url || "").startsWith("seed://");
+}
+
+function qualityStatusLabel(status) {
+  const labels = {
+    strong: "来源强，可正常更新",
+    usable_diagnostic: "诊断可用",
+    weak_diagnostic: "弱诊断",
+    review_required: "需要复核",
+    medium: "诊断可用"
+  };
+  return labels[String(status)] || String(status || "质量未知");
+}
+
+function impactLevelLabel(level) {
+  const labels = {
+    material: "影响较大",
+    moderate: "中等影响",
+    small: "小影响",
+    none: "未观察到影响",
+    not_modeled: "尚未建模"
+  };
+  return labels[String(level)] || magnitudeLabel(level);
+}
+
+function sourceStatusLabel(status) {
+  const labels = {
+    within_cutoff: "在知识截止前可用",
+    source_log_missing: "缺少来源日志，不能作为正式证据",
+    unknown_published_at: "发布时间不清，需要复核",
+    source_after_cutoff: "来源晚于知识截止，已阻断",
+    claim_after_cutoff: "声明晚于知识截止，已阻断",
+    snapshot_after_cutoff: "快照晚于知识截止，只能诊断"
+  };
+  return labels[String(status)] || String(status || "来源时效未知");
+}
+
+function triangulationLabel(status) {
+  const labels = {
+    corroborated_independent_sources: "多个独立来源互相支持",
+    limited_corroboration: "佐证有限",
+    same_source_repetition: "同源重复，不能当作独立佐证",
+    single_source: "单一来源，需要谨慎",
+    single_source_claim: "单一来源，需要谨慎",
+    seed_or_test_only: "仅 seed/test 场景，不能作为正式证据",
+    unlinked_source: "来源未正确链接到 claim"
+  };
+  return labels[String(status)] || String(status || "佐证状态未知");
+}
+
+function conflictLabel(status) {
+  const labels = {
+    no_conflict: "未发现相反声明",
+    limited_conflict: "存在轻微冲突",
+    material_conflict: "存在重要冲突，需要复核",
+    seed_or_test_conflict: "冲突只来自 seed/test 场景"
+  };
+  return labels[String(status)] || String(status || "冲突状态未知");
+}
+
+function reliabilityBand(value) {
+  const score = Number(value);
+  if (!Number.isFinite(score)) {
+    return "未记录";
+  }
+  if (score >= 0.82) {
+    return "高";
+  }
+  if (score >= 0.65) {
+    return "中";
+  }
+  if (score > 0) {
+    return "低";
+  }
+  return "未记录";
+}
+
+function relevanceBand(value) {
+  const score = Number(value);
+  if (!Number.isFinite(score)) {
+    return "未记录";
+  }
+  if (score >= 0.78) {
+    return "高度相关";
+  }
+  if (score >= 0.55) {
+    return "相关";
+  }
+  if (score > 0) {
+    return "弱相关";
+  }
+  return "未记录";
+}
+
+function permissionLabel(permission) {
+  const labels = {
+    blocked: "不允许更新",
+    weak_update: "弱更新",
+    normal_update: "正常更新",
+    strong_update: "强更新"
+  };
+  return labels[String(permission)] || String(permission || "权限未知");
+}
+
+function reasonLabel(reason) {
+  const labels = {
+    source_backed_timing_data: "计时数据来源",
+    specific_event_observation: "本场观测",
+    structured_recent_results: "近期结构化成绩",
+    source_backed_points_or_classification: "积分/排名来源",
+    recent_window_structured_feature: "近期窗口特征",
+    low_confidence_context_feature: "低置信背景特征",
+    unscored_codex_claim: "待质量评分",
+    claim_requires_review: "声明需要复核",
+    single_source_claim: "单一来源",
+    seed_scenario_source: "种子场景来源，已阻断入模",
+    source_log_missing: "缺少来源日志",
+    seed_only_triangulation: "仅 seed/test 佐证",
+    claim_not_linked_to_source_record: "声明未链接到来源记录",
+    claim_after_cutoff: "声明晚于知识截止",
+    source_after_cutoff: "来源晚于知识截止",
+    snapshot_after_cutoff: "快照晚于知识截止"
+  };
+  return labels[String(reason)] || String(reason || "质量理由");
+}
+
+function surfaceLabel(surface) {
+  const labels = {
+    race_pace_score: "正赛速度",
+    qualifying_grid_sampler: "排位/发车位",
+    stint_degradation: "轮胎衰退",
+    strategy_plan: "策略计划",
+    pit_strategy: "进站策略",
+    safety_car_window: "安全车窗口",
+    dnf_sampler: "退赛采样",
+    wet_race_branch: "湿地分支"
+  };
+  return labels[String(surface)] || String(surface || "模型表面");
+}
+
+function predictionDeltaText(row) {
+  const driver = driverNames[row.driver_id] || row.driver_id || "车手";
+  const delta = Number(row.expected_points_delta);
+  const direction = delta > 0.03 ? "完整预测更高" : delta < -0.03 ? "完整预测更低" : "接近不变";
+  return `${driver} ${direction} ${pointsDeltaBucket(delta)}`;
+}
+
+function rankDeltaText(row) {
+  const driver = driverNames[row.driver_id] || row.driver_id || "车手";
+  const delta = Number(row.expected_rank_delta);
+  if (!Number.isFinite(delta) || delta === 0) {
+    return `${driver} 排名接近不变`;
+  }
+  return `${driver} ${delta < 0 ? "排名改善" : "排名下降"} ${Math.abs(delta)} 位`;
+}
+
+function pointsDeltaBucket(delta) {
+  const value = Math.abs(Number(delta) || 0);
+  if (value >= 2) {
+    return "大幅";
+  }
+  if (value >= 0.6) {
+    return "中等";
+  }
+  if (value >= 0.1) {
+    return "小幅";
+  }
+  return "很小";
+}
+
+function shortHash(value) {
+  if (!value) {
+    return "n/a";
+  }
+  const text = String(value);
+  return text.length > 18 ? `${text.slice(0, 15)}...` : text;
 }
 
 function pct(value) {

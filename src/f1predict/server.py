@@ -68,8 +68,14 @@ class AppHandler(BaseHTTPRequestHandler):
             event_id = query.get("event_id", ["british_gp"])[0]
             cutoff = query.get("knowledge_cutoff", [None])[0]
             iterations = int(query.get("iterations", ["1200"])[0])
+            isolated_impact_limit = int(query.get("isolated_impact_limit", ["12"])[0])
             try:
-                packet = PredictionPacketBuilder(PredictionPipeline(iterations=iterations)).build(
+                packet = PredictionPacketBuilder(
+                    PredictionPipeline(
+                        iterations=iterations,
+                        isolated_impact_limit=isolated_impact_limit,
+                    )
+                ).build(
                     event_id,
                     knowledge_cutoff=cutoff,
                     iterations=iterations,

@@ -1862,7 +1862,7 @@ def _quality_reason_label(reason: Any) -> str:
         "recent_window_structured_feature": "近期窗口结构化特征",
         "low_confidence_context_feature": "低置信度背景特征",
         "unscored_codex_claim": "Codex 证据尚未完整质量评分",
-        "seed_scenario_source": "种子场景来源，不能强更新",
+        "seed_scenario_source": "种子场景来源，不能更新预测",
         "source_log_missing": "缺少来源日志，需要复核",
     }
     return labels.get(str(reason), _identifier_to_zh(str(reason)))

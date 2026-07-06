@@ -772,15 +772,17 @@ class BeliefStateBuilder:
             permission = "normal_update"
         elif quality.quality_status in {"weak_diagnostic", "review_required"}:
             permission = "weak_update"
-        if "seed_scenario_source" in quality.risk_flags or "source_log_missing" in quality.risk_flags:
+        if "seed_scenario_source" in quality.risk_flags:
+            permission = "blocked"
+        elif "source_log_missing" in quality.risk_flags:
             permission = "weak_update"
         if claim.review_required:
-            permission = "weak_update"
+            permission = "weak_update" if permission != "blocked" else permission
         update_strength = clamp(
             quality.model_input_weight
             * max(0.15, quality.evidence_strength)
             * max(0.15, 1.0 - claim.uncertainty),
-            0.02,
+            0.0,
             0.92,
         )
         return {

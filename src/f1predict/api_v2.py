@@ -180,6 +180,7 @@ class BackendApiV2:
         event_id = str(body.get("event_id") or _first(query, "event_id", "british_gp"))
         cutoff = body.get("knowledge_cutoff") or _first(query, "knowledge_cutoff", None)
         iterations = int(body.get("iterations") or _first(query, "iterations", "1200"))
+        isolated_impact_limit = int(body.get("isolated_impact_limit") or _first(query, "isolated_impact_limit", "12"))
         output_dir = Path(body.get("output_dir") or self._default_prediction_packet_output_dir(event_id))
         register = bool(body.get("register", True))
         write_intake = bool(body.get("write_information_intake", True))
@@ -197,7 +198,13 @@ class BackendApiV2:
         if write_intake:
             intake_record, intake_path = self.intake_store.build_and_write(event_id, knowledge_cutoff=cutoff)
 
-        builder = PredictionPacketBuilder(PredictionPipeline(iterations=iterations), reports_root=self.root / "reports")
+        builder = PredictionPacketBuilder(
+            PredictionPipeline(
+                iterations=iterations,
+                isolated_impact_limit=isolated_impact_limit,
+            ),
+            reports_root=self.root / "reports",
+        )
         packet_paths = builder.write(
             event_id,
             knowledge_cutoff=cutoff,
@@ -208,6 +215,7 @@ class BackendApiV2:
             "event_id": event_id,
             "knowledge_cutoff": cutoff,
             "iterations": iterations,
+            "isolated_impact_limit": isolated_impact_limit,
             "prediction_packet_paths": {
                 key: str(_relative_to_root(path, self.root))
                 for key, path in packet_paths.items()

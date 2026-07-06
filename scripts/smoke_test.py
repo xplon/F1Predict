@@ -576,8 +576,8 @@ def main() -> None:
         "seed_only_triangulation" in quality_by_claim["seed-british-001"].risk_flags
     ), "seed-only evidence should be flagged before formal edge use"
     assert (
-        0 < quality_by_claim["seed-british-001"].model_input_weight < 1
-    ), "seed-only Codex evidence should be downweighted before entering the simulator"
+        quality_by_claim["seed-british-001"].model_input_weight == 0.0
+    ), "seed-only Codex evidence should be audited but blocked from default model input"
     assert (
         report.ai_judgement["evidence_quality_count"] == len(report.evidence_quality)
     ), "AI judgement should summarize evidence quality rows"

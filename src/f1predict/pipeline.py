@@ -559,9 +559,11 @@ class PredictionPipeline:
         if conflicted:
             risk_notes.append(f"{conflicted} Codex evidence rows have opposing normalized claim directions.")
         if model_input_weights:
+            blocked_inputs = sum(1 for weight in model_input_weights if weight <= 0.0)
+            active_inputs = len(model_input_weights) - blocked_inputs
             risk_notes.append(
-                "Codex evidence entered the simulator with source-quality weights "
-                f"ranging {min(model_input_weights):.2f}-{max(model_input_weights):.2f}."
+                "Codex evidence passed through source-quality gating before model input; "
+                f"{blocked_inputs} claim(s) were blocked and {active_inputs} claim(s) remained diagnostic inputs."
             )
         if not evidence:
             risk_notes.append("No Codex evidence available for this event; prediction is structure-only.")
@@ -585,10 +587,18 @@ class PredictionPipeline:
             risk_notes.append("Knowledge cutoff enforced for replay.")
         if evidence_impact:
             largest = max(evidence_impact, key=lambda row: abs(row.max_win_probability_delta))
+            magnitude = abs(largest.max_win_probability_delta)
+            if magnitude >= 0.03:
+                movement = "large"
+            elif magnitude >= 0.01:
+                movement = "medium"
+            elif magnitude > 0:
+                movement = "small"
+            else:
+                movement = "none"
             risk_notes.append(
                 "Largest Codex sensitivity: "
-                f"{largest.claim_id} moved target-scope win probability by "
-                f"{largest.max_win_probability_delta:+.3f}."
+                f"{largest.claim_id} has {movement} same-seed target-scope movement."
             )
         factor_route_counts: dict[str, int] = {}
         for row in factor_trace:

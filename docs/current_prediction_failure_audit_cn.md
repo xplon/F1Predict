@@ -23,6 +23,13 @@ scripts/source_driven_contract_test.py
 
 它扫描预测更新核心文件，阻止车队/车手 id 级硬编码进入 `BeliefState`、`PaceModel`、`PredictionPipeline` 和模拟器。这个检查不能证明模型已经公平，但能阻止最危险的手动补丁路径。
 
+2026-07-06 追加修正：
+
+- `seed://codex/...` 这类 seed 场景包不是外部事实来源，不能再被当作正式预测依据；
+- seed 场景包可以留在证据审计里，用来提示“这里曾经有一个待替换的开发假设”，但默认模型输入权重为 `0`；
+- `BeliefState` 状态更新引擎会把 `seed_scenario_source` 的更新权限设为 `blocked`，因此它不会改变车队、车手、事件风险或模拟参数；
+- 用户举例只能触发信息源和模型链路审计，不能被改写成 seed 场景包再进入预测。
+
 ## 2. 已修正：解释层不能再把内部裸分数当原因
 
 旧问题：
@@ -76,23 +83,24 @@ scripts/explainability_smoke_test.py
 最新诊断预测包：
 
 ```text
-reports/prediction_packets/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+reports/prediction_packets_v2/british_gp/2026-07-06T06_37_58_00_00/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
 ```
 
 注册 run：
 
 ```text
-reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260706T054134_0000_b3062a6f70.prediction_run.json
+reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260706T063838_0000_22806fdba8.prediction_run.json
 ```
 
 本次预测状态：
 
 ```text
-belief_state_id = british_gp_7cc88d5b1b_dc9778fdc5
-state_update_count = 471
+belief_state_id = british_gp_7cc88d5b1b_a2a7054bec
+state_update_count = 467
 prediction_impact_trace_count = 23
 isolated_prediction_impact_count = 12
 status = diagnostic_only
+blocker_codes = codex_evidence_quality_review_required, probability_calibration_diagnostic_only
 ```
 
 按平均完赛名次排序的诊断结果：
@@ -122,7 +130,13 @@ status = diagnostic_only
 22 Perez
 ```
 
-这比旧版本更合理的地方是：Aston Martin 和 Cadillac 已回到底部区间，Mercedes/Ferrari/McLaren/Red Bull 大致进入前部竞争区间。这里的变化不是按用户例子手调，而是现有来源化结构化输入通过通用 `BeliefState` 机制重新进入模型。
+这比旧版本更合理的地方是：Aston Martin 和 Cadillac 已回到底部区间，Mercedes/Ferrari/McLaren/Red Bull 大致进入前部竞争区间。这里不能再笼统说“新的 seed 研究包让排名更合理”。更准确的说法是：
+
+- 如果某个变化来自 FastF1、官方积分榜、同场排位、近几站结果、天气 API 或已归档 source log，它可以作为诊断级预测依据；
+- 如果某个变化只来自 `seed://codex/...`，它只能作为开发链路测试，不能算有效预测进步；
+- 本次修正后，`seed-british-*` 的模型输入权重为 `0`，并且不再产生状态更新账本行。
+
+本次新旧 run diff 显示：修正 seed 输入门控后，概率指纹发生变化，但 22 名车手的 expected rank 没有变化；最大变化只在小幅概率/期望积分层面。这说明这次改动的主要意义不是“按用户观点重新排队”，而是堵住 seed 场景包继续影响预测的路径。
 
 示例来源：
 

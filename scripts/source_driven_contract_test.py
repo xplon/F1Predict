@@ -2,8 +2,10 @@
 
 This is a lightweight contract test for the project principle that user
 examples are bug reports, not labels. Prediction-update code may use sourced
-features, standings, timing data, and seed records, but it must not contain
-driver/team-specific branches that force a desired ranking.
+features, standings, timing data, and archived source-backed evidence, but it
+must not contain driver/team-specific branches that force a desired ranking.
+Seed records may exist as plumbing fixtures, but they must be flagged as
+diagnostic and must not be treated as production evidence.
 """
 
 from __future__ import annotations

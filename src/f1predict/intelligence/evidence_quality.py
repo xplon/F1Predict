@@ -561,12 +561,14 @@ class EvidenceQualityScorer:
     ) -> float:
         if "claim_after_cutoff" in flags or "source_after_cutoff" in flags:
             return 0.0
+        if "seed_scenario_source" in flags:
+            return 0.0
         weight = _clamp(0.18 + quality_score)
         if "snapshot_after_cutoff" in flags:
             weight = min(weight, 0.55)
         if "claim_requires_review" in flags:
             weight = min(weight, 0.72)
-        if "seed_scenario_source" in flags or "seed_only_triangulation" in flags:
+        if "seed_only_triangulation" in flags:
             weight = min(weight, 0.62)
         if conflict.status != "no_conflict":
             weight = min(weight, conflict.score)
