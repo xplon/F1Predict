@@ -175,6 +175,18 @@ def _assert_registration_gate_contract() -> None:
         _write_packet(base_path, base)
         base_record = registry.register_packet(base_path)
 
+        presentation_only = deepcopy(base)
+        presentation_only["generated_at"] = "2026-07-01T00:30:00+00:00"
+        presentation_only["probability_summary"]["top_win_probabilities"][0]["expected_rank"] = 1
+        presentation_only["prediction"]["race_probabilities"][0]["expected_rank"] = 1
+        presentation_gate = registry.assess_registration_gate(presentation_only, base_record=base_record)
+        if (
+            not presentation_gate.allow_registration
+            or presentation_gate.status != "no_race_prediction_change"
+            or presentation_gate.race_probability_changed
+        ):
+            raise AssertionError("Presentation-only expected-rank fields must not count as race prediction changes")
+
         model_only = deepcopy(base)
         model_only["generated_at"] = "2026-07-01T01:00:00+00:00"
         model_only["probability_summary"]["top_win_probabilities"][0]["win"] = 0.5

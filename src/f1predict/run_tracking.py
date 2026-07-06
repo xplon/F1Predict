@@ -65,6 +65,62 @@ def _round(value: Any, digits: int = 6) -> float:
     return round(_as_float(value), digits)
 
 
+def _normalized_race_probability_rows(rows: Any) -> list[dict[str, Any]]:
+    if not isinstance(rows, list):
+        return []
+    output: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict) or not row.get("driver_id"):
+            continue
+        output.append(
+            {
+                "driver_id": str(row.get("driver_id")),
+                "win": _round(row.get("win")),
+                "podium": _round(row.get("podium")),
+                "points": _round(row.get("points")),
+                "expected_points": _round(row.get("expected_points")),
+                "average_finish": _round(row.get("average_finish")),
+            }
+        )
+    return sorted(output, key=lambda item: item["driver_id"])
+
+
+def _normalized_probability_summary(packet: dict[str, Any]) -> dict[str, Any]:
+    summary = packet.get("probability_summary") if isinstance(packet.get("probability_summary"), dict) else {}
+    normalized = dict(summary)
+    normalized["top_win_probabilities"] = _normalized_race_probability_rows(summary.get("top_win_probabilities"))
+    if "probability_mass_top8" in normalized:
+        normalized["probability_mass_top8"] = _round(normalized.get("probability_mass_top8"))
+    return normalized
+
+
+def _normalized_market_edge_rows(rows: Any) -> list[dict[str, Any]]:
+    if not isinstance(rows, list):
+        return []
+    output: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        output.append(
+            {
+                "market_id": str(row.get("market_id") or ""),
+                "market_type": str(row.get("market_type") or ""),
+                "outcome_id": str(row.get("outcome_id") or ""),
+                "model_probability": _round(row.get("model_probability")),
+                "market_probability": _round(row.get("market_probability")),
+                "edge_before_cost": _round(row.get("edge_before_cost")),
+                "estimated_cost": _round(row.get("estimated_cost")),
+                "edge_after_cost": _round(row.get("edge_after_cost")),
+                "conservative_model_probability": _round(row.get("conservative_model_probability")),
+                "conservative_edge_after_cost": _round(row.get("conservative_edge_after_cost")),
+                "calibration_adjustment": _round(row.get("calibration_adjustment")),
+                "recommendation": str(row.get("recommendation") or ""),
+                "risk_flags": sorted(str(flag) for flag in row.get("risk_flags") or []),
+            }
+        )
+    return sorted(output, key=lambda item: (item["market_id"], item["outcome_id"]))
+
+
 @dataclass(frozen=True)
 class PredictionRunRecord:
     run_id: str
@@ -557,19 +613,24 @@ class PredictionRunRegistry:
         prediction = packet.get("prediction") if isinstance(packet.get("prediction"), dict) else {}
         return _canonical_hash(
             {
-                "probability_summary": packet.get("probability_summary"),
-                "race_probabilities": prediction.get("race_probabilities"),
-                "market_edges": prediction.get("market_edges"),
+                "probability_summary": _normalized_probability_summary(packet),
+                "race_probabilities": _normalized_race_probability_rows(prediction.get("race_probabilities")),
+                "market_edges": _normalized_market_edge_rows(prediction.get("market_edges")),
                 "prediction_impact_trace": prediction.get("prediction_impact_trace"),
             }
         )
+
     @staticmethod
     def _race_probability_fingerprint(packet: dict[str, Any]) -> str:
         prediction = packet.get("prediction") if isinstance(packet.get("prediction"), dict) else {}
+        race_rows = _normalized_race_probability_rows(prediction.get("race_probabilities"))
+        if not race_rows:
+            race_rows = _normalized_race_probability_rows(
+                (packet.get("probability_summary") or {}).get("top_win_probabilities")
+            )
         return _canonical_hash(
             {
-                "probability_summary": packet.get("probability_summary"),
-                "race_probabilities": prediction.get("race_probabilities"),
+                "race_probabilities": race_rows,
             }
         )
 
