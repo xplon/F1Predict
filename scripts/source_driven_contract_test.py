@@ -107,7 +107,28 @@ def _packet(*, generated_at: str, update_fingerprint: str, win: float, expected_
                     "review_required": False,
                 }
             ],
-            "feature_adjustments": [],
+            "feature_adjustments": [
+                {
+                    "feature_id": "contract-feature-001",
+                    "source": "contract structured timing source",
+                    "observed_at": "2026-06-30T00:00:00+00:00",
+                    "target_type": "driver",
+                    "target_id": "driver_a",
+                    "metric": "race_pace",
+                    "value": 0.02,
+                    "explanation": "First structured feature row from the same raw source.",
+                },
+                {
+                    "feature_id": "contract-feature-002",
+                    "source": "contract structured timing source",
+                    "observed_at": "2026-06-30T00:00:00+00:00",
+                    "target_type": "driver",
+                    "target_id": "driver_a",
+                    "metric": "reliability",
+                    "value": 0.01,
+                    "explanation": "Second structured feature row from the same raw source.",
+                },
+            ],
             "belief_state": {
                 "state_id": f"contract_state_{update_fingerprint}",
                 "update_fingerprint": update_fingerprint,
@@ -171,6 +192,27 @@ def _assert_registration_gate_contract() -> None:
             or "state_mapping_revision_proof_required" not in state_only_blocked.blocker_codes
         ):
             raise AssertionError("State-mapping changes without new source identity must require model-revision proof")
+
+        feature_multiplicity_change = deepcopy(base)
+        feature_multiplicity_change["generated_at"] = "2026-07-01T01:30:00+00:00"
+        feature_multiplicity_change["probability_summary"]["top_win_probabilities"][0]["win"] = 0.42
+        feature_multiplicity_change["probability_summary"]["top_win_probabilities"][0]["expected_points"] = 9.0
+        feature_multiplicity_change["prediction"]["race_probabilities"][0]["win"] = 0.42
+        feature_multiplicity_change["prediction"]["race_probabilities"][0]["expected_points"] = 9.0
+        feature_multiplicity_change["prediction"]["belief_state"]["state_id"] = "contract_state_update-c"
+        feature_multiplicity_change["prediction"]["belief_state"]["update_fingerprint"] = "update-c"
+        feature_multiplicity_change["prediction"]["feature_adjustments"] = feature_multiplicity_change["prediction"][
+            "feature_adjustments"
+        ][:1]
+        multiplicity_blocked = registry.assess_registration_gate(feature_multiplicity_change, base_record=base_record)
+        if (
+            multiplicity_blocked.allow_registration
+            or multiplicity_blocked.source_identity_changed
+            or "state_mapping_revision_proof_required" not in multiplicity_blocked.blocker_codes
+        ):
+            raise AssertionError(
+                "Changing feature-row multiplicity from the same raw source must require model-revision proof"
+            )
 
         new_source_state = deepcopy(source_state)
         new_source_state["prediction"]["evidence"][0]["claim_id"] = "contract-source-002"

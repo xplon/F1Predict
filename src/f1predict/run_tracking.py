@@ -23,6 +23,18 @@ def _canonical_hash(payload: Any) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _unique_dicts(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    seen: set[str] = set()
+    output: list[dict[str, Any]] = []
+    for row in rows:
+        key = json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        if key in seen:
+            continue
+        seen.add(key)
+        output.append(row)
+    return output
+
+
 def _read_json(path: Path | str) -> dict[str, Any]:
     payload = json.loads(Path(path).read_text(encoding="utf-8-sig"))
     if not isinstance(payload, dict):
@@ -333,7 +345,7 @@ class PredictionRunRegistry:
                 summary_zh="正赛排名/概率没有变化；允许注册，但这不是预测效果改进。",
             )
 
-        if evidence_changed or source_identity_changed:
+        if source_identity_changed:
             return PredictionRunRegistrationGate(
                 status="source_identity_driven_prediction_change",
                 allow_registration=True,
@@ -347,7 +359,7 @@ class PredictionRunRegistry:
                 belief_state_update_changed=belief_state_update_changed,
                 source_identity_changed=source_identity_changed,
                 model_revision_proof_path=str(model_revision_proof_path) if model_revision_proof_path else None,
-                summary_zh="预测变化伴随新证据或新原始来源身份；可以注册为来源驱动的诊断 run。",
+                summary_zh="预测变化伴随新原始来源身份；可以注册为来源驱动的诊断 run。",
             )
 
         proof_path = Path(model_revision_proof_path) if model_revision_proof_path else None
@@ -373,7 +385,7 @@ class PredictionRunRegistry:
             )
 
         blockers = ["non_source_driven_prediction_change"]
-        if belief_state_update_changed and not source_identity_changed and not evidence_changed:
+        if belief_state_update_changed and not source_identity_changed:
             blockers.append("state_mapping_revision_proof_required")
         if allow_model_revision_registration and not proof_exists:
             blockers.append("model_revision_proof_missing")
@@ -500,7 +512,6 @@ class PredictionRunRegistry:
                 continue
             evidence_sources.append(
                 {
-                    "claim_id": row.get("claim_id"),
                     "source": row.get("source"),
                     "source_url": row.get("source_url"),
                     "published_at": row.get("published_at"),
@@ -519,20 +530,24 @@ class PredictionRunRegistry:
             )
         return _canonical_hash(
             {
-                "evidence_sources": sorted(
-                    evidence_sources,
-                    key=lambda item: (
-                        str(item.get("source_url") or ""),
-                        str(item.get("claim_id") or ""),
-                        str(item.get("observed_at") or ""),
-                    ),
+                "evidence_sources": _unique_dicts(
+                    sorted(
+                        evidence_sources,
+                        key=lambda item: (
+                            str(item.get("source_url") or ""),
+                            str(item.get("source") or ""),
+                            str(item.get("observed_at") or ""),
+                        ),
+                    )
                 ),
-                "feature_sources": sorted(
-                    feature_sources,
-                    key=lambda item: (
-                        str(item.get("source") or ""),
-                        str(item.get("observed_at") or ""),
-                    ),
+                "feature_sources": _unique_dicts(
+                    sorted(
+                        feature_sources,
+                        key=lambda item: (
+                            str(item.get("source") or ""),
+                            str(item.get("observed_at") or ""),
+                        ),
+                    )
                 ),
             }
         )
@@ -548,7 +563,6 @@ class PredictionRunRegistry:
                 "prediction_impact_trace": prediction.get("prediction_impact_trace"),
             }
         )
-
     @staticmethod
     def _race_probability_fingerprint(packet: dict[str, Any]) -> str:
         prediction = packet.get("prediction") if isinstance(packet.get("prediction"), dict) else {}

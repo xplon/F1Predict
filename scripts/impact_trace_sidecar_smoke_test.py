@@ -125,7 +125,12 @@ def main() -> None:
             merged["coverage"]["impact_trace_single_claim_coverage_count"] == 10,
             "Merged chunks should cover ten distinct claims",
         )
-        _assert(merged["coverage"]["impact_trace_uncovered_claim_count"] == 443, "Merged chunks should remain partial")
+        expected_uncovered = merged["coverage"]["impact_trace_claim_count"] - 10
+        _assert(expected_uncovered > 0, "Smoke fixture should still have claims outside the two chunks")
+        _assert(
+            merged["coverage"]["impact_trace_uncovered_claim_count"] == expected_uncovered,
+            "Merged chunks should remain partial",
+        )
         _assert(merged["formal_readiness"]["formal_ready"] is False, "Partial merged chunks are not formal-ready")
 
     latest_readiness = api.handle_get(

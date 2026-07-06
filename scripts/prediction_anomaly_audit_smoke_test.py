@@ -44,7 +44,8 @@ def main() -> None:
     assert audit["coverage"]["state_update_count"] > 0
     assert audit["coverage"]["seed_or_blocked_update_count"] == 0
     assert audit["coverage"]["impact_trace_source"] == "sidecar"
-    assert audit["coverage"]["impact_trace_covered_claim_count"] == 453
+    assert audit["coverage"]["impact_trace_claim_count"] == audit["coverage"]["state_update_count"]
+    assert audit["coverage"]["impact_trace_covered_claim_count"] == audit["coverage"]["impact_trace_claim_count"]
     assert audit["coverage"]["impact_trace_uncovered_claim_count"] == 0
     assert "用户" not in json.dumps(audit, ensure_ascii=False)
     assert "model_input_weight" not in json.dumps(audit, ensure_ascii=False)

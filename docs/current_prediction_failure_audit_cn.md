@@ -4,6 +4,78 @@
 
 这份文档记录 British GP 预测与可解释性模块的真实问题、已经完成的修正、仍未完成的缺口。它不是辩护文档，也不是正式盈利优势证明。当前所有结论仍是诊断级。
 
+## 0. 2026-07-06 14:42 UTC 追加：FastF1 `Lapped` 状态语义修正
+
+这次新生成并注册的预测包不是因为用户说了“某个车队应该更强/更弱”而手动调整数值。用户的反馈只被用作异常审计信号：系统必须去检查信息源、映射逻辑和预测链路哪里错了，不能把用户的一句话当作训练标签或人工强约束。
+
+本次实际改动来源是同一批 FastF1 正赛结果数据的语义映射修正：
+
+```text
+FastF1/F1 result Status = Lapped
+含义：已分类完赛但被套圈
+旧逻辑误判：non-finished / DNF
+新逻辑：finished/classified
+```
+
+旧逻辑只把 `Finished` 和部分 `+1 Lap` 形式识别为完赛，没有把 `Lapped` 识别为分类完赛。这会把大量“被套圈但完赛”的车手错误计入可靠性惩罚，并污染 grid-to-finish conversion 等基于完赛车手的结构化特征。例如 British GP cutoff 前，Bortoleto 的赛季可靠性解释从旧逻辑的：
+
+```text
+6 non-finished classification(s) across 8 cutoff-valid FastF1 result(s)
+```
+
+修正为：
+
+```text
+1 non-finished classification(s) across 8 cutoff-valid FastF1 result(s)
+```
+
+因此，这次变化属于“模型/数据映射语义修正”，不是“新增外部来源驱动”，更不是“按用户观点调参”。对应证明文件是：
+
+```text
+reports/model_revision_proofs/2026-07-06_fastf1_lapped_status_reliability_cn.md
+```
+
+注册门禁复核结果也按这个原则分类：
+
+```text
+不带模型修订证明：
+status = model_only_prediction_change_blocked
+allow_registration = false
+source_identity_changed = false
+blocker_codes = non_source_driven_prediction_change, state_mapping_revision_proof_required
+
+带模型修订证明：
+status = model_revision_proof_allowed
+allow_registration = true
+warning_codes = model_revision_not_source_state_change
+source_identity_changed = false
+```
+
+也就是说，同一批原始来源因为解释规则改变而影响预测时，系统不能把它说成“新增来源导致预测改变”；必须明确登记为有证明的模型/映射修订。
+
+最新诊断 run：
+
+```text
+run_id = british_gp_20260705T000000_0000_20260706T142235_0000_ab901d489d
+packet = reports/prediction_packets/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+state_update_count = 456
+status = diagnostic_only
+blocker_codes = probability_calibration_diagnostic_only
+```
+
+对应完整影响追踪 sidecar 已生成，覆盖全部来源化更新：
+
+```text
+sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_b9e5e9b73c4a_20260706T144238_0000_4764d14662
+trace_iterations = 1200
+impact_trace_claim_count = 456
+impact_trace_covered_claim_count = 456
+impact_trace_uncovered_claim_count = 0
+formal_status = formal_trace_ready
+```
+
+本次后续还加固了注册门禁：同一原始来源产生的特征行数量变化，不再被误判为“新来源身份变化”。这避免了“同一份数据被重新解析后，系统却声称来源变了”的错误，也直接防止把用户反馈包装成来源驱动预测变化。
+
 ## 1. 不能按用户举例手调结果
 
 用户指出 Mercedes、Ferrari、Red Bull、Aston Martin、Cadillac、Racing Bulls、Audi、Leclerc、Hamilton、Alonso 等例子时，含义是暴露模型错误，而不是给模型贴标签。

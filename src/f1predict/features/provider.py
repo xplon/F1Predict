@@ -2046,8 +2046,12 @@ class ProcessedFeatureProvider:
 
     @staticmethod
     def _finished_status(status: str) -> bool:
-        value = status.strip().lower()
-        return value in {"finished", "+1 lap", "+2 laps", "+3 laps", "+4 laps", "+5 laps"}
+        value = " ".join(status.strip().lower().replace("+", "+ ").split())
+        if value in {"finished", "lapped", "classified"}:
+            return True
+        if value.startswith("+ ") and "lap" in value:
+            return True
+        return False
 
     @staticmethod
     def _completed_events_before_cutoff(season: SeasonState, cutoff) -> int:
