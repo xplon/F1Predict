@@ -623,6 +623,7 @@ sidecar 必须记录：
 - 迭代数是否与源 run 匹配；
 - 覆盖了多少 claim / state update；
 - 每条 trace 的来源 claim、影响的状态因子、受影响车手、预测分布变化和解释文本。
+- `formal_readiness`：明确它是否已经满足“同源 run 迭代数 + 全覆盖”的正式解释条件。
 
 分页返回时，每条 trace 还必须尽量生成一条面向人的中文链路：
 
@@ -635,6 +636,8 @@ sidecar 必须记录：
 这解决的是可追溯性问题，不是预测质量问题。只有当 sidecar 使用与源 run 相同的输入、知识截止、随机种子策略和迭代数时，才能把某条 trace 作为更强的影响解释。低迭代 sidecar 只能叫诊断，不能叫正式 ablation 或正式效果证明。
 
 异常审计也必须 sidecar-aware：如果主 prediction packet 只内嵌 top-N trace，但同一个 `run_id` 已有完整 sidecar，前端/API 的异常审计应该使用 sidecar 覆盖证据，而不是继续把“主包内嵌 trace 少”报告成解释链缺失。历史 packet 文件仍保持不可变；API 可以运行时刷新审计视图，但不能借此改变预测概率或排名。
+
+前端/API 必须把 `formal_readiness.formal_ready = false` 的 sidecar 明确展示为诊断解释。即使它已经覆盖 453/453 条更新，只要 `trace_iterations != source_iterations`，就不能写成“正式同口径解释已完成”。这条规则用于防止把快跑 smoke 结果包装成正式证据。
 
 用户指出“某个车队不合理”时，正确动作仍然是：
 

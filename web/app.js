@@ -656,6 +656,7 @@ function renderPredictionPacket() {
   const codex = packet.codex_context || {};
   const sidecar = state.impactTraceSidecar || {};
   const sidecarCoverage = sidecar.coverage || {};
+  const formalTrace = sidecar.formal_readiness || {};
   const intake = codex.intake || {};
   const cache = packet.cache_context || {};
   const blockers = packet.blocker_codes || [];
@@ -677,6 +678,7 @@ function renderPredictionPacket() {
       <div><span>单条重跑</span><strong>${codex.isolated_prediction_impact_count || 0}</strong></div>
       <div><span>完整追踪缓存</span><strong>${sidecar.trace_count ? `${sidecarCoverage.impact_trace_covered_claim_count || 0}/${sidecarCoverage.impact_trace_claim_count || 0}` : "未生成"}</strong></div>
       <div><span>追踪口径</span><strong>${escapeHtml(sidecar.trace_generation?.comparison_status || "missing")}</strong></div>
+      <div><span>正式解释</span><strong>${escapeHtml(formalTrace.formal_ready ? "已就绪" : formalTrace.status || "未就绪")}</strong></div>
       <div><span>原始来源</span><strong>${packet.prediction?.belief_state?.raw_sources?.length || 0}</strong></div>
       <div><span>异常审计</span><strong>${packet.prediction_anomaly_audit?.anomaly_count || 0}</strong></div>
       <div><span>市场快照</span><strong>${market.usable_snapshot_count || 0}</strong></div>
@@ -1937,15 +1939,19 @@ function renderEvidenceImpact(report) {
   const rows = traces.slice().sort((a, b) => tracePriority(b) - tracePriority(a));
   const coverage = sidecar?.coverage || {};
   const page = sidecar?.pagination || {};
+  const formalTrace = sidecar?.formal_readiness || {};
   const sidecarSummary = sidecar
     ? `
       <article class="impact-card">
         <div>
           <h3>完整影响追踪缓存</h3>
           <span class="pill">${escapeHtml(sidecar.trace_generation?.comparison_status || "cached")}</span>
+          <span class="pill">${escapeHtml(formalTrace.formal_ready ? "正式解释已就绪" : formalTrace.status || "正式解释未就绪")}</span>
         </div>
         <p>${escapeHtml(sidecar.trace_generation?.status_zh || "已读取缓存 sidecar。")}</p>
+        <p>${escapeHtml(formalTrace.status_zh || "正式解释就绪状态未记录。")}</p>
         <p>覆盖 ${escapeHtml(coverage.impact_trace_covered_claim_count || 0)} / ${escapeHtml(coverage.impact_trace_claim_count || 0)} 条来源化更新；当前页 ${escapeHtml(page.returned_trace_count || rows.length)} / ${escapeHtml(page.filtered_trace_count || rows.length)} 条。</p>
+        <p>${escapeHtml(formalTrace.recommended_action_zh || "")}</p>
       </article>
     `
     : `

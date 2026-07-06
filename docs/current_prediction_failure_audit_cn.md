@@ -477,9 +477,13 @@ state_update_count = 453
 impact_trace_covered_claim_count = 453
 impact_trace_uncovered_claim_count = 0
 trace_generation.comparison_status = diagnostic_iteration_mismatch
+formal_readiness.status = diagnostic_iterations_full_coverage
+formal_readiness.formal_ready = false
 ```
 
 这说明“每条状态更新都能被分页追踪”已经可用；但因为该 sidecar 的隔离重跑迭代数与源 run 不一致，它仍只能用于解释链路和方向审计，不能作为正式概率变化证明。
+
+2026-07-06 追加守门：sidecar 和前端/API 现在会公开 `formal_readiness`。当前状态会显示“trace 已全覆盖，但仍是诊断迭代”，从而避免把 5 次迭代的快跑解释误说成 1200 次源 run 的正式同口径解释。
 
 下一步不再是“把 sidecar 做出来”，而是：
 

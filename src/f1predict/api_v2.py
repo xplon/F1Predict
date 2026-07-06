@@ -136,6 +136,10 @@ class BackendApiV2:
                     status=404,
                 )
             return ApiResponse(payload)
+        if route == "/prediction-impact-traces/readiness":
+            event_id = str(_first(query, "event_id", "british_gp"))
+            run_id = _first(query, "run_id", None)
+            return ApiResponse(self.impact_trace_store.readiness(event_id=event_id, run_id=run_id))
         if route.startswith("/prediction-runs/"):
             run_id = route.removeprefix("/prediction-runs/").strip("/")
             if not run_id:
@@ -479,6 +483,9 @@ class BackendApiV2:
                 },
                 "/api/v2/prediction-impact-traces/latest": {
                     "get": {"summary": "Fetch a cached, paginated full prediction-impact trace sidecar"},
+                },
+                "/api/v2/prediction-impact-traces/readiness": {
+                    "get": {"summary": "Check whether the latest impact-trace sidecar is formal-ready"},
                 },
                 "/api/v2/prediction-runs/{run_id}/impact-traces": {
                     "get": {"summary": "Fetch cached impact traces for one registered run"},

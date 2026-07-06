@@ -119,6 +119,7 @@ class PredictionImpactTraceSidecarStore:
             "trace_count": len(traces),
             "traces": traces,
         }
+        sidecar["formal_readiness"] = _formal_readiness(sidecar)
         return sidecar
 
     def write(self, sidecar: dict[str, Any], output_root: Path | str | None = None) -> Path:
@@ -161,6 +162,13 @@ class PredictionImpactTraceSidecarStore:
             impact_status=impact_status,
             claim_id=claim_id,
         )
+
+    def readiness(self, *, event_id: str = "british_gp", run_id: str | None = None) -> dict[str, Any]:
+        record = self._source_record(event_id, run_id, None)
+        sidecar = self.latest(event_id=record.event_id, run_id=record.run_id)
+        if sidecar is None:
+            return _missing_readiness(record)
+        return _formal_readiness(sidecar)
 
     def _source_record(
         self,
@@ -226,6 +234,7 @@ def page_sidecar(
             "claim_id": claim_id,
         },
     }
+    payload["formal_readiness"] = _formal_readiness(sidecar)
     context = sidecar.get("trace_context") if isinstance(sidecar.get("trace_context"), dict) else {}
     payload["traces"] = [_public_trace_row(row, context) for row in page_rows]
     return payload
@@ -249,6 +258,74 @@ def _coverage(codex_context: dict[str, Any], traces: list[dict[str, Any]]) -> di
         "isolated_source_group_impact_count": int(codex_context.get("isolated_source_group_impact_count") or 0),
         "trace_type_counts": dict(sorted(trace_type_counts.items())),
         "impact_status_counts": dict(sorted(impact_status_counts.items())),
+    }
+
+
+def _formal_readiness(sidecar: dict[str, Any]) -> dict[str, Any]:
+    source_run = sidecar.get("source_run") if isinstance(sidecar.get("source_run"), dict) else {}
+    generation = sidecar.get("trace_generation") if isinstance(sidecar.get("trace_generation"), dict) else {}
+    coverage = sidecar.get("coverage") if isinstance(sidecar.get("coverage"), dict) else {}
+    source_iterations = int(source_run.get("iterations") or 0)
+    trace_iterations = int(generation.get("iterations") or 0)
+    comparison_status = str(generation.get("comparison_status") or "")
+    claim_count = int(coverage.get("impact_trace_claim_count") or 0)
+    covered = int(coverage.get("impact_trace_covered_claim_count") or 0)
+    uncovered = int(coverage.get("impact_trace_uncovered_claim_count") or 0)
+    same_iterations = comparison_status == "matched_source_run_iterations" or (
+        source_iterations > 0 and trace_iterations == source_iterations
+    )
+    full_coverage = claim_count > 0 and uncovered == 0 and covered >= claim_count
+    formal_ready = bool(same_iterations and full_coverage)
+    if formal_ready:
+        status = "formal_trace_ready"
+        status_zh = "完整影响追踪已与源 run 同迭代数匹配，可作为正式同口径解释证据。"
+        action_zh = "可以继续用于逐条来源影响解释；预测质量仍需另做历史回放和校准验证。"
+    elif not full_coverage and same_iterations:
+        status = "formal_iterations_incomplete_coverage"
+        status_zh = "隔离重跑迭代数与源 run 一致，但 trace 覆盖仍不完整。"
+        action_zh = "继续补齐 uncovered claim，直到 covered/uncovered 显示全覆盖。"
+    elif full_coverage:
+        status = "diagnostic_iterations_full_coverage"
+        status_zh = "trace 已覆盖全部来源化更新，但迭代数与源 run 不一致，只能作为诊断解释。"
+        action_zh = "需要按源 run 的迭代数重新生成 sidecar，才可作为正式同口径解释。"
+    else:
+        status = "diagnostic_iterations_incomplete_coverage"
+        status_zh = "trace 既是诊断迭代，也没有覆盖全部来源化更新。"
+        action_zh = "先补齐覆盖，再生成同迭代 sidecar。"
+    return {
+        "status": status,
+        "status_zh": status_zh,
+        "formal_ready": formal_ready,
+        "same_iterations": same_iterations,
+        "full_coverage": full_coverage,
+        "source_run_id": source_run.get("run_id"),
+        "sidecar_id": sidecar.get("sidecar_id"),
+        "source_iterations": source_iterations,
+        "trace_iterations": trace_iterations,
+        "comparison_status": comparison_status or None,
+        "claim_count": claim_count,
+        "covered_claim_count": covered,
+        "uncovered_claim_count": uncovered,
+        "recommended_action_zh": action_zh,
+    }
+
+
+def _missing_readiness(record: PredictionRunRecord) -> dict[str, Any]:
+    return {
+        "status": "missing_sidecar",
+        "status_zh": "尚未生成完整影响追踪 sidecar；当前只能读取主 prediction packet 内嵌的少量 trace。",
+        "formal_ready": False,
+        "same_iterations": False,
+        "full_coverage": False,
+        "source_run_id": record.run_id,
+        "sidecar_id": None,
+        "source_iterations": record.iterations,
+        "trace_iterations": 0,
+        "comparison_status": None,
+        "claim_count": 0,
+        "covered_claim_count": 0,
+        "uncovered_claim_count": 0,
+        "recommended_action_zh": "先生成 full sidecar；如果要正式解释，需要使用与源 run 相同的迭代数。",
     }
 
 

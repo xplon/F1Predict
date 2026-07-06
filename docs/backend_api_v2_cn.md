@@ -390,4 +390,23 @@ claim_id=<可选>
 - `source_to_prediction_chain`：中文解释链，通常按“原始来源 -> 信息分析 -> 状态更新 -> 预测变化”排列；
 - `additional_source_to_prediction_chains`：同一 trace 涉及多个 claim/source 时的补充链路。
 
+响应还包含 `formal_readiness`：
+
+- `formal_ready`：只有 sidecar 与源 run 同迭代数且覆盖全部 claim/update 时才为 `true`；
+- `status`：例如 `formal_trace_ready`、`diagnostic_iterations_full_coverage`、`missing_sidecar`；
+- `recommended_action_zh`：下一步应补覆盖还是重跑同迭代 sidecar。
+
 注意：这些字段解释的是已有 run 的缓存 sidecar。它们不会注册新的预测 run，也不会让前端默认排名改变。
+
+### GET /api/v2/prediction-impact-traces/readiness
+
+用途：只读取 sidecar 正式解释就绪状态，不返回 trace 页面。
+
+参数：
+
+```text
+event_id=british_gp
+run_id=<可选>
+```
+
+它用于前端和审计脚本区分“完整但低迭代诊断 sidecar”和“与源 run 同迭代的正式解释 sidecar”。
