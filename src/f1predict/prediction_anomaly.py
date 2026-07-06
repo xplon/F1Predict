@@ -44,6 +44,8 @@ RECENT_SOURCE_MARKERS = (
     "fastf1_season_form",
     "fastf1-team-strength-reestimate",
     "fastf1_team_strength_reestimate",
+    "fastf1-finish-position-reestimate",
+    "fastf1_finish_position_reestimate",
     "official_standings",
 )
 

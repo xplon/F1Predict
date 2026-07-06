@@ -697,6 +697,8 @@ class BeliefStateBuilder:
             return 2.45
         if "team-strength-reestimate" in source:
             return 3.20
+        if "finish-position-reestimate" in source:
+            return 2.80
         if "official-standings" in source:
             return 2.15
         if "fastf1-session-laps" in source:
@@ -716,7 +718,7 @@ class BeliefStateBuilder:
             permission = "strong_update"
             update_strength = min(0.95, max(0.35, feature.confidence))
             reasons = ("source_backed_timing_data", "specific_event_observation")
-        elif "team-strength-reestimate" in source or "official-standings" in source:
+        elif "team-strength-reestimate" in source or "finish-position-reestimate" in source or "official-standings" in source:
             permission = "strong_update"
             update_strength = min(0.88, max(0.34, feature.confidence))
             reasons = ("structured_recent_results", "source_backed_points_or_classification")

@@ -32,7 +32,8 @@ def main() -> None:
     assert "model_input_weight" not in json.dumps(audit, ensure_ascii=False)
 
     anomalies = audit["anomalies"]
-    assert any(row["code"] == "teammate_order_conflict" for row in anomalies)
+    assert any(row["code"] == "source_backed_negative_not_reflected" for row in anomalies)
+    assert any(row["code"] == "impact_trace_incomplete_for_material_updates" for row in anomalies)
     for row in anomalies:
         assert row["expected_rank_summary_zh"]
         assert row["evidence_summary_zh"]

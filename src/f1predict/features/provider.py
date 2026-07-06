@@ -93,7 +93,12 @@ class ProcessedFeatureProvider:
         by_number = self._driver_by_openf1_number(season)
         adjustments: list[FeatureAdjustment] = []
         observed_at = self._summary_available_at(summary)
+        summary_year = int(summary.get("year") or 0)
+        cross_season_analogue = summary_year != season.season
         for session_name, session in summary.get("sessions", {}).items():
+            if cross_season_analogue:
+                # Cross-season OpenF1 summaries lack historical team context; driver pace would leak old-car performance.
+                continue
             laps = session.get("laps")
             if not laps:
                 continue
@@ -1342,6 +1347,16 @@ class ProcessedFeatureProvider:
                 observed_at,
             )
         )
+        adjustments.extend(
+            self._fastf1_team_finish_position_adjustments(
+                season,
+                event,
+                all_result_rows,
+                recent_result_rows,
+                driver_lookup,
+                observed_at,
+            )
+        )
         return adjustments
 
     def _fastf1_momentum_adjustments(
@@ -1715,6 +1730,97 @@ class ProcessedFeatureProvider:
             for team_id in season.teams:
                 totals[team_id].append(event_totals.get(team_id, 0.0))
         return totals
+
+    def _fastf1_team_finish_position_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        all_result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        recent_result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        driver_lookup: dict[str, str],
+        observed_at: str,
+    ) -> list[FeatureAdjustment]:
+        if len(all_result_rows) < 2:
+            return []
+        all_team_finishes = self._team_event_average_finishes(season, all_result_rows, driver_lookup)
+        recent_team_finishes = self._team_event_average_finishes(season, recent_result_rows, driver_lookup)
+        team_ids = sorted(team_id for team_id, finishes in all_team_finishes.items() if finishes and team_id in season.teams)
+        if not team_ids:
+            return []
+
+        field_all_finish = mean(mean(all_team_finishes[team_id]) for team_id in team_ids)
+        field_recent_finish = mean(
+            mean(recent_team_finishes.get(team_id, all_team_finishes[team_id]))
+            for team_id in team_ids
+        )
+        recent_count = len(recent_result_rows)
+        recent_weight = min(0.48, 0.18 + 0.10 * recent_count) if recent_count >= 2 else 0.0
+        confidence = min(0.58, 0.30 + 0.03 * len(all_result_rows))
+        source = (
+            f"fastf1_finish_position_reestimate:{season.season}:"
+            f"{self._source_span([normalize_event_name(result.event_name) for _, result, _ in all_result_rows])}:"
+            f"{len(all_result_rows)}_races_recent_{recent_count}"
+        )
+        adjustments: list[FeatureAdjustment] = []
+        for team_id in team_ids:
+            all_avg_finish = mean(all_team_finishes[team_id])
+            recent_avg_finish = mean(recent_team_finishes.get(team_id, all_team_finishes[team_id]))
+            season_delta = field_all_finish - all_avg_finish
+            recent_delta = field_recent_finish - recent_avg_finish
+            blended_delta = (1.0 - recent_weight) * season_delta + recent_weight * recent_delta
+            value = round(self._clamp(blended_delta / 8.0 * 0.10, -0.10, 0.10), 4)
+            if not value:
+                continue
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-finish-position-reestimate:{season.season}:{event.event_id}:"
+                        f"{team_id}:race_pace:{len(all_result_rows)}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="race_pace",
+                    value=value,
+                    confidence=confidence,
+                    observed_at=observed_at,
+                    explanation=(
+                        f"Cutoff-valid FastF1 full-field race classifications before {event.name}: "
+                        f"team average finish {all_avg_finish:.2f} vs field {field_all_finish:.2f}; "
+                        f"recent window {recent_avg_finish:.2f} vs field {field_recent_finish:.2f}. "
+                        "Used as a bounded car race-pace reestimate so midfield/backfield ordering is not inferred "
+                        "from points alone."
+                    ),
+                )
+            )
+        return adjustments
+
+    def _team_event_average_finishes(
+        self,
+        season: SeasonState,
+        result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        driver_lookup: dict[str, str],
+    ) -> defaultdict[str, list[float]]:
+        finishes: defaultdict[str, list[float]] = defaultdict(list)
+        for _, result, _ in result_rows:
+            event_finishes: defaultdict[str, list[int]] = defaultdict(list)
+            for row in result.classified:
+                driver_id = self._result_driver_id(row, driver_lookup)
+                if driver_id is None or driver_id not in season.drivers:
+                    continue
+                try:
+                    position = int(row.get("position") or 0)
+                except (TypeError, ValueError):
+                    position = 0
+                if position <= 0:
+                    continue
+                team_id = season.drivers[driver_id].team_id
+                event_finishes[team_id].append(position)
+            for team_id, positions in event_finishes.items():
+                if positions:
+                    finishes[team_id].append(mean(positions))
+        return finishes
 
     def _collect_fastf1_form_inputs(
         self,

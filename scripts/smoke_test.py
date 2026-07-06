@@ -213,6 +213,11 @@ def main() -> None:
     assert report.race_probabilities, "race probabilities should be produced"
     assert report.representative_lap, "representative lap should be produced"
     assert report.simulation_replay, "selected simulation replay should be produced"
+    assert not [
+        feature for feature in report.feature_adjustments
+        if feature.source.startswith("openf1_summary:")
+        and feature.metric in {"race_pace", "qualifying_pace"}
+    ], "cross-season OpenF1 analogue lap ranks must not leak old-car pace into current driver predictions"
     first_lap = report.representative_lap[0]
     assert {
         "position",
@@ -343,6 +348,13 @@ def main() -> None:
         and feature.target_type == "driver"
         and feature.metric == "race_execution"
     ]
+    british_finish_position_strength = {
+        feature.target_id: feature
+        for feature in british_race_morning_features
+        if feature.source.startswith("fastf1_finish_position_reestimate")
+        and feature.target_type == "team"
+        and feature.metric == "race_pace"
+    }
     british_with_qualifying_order = pipeline._event_with_fastf1_qualifying_order(
         season,
         british_event,
@@ -355,6 +367,11 @@ def main() -> None:
         and british_with_qualifying_order.feature_refs["fastf1_qualifying_order"]["driver_positions"][0]["driver_id"]
         == "antonelli"
     ), "British race-morning prediction should include cutoff-valid FP1/Q lap features and known qualifying order"
+    assert (
+        british_finish_position_strength["racing_bulls"].value > 0
+        and british_finish_position_strength["audi"].value > british_finish_position_strength["aston_martin"].value
+        and british_finish_position_strength["cadillac"].value < 0
+    ), "FastF1 full-field finish positions should distinguish midfield/backfield team strength beyond points-only scoring"
     british_track_vector = track_feature_vector(british_event)
     british_track_position_penalty = SingleRaceSimulator(
         season,

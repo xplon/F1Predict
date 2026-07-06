@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-06T07:49:53+00:00",
-  "run_count": 17,
+  "updated_at": "2026-07-06T08:20:18+00:00",
+  "run_count": 18,
   "runs": [
     {
       "run_id": "british_gp_20260630T120000_0000_20260703T143340_0000_aa1826fbf8",
@@ -251,6 +251,23 @@
       "belief_state_update_fingerprint": "e94bcafff3fa853f969ba75c108f009d166e26acf62fa1c98071c265f981a504",
       "model_version": "belief_state_v1",
       "path": "E:\\1.study\\code\\AI_Projects\\F1Predict\\reports\\prediction_runs\\runs\\british_gp\\british_gp_20260705T000000_0000_20260706T074952_0000_841054625f.prediction_run.json"
+    },
+    {
+      "run_id": "british_gp_20260705T000000_0000_20260706T082018_0000_fb34cfc5b2",
+      "event_id": "british_gp",
+      "event_name": "British Grand Prix",
+      "created_at": "2026-07-06T08:20:18+00:00",
+      "generated_at": "2026-07-06T08:20:18+00:00",
+      "knowledge_cutoff": "2026-07-05T00:00:00+00:00",
+      "status": "diagnostic_only",
+      "input_fingerprint": "935dad618746401b07fafdcd18db6fed44a93b1c911a9b059201996bbe278308",
+      "evidence_fingerprint": "0169ce6bcb874276d4d811458459f004a71763fb3376ab566c3160a0964f7bec",
+      "probability_fingerprint": "6c8c91d3a9813dd5f4924ad577ff64eec08f9b729e50e7d71cfb20e9fc11bffa",
+      "information_intake_id": "british_gp_20260705T000000_0000_c6e0a66a08_5952150b7d",
+      "belief_state_id": "british_gp_6b6cbfd62d_142a1a9878",
+      "belief_state_update_fingerprint": "142a1a987869110babb1c537a14cc41ebe04df66fd59bb1fdf6893784c05ea7e",
+      "model_version": "belief_state_v1",
+      "path": "E:\\1.study\\code\\AI_Projects\\F1Predict\\reports\\prediction_runs\\runs\\british_gp\\british_gp_20260705T000000_0000_20260706T082018_0000_fb34cfc5b2.prediction_run.json"
     }
   ]
 }
