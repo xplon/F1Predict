@@ -135,6 +135,44 @@ def main() -> None:
     _assert_traceable_context(zero_public, "Zero podium")
     _assert_no_raw_internal_fields(zero_public, "Zero podium")
 
+    chinese_zero_podium = explainer.answer(
+        "\u4e3a\u4ec0\u4e48\u963f\u9686\u7d22\u5728\u96f6\u9886\u5956\u53f0\u7ec4\u91cc\u8fd9\u4e48\u9760\u524d\uff1f",
+        event_id="british_gp",
+        knowledge_cutoff=KNOWLEDGE_CUTOFF,
+        max_evidence=6,
+    )
+    _assert(
+        chinese_zero_podium.question_type == "group_zero_podium",
+        "Chinese Alonso zero-podium question should route as group explanation",
+    )
+    _assert(
+        "alonso" in chinese_zero_podium.detected_entities["drivers"],
+        "Chinese Alonso alias should be detected",
+    )
+
+    chinese_teammates = explainer.answer(
+        "\u4e3a\u4ec0\u4e48\u52d2\u514b\u83b1\u5c14\u6bd4\u6c49\u5bc6\u5c14\u987f\u4f4e\uff1f",
+        event_id="british_gp",
+        knowledge_cutoff=KNOWLEDGE_CUTOFF,
+        max_evidence=6,
+    )
+    _assert(
+        chinese_teammates.question_type == "driver_comparison",
+        "Chinese Ferrari teammate question should route as comparison",
+    )
+    _assert(
+        {"hamilton", "leclerc"}.issubset(set(chinese_teammates.detected_entities["drivers"])),
+        "Chinese Hamilton/Leclerc aliases should be detected",
+    )
+
+    chinese_team = explainer.answer(
+        "\u6cd5\u62c9\u5229\u73b0\u5728\u4e3a\u4ec0\u4e48\u8fd9\u4e48\u6392\uff1f",
+        event_id="british_gp",
+        knowledge_cutoff=KNOWLEDGE_CUTOFF,
+        max_evidence=6,
+    )
+    _assert("ferrari" in chinese_team.detected_entities["teams"], "Chinese Ferrari alias should be detected")
+
     api = BackendApiV2(ROOT)
     openapi = api.handle_get("/api/v2/openapi.json", {}).payload
     _assert(
