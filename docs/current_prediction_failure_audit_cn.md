@@ -786,3 +786,34 @@ race_probabilities[0:8] by expected_rank =
 ```
 
 这项修正让前端展示更符合用户“预测整场比赛每个车手预计排名”的要求，但它不应被解释为预测质量提升。模型质量仍然是 `diagnostic_only`，还需要历史回放、概率校准和更多来源化赛车/赛道/长距离信息来证明预测本身更可靠。
+
+## 16. 2026-07-06：修正 replay/calibration 的预计排名口径
+
+在展示层修正之后，还发现同一个语义问题存在于历史回放和校准诊断里：`top_pick = race_probabilities[0]` 用来表示“冠军概率最高的车手”是合理的；但 `actual_winner_rank`、`mean_abs_rank_error`、`podium_overlap_rate` 和 `points_overlap_rate` 这类全场排名指标不能继续沿用冠军概率顺序。
+
+本轮新增了统一函数 `race_probabilities_by_expected_rank()`：
+
+```text
+预计排名顺序 =
+average_finish 从小到大
+-> expected_points 从大到小
+-> podium 从大到小
+-> win 从大到小
+-> driver_id 稳定排序
+```
+
+并把它接入：
+
+- `Backtester._full_field_metrics()`：全场排名误差、领奖台重合率、积分区重合率改用预计完赛顺序；
+- `ReplayCalibrationBuilder._rank_of()`：`actual_winner_rank` 改为“实际冠军在预计完赛排名中的名次”，不再是“实际冠军在冠军概率数组里的位置”；
+- `ModelErrorReviewBuilder._rank_of()`：错误复盘中的 actual-winner-rank 使用同一口径；
+- `scripts/prediction_anomaly_audit_smoke_test.py`：新增反例，验证“冠军概率最高但平均完赛更差”的车手不会被错误算作预计排名第一。
+
+这仍然不改变任何概率，也不证明预测更准。它修正的是评价和解释口径：以后如果历史回放说“实际冠军被模型排第 3”，这句话指的是预计完赛排名第 3，而不是冠军概率列表第 3。这样后续做模型修订证明、同口径 diff 或前端解释时，不会把两个不同问题混在一起：
+
+```text
+问题 A：谁最可能赢？
+问题 B：每个车手预计完赛第几？
+```
+
+两者都重要，但不能互相替代。

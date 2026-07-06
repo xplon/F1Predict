@@ -475,6 +475,22 @@ Hamilton race score +0.30000，所以更强。
 - `probability_summary.top_win_probabilities` 作为冠军概率摘要时，才按 `win` 排列；
 - 前端不能把冠军概率数组或模拟器内部顺序直接当作 22 名车手预计排名，否则零胜率车手的第 9 名以后展示会错位。
 
+同一规则也适用于回放、校准和错误复盘：
+
+- `top_pick` 可以继续表示冠军概率最高的车手；
+- `actual_winner_rank` 必须表示实际冠军在预计完赛排名中的名次；
+- `mean_abs_rank_error`、`podium_overlap_rate`、`points_overlap_rate` 必须使用预计完赛顺序；
+- 代码层应复用 `race_probabilities_by_expected_rank()`，避免每个模块自己复制排序规则。
+
+也就是说，系统需要同时回答两个不同问题：
+
+```text
+谁最可能赢？       -> win probability order
+全场预计怎么排？   -> expected finish order
+```
+
+历史回放和前端解释不能把前者包装成后者。
+
 ### 7.2 本次预测为什么变了
 
 按影响从大到小展示：

@@ -324,8 +324,8 @@ class PredictionReport:
         }
 
 
-def race_probability_rows_for_display(rows: list[DriverRaceProbability]) -> list[dict[str, Any]]:
-    ranked = sorted(
+def race_probabilities_by_expected_rank(rows: list[DriverRaceProbability]) -> list[DriverRaceProbability]:
+    return sorted(
         rows,
         key=lambda row: (
             row.average_finish,
@@ -335,6 +335,10 @@ def race_probability_rows_for_display(rows: list[DriverRaceProbability]) -> list
             row.driver_id,
         ),
     )
+
+
+def race_probability_rows_for_display(rows: list[DriverRaceProbability]) -> list[dict[str, Any]]:
+    ranked = race_probabilities_by_expected_rank(rows)
     return [
         {
             **row.__dict__,

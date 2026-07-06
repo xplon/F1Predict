@@ -9,7 +9,7 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
-from f1predict.domain import DriverRaceProbability, parse_dt, utc_now
+from f1predict.domain import DriverRaceProbability, parse_dt, race_probabilities_by_expected_rank, utc_now
 from f1predict.market import event_market_snapshots
 from f1predict.pipeline import PredictionPipeline
 from f1predict.replay import ReplayCoverageBuilder
@@ -239,7 +239,7 @@ class ReplayCalibrationBuilder:
 
     @staticmethod
     def _rank_of(probabilities: list[DriverRaceProbability], driver_id: str) -> int:
-        for index, item in enumerate(probabilities, start=1):
+        for index, item in enumerate(race_probabilities_by_expected_rank(probabilities), start=1):
             if item.driver_id == driver_id:
                 return index
         return len(probabilities) + 1

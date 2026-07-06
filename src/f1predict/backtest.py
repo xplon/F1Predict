@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from statistics import mean
 
-from f1predict.domain import parse_dt
+from f1predict.domain import parse_dt, race_probabilities_by_expected_rank
 from f1predict.market import after_cutoff_market_count, event_market_snapshots
 from f1predict.market_outcomes import SUPPORTED_MARKET_TYPES
 from f1predict.models.simulator import POINTS
@@ -111,7 +111,8 @@ class Backtester:
                 "points_overlap_rate": None,
             }
         actual_order = [str(driver_id) for driver_id in actual_result if driver_id]
-        predicted_order = [str(row.driver_id) for row in probabilities]
+        expected_ranked_probabilities = race_probabilities_by_expected_rank(probabilities)
+        predicted_order = [str(row.driver_id) for row in expected_ranked_probabilities]
         actual_rank = {driver_id: index for index, driver_id in enumerate(actual_order, start=1)}
         predicted_rank = {driver_id: index for index, driver_id in enumerate(predicted_order, start=1)}
         driver_ids = [driver_id for driver_id in actual_order if driver_id in predicted_rank]
@@ -130,7 +131,7 @@ class Backtester:
         }
         predicted_points = {
             str(row.driver_id): float(row.expected_points)
-            for row in probabilities
+            for row in expected_ranked_probabilities
         }
         podium_actual = set(actual_order[:3])
         podium_predicted = set(predicted_order[:3])

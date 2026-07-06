@@ -10,8 +10,15 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from f1predict.api_v2 import BackendApiV2  # noqa: E402
+from f1predict.backtest import Backtester  # noqa: E402
+from f1predict.calibration import ReplayCalibrationBuilder  # noqa: E402
 from f1predict.data_sources.augmented import CalendarAugmentedDataSource  # noqa: E402
-from f1predict.domain import DriverRaceProbability, race_probability_rows_for_display  # noqa: E402
+from f1predict.domain import (  # noqa: E402
+    DriverRaceProbability,
+    race_probabilities_by_expected_rank,
+    race_probability_rows_for_display,
+)
+from f1predict.model_error_review import ModelErrorReviewBuilder  # noqa: E402
 from f1predict.prediction_anomaly import PredictionAnomalyAuditor  # noqa: E402
 from f1predict.run_tracking import PredictionRunRegistry  # noqa: E402
 
@@ -25,14 +32,27 @@ def _latest_packet_path() -> Path:
 
 
 def main() -> None:
-    display_rows = race_probability_rows_for_display(
-        [
-            DriverRaceProbability("win_leader", win=0.7, podium=0.7, points=0.7, expected_points=5.0, average_finish=8.0),
-            DriverRaceProbability("rank_leader", win=0.2, podium=0.9, points=1.0, expected_points=18.0, average_finish=2.0),
-        ]
-    )
-    assert [row["driver_id"] for row in display_rows] == ["rank_leader", "win_leader"]
-    assert [row["expected_rank"] for row in display_rows] == [1, 2]
+    semantic_probe = [
+        DriverRaceProbability("win_leader", win=0.7, podium=0.7, points=0.7, expected_points=5.0, average_finish=8.0),
+        DriverRaceProbability("rank_leader", win=0.2, podium=0.9, points=1.0, expected_points=18.0, average_finish=2.0),
+        DriverRaceProbability("third", win=0.1, podium=0.4, points=0.8, expected_points=10.0, average_finish=4.0),
+    ]
+    assert [row.driver_id for row in race_probabilities_by_expected_rank(semantic_probe)] == [
+        "rank_leader",
+        "third",
+        "win_leader",
+    ]
+    display_rows = race_probability_rows_for_display(semantic_probe)
+    assert [row["driver_id"] for row in display_rows] == ["rank_leader", "third", "win_leader"]
+    assert [row["expected_rank"] for row in display_rows] == [1, 2, 3]
+    full_field = Backtester._full_field_metrics(["rank_leader", "third", "win_leader"], semantic_probe)
+    assert full_field["actual_winner_rank"] == 1
+    assert full_field["mean_abs_rank_error"] == 0.0
+    assert full_field["podium_overlap_rate"] == 1.0
+    assert ReplayCalibrationBuilder._rank_of(semantic_probe, "rank_leader") == 1
+    assert ReplayCalibrationBuilder._rank_of(semantic_probe, "win_leader") == 3
+    assert ModelErrorReviewBuilder._rank_of(semantic_probe, "rank_leader") == 1
+    assert ModelErrorReviewBuilder._rank_of(semantic_probe, "win_leader") == 3
 
     api = BackendApiV2(ROOT)
     response = api.handle_get("/api/v2/prediction-packets/latest", {"event_id": ["british_gp"]})
