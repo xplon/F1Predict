@@ -117,6 +117,16 @@ def main() -> None:
     impact_trace_sidecar.add_argument("--limit", type=int, default=40)
     impact_trace_sidecar.add_argument("--offset", type=int, default=0)
 
+    merge_impact_sidecars = sub.add_parser(
+        "merge-prediction-impact-trace-sidecars",
+        help="Merge chunked prediction impact trace sidecars into one sidecar",
+    )
+    merge_impact_sidecars.add_argument("sidecar_paths", nargs="+")
+    merge_impact_sidecars.add_argument("--write", action="store_true")
+    merge_impact_sidecars.add_argument("--output-dir", default="reports/prediction_impact_traces")
+    merge_impact_sidecars.add_argument("--limit", type=int, default=40)
+    merge_impact_sidecars.add_argument("--offset", type=int, default=0)
+
     season_forecast = sub.add_parser("season-forecast", help="Run cutoff-aware season points forecast")
     season_forecast.add_argument("--knowledge-cutoff", default=None)
     season_forecast.add_argument("--iterations", type=int, default=1500)
@@ -694,6 +704,14 @@ def main() -> None:
             isolated_impact_offset=args.isolated_impact_offset,
             isolated_source_group_limit=args.isolated_source_group_limit,
         )
+        payload = page_sidecar(sidecar, limit=args.limit, offset=args.offset)
+        if args.write:
+            path = store.write(sidecar, output_root=args.output_dir)
+            payload["path"] = str(path)
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    elif args.command == "merge-prediction-impact-trace-sidecars":
+        store = PredictionImpactTraceSidecarStore()
+        sidecar = store.merge_paths([Path(path) for path in args.sidecar_paths])
         payload = page_sidecar(sidecar, limit=args.limit, offset=args.offset)
         if args.write:
             path = store.write(sidecar, output_root=args.output_dir)

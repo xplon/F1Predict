@@ -413,3 +413,19 @@ run_id=<可选>
 ```
 
 它用于前端和审计脚本区分“完整但低迭代诊断 sidecar”和“与源 run 同迭代的正式解释 sidecar”。
+
+### POST /api/v2/prediction-impact-traces/merge
+
+用途：合并多个 chunk sidecar。
+
+请求体：
+
+```json
+{
+  "sidecar_paths": ["<chunk-0-path>", "<chunk-1-path>"],
+  "write": false,
+  "limit": 40
+}
+```
+
+合并逻辑会校验 event、source run、knowledge cutoff、source packet hash 和 trace iterations 必须一致，然后按 claim/source group 去重并重新计算 coverage。部分合并不会被标记为正式解释；只有同迭代且覆盖全部 claim/update 时，`formal_readiness.formal_ready` 才能为 `true`。

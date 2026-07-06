@@ -142,7 +142,18 @@ class PredictionImpactTraceSidecarStore:
         candidates = sorted(directory.glob("*.prediction_impact_trace.json"), key=lambda path: path.stat().st_mtime)
         if not candidates:
             return None
-        return _read_json(candidates[-1])
+        ranked = []
+        for path in candidates:
+            sidecar = _read_json(path)
+            ranked.append((_sidecar_selection_key(sidecar, path), sidecar))
+        ranked.sort(key=lambda item: item[0])
+        return ranked[-1][1]
+
+    def merge_sidecars(self, sidecars: list[dict[str, Any]]) -> dict[str, Any]:
+        return merge_sidecars(sidecars)
+
+    def merge_paths(self, paths: list[Path | str]) -> dict[str, Any]:
+        return self.merge_sidecars([_read_json(path) for path in paths])
 
     def latest_page(
         self,
@@ -244,6 +255,145 @@ def page_sidecar(
     return payload
 
 
+def merge_sidecars(sidecars: list[dict[str, Any]]) -> dict[str, Any]:
+    valid = [row for row in sidecars if isinstance(row, dict)]
+    if not valid:
+        raise ValueError("At least one sidecar is required for merge")
+    first = valid[0]
+    event_id = str(first.get("event_id") or "")
+    source_run = first.get("source_run") if isinstance(first.get("source_run"), dict) else {}
+    generation = first.get("trace_generation") if isinstance(first.get("trace_generation"), dict) else {}
+    run_id = str(source_run.get("run_id") or "")
+    iterations = int(generation.get("iterations") or 0)
+    knowledge_cutoff = first.get("knowledge_cutoff")
+    source_packet_hash = source_run.get("packet_payload_sha256")
+
+    for sidecar in valid[1:]:
+        row_source_run = sidecar.get("source_run") if isinstance(sidecar.get("source_run"), dict) else {}
+        row_generation = sidecar.get("trace_generation") if isinstance(sidecar.get("trace_generation"), dict) else {}
+        if str(sidecar.get("event_id") or "") != event_id:
+            raise ValueError("Cannot merge sidecars from different events")
+        if str(row_source_run.get("run_id") or "") != run_id:
+            raise ValueError("Cannot merge sidecars from different source runs")
+        if int(row_generation.get("iterations") or 0) != iterations:
+            raise ValueError("Cannot merge sidecars with different trace iteration counts")
+        if sidecar.get("knowledge_cutoff") != knowledge_cutoff:
+            raise ValueError("Cannot merge sidecars with different knowledge cutoffs")
+        if row_source_run.get("packet_payload_sha256") != source_packet_hash:
+            raise ValueError("Cannot merge sidecars with different source packet hashes")
+
+    traces = _dedupe_traces([trace for sidecar in valid for trace in _as_trace_list(sidecar)])
+    generated_at = utc_now().replace(microsecond=0).isoformat()
+    trace_fingerprint = _canonical_hash(traces)
+    sidecar_id = safe_name(f"{event_id}_{_run_dir_name(run_id)}_{_stem_time(generated_at)}_merged_{trace_fingerprint[:10]}")
+    merged = {
+        key: value
+        for key, value in first.items()
+        if key not in {"sidecar_id", "generated_at", "coverage", "trace_fingerprint", "trace_count", "traces", "formal_readiness"}
+    }
+    merged["sidecar_id"] = sidecar_id
+    merged["generated_at"] = generated_at
+    merged["trace_generation"] = {
+        **(first.get("trace_generation") if isinstance(first.get("trace_generation"), dict) else {}),
+        "chunk_mode": True,
+        "merge_status": "merged_chunks",
+        "merged_chunk_count": len(valid),
+        "merged_source_sidecar_ids": [str(row.get("sidecar_id") or "") for row in valid],
+        "chunk_ranges": [_chunk_range(row) for row in valid],
+    }
+    merged["coverage"] = _merged_coverage(valid, traces)
+    merged["trace_fingerprint"] = trace_fingerprint
+    merged["trace_count"] = len(traces)
+    merged["traces"] = traces
+    merged["formal_readiness"] = _formal_readiness(merged)
+    return merged
+
+
+def _as_trace_list(sidecar: dict[str, Any]) -> list[dict[str, Any]]:
+    return [row for row in sidecar.get("traces", []) if isinstance(row, dict)] if isinstance(sidecar.get("traces"), list) else []
+
+
+def _dedupe_traces(traces: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    output: dict[tuple[str, str], dict[str, Any]] = {}
+    order: list[tuple[str, str]] = []
+    for row in traces:
+        key = _trace_merge_key(row)
+        if key not in output:
+            order.append(key)
+            output[key] = row
+    order_index = {key: index for index, key in enumerate(order)}
+    priority = {
+        "same_seed_before_after": 0,
+        "isolated_same_seed_leave_one_information": 1,
+        "isolated_same_seed_leave_source_group": 2,
+        "state_update_route": 3,
+    }
+    order.sort(key=lambda key: (priority.get(str(output[key].get("trace_type") or ""), 9), order_index[key]))
+    return [output[key] for key in order]
+
+
+def _trace_merge_key(row: dict[str, Any]) -> tuple[str, str]:
+    trace_type = str(row.get("trace_type") or "unknown")
+    if trace_type == "same_seed_before_after":
+        return (trace_type, "all_state_updates_vs_weak_seed_prior")
+    if trace_type == "isolated_same_seed_leave_one_information" and row.get("claim_id"):
+        return (trace_type, str(row["claim_id"]))
+    if trace_type == "isolated_same_seed_leave_source_group":
+        return (trace_type, str(row.get("update_id_or_group_id") or row.get("impact_trace_id") or ""))
+    if trace_type == "state_update_route":
+        return (trace_type, str(row.get("update_id_or_group_id") or row.get("impact_trace_id") or ""))
+    return (trace_type, str(row.get("impact_trace_id") or _canonical_hash(row)))
+
+
+def _merged_coverage(sidecars: list[dict[str, Any]], traces: list[dict[str, Any]]) -> dict[str, Any]:
+    base_coverages = [
+        sidecar.get("coverage")
+        for sidecar in sidecars
+        if isinstance(sidecar.get("coverage"), dict)
+    ]
+    claim_count = max((int(row.get("impact_trace_claim_count") or 0) for row in base_coverages), default=0)
+    state_update_count = max((int(row.get("state_update_count") or 0) for row in base_coverages), default=0)
+    isolated_claims = {
+        str(row.get("claim_id"))
+        for row in traces
+        if row.get("trace_type") == "isolated_same_seed_leave_one_information" and row.get("claim_id")
+    }
+    grouped_claims = {
+        str(claim_id)
+        for row in traces
+        if row.get("trace_type") == "isolated_same_seed_leave_source_group"
+        for claim_id in row.get("claim_ids", [])
+        if claim_id
+    }
+    covered_claims = isolated_claims | grouped_claims
+    trace_type_counts = Counter(str(row.get("trace_type") or "unknown") for row in traces)
+    impact_status_counts = Counter(str(row.get("impact_status") or "unknown") for row in traces)
+    return {
+        "state_update_count": state_update_count,
+        "impact_trace_claim_count": claim_count,
+        "impact_trace_single_claim_coverage_count": len(isolated_claims),
+        "impact_trace_source_group_claim_coverage_count": len(grouped_claims),
+        "impact_trace_covered_claim_count": len(covered_claims),
+        "impact_trace_uncovered_claim_count": max(0, claim_count - len(covered_claims)),
+        "isolated_prediction_impact_count": trace_type_counts.get("isolated_same_seed_leave_one_information", 0),
+        "isolated_source_group_impact_count": trace_type_counts.get("isolated_same_seed_leave_source_group", 0),
+        "trace_type_counts": dict(sorted(trace_type_counts.items())),
+        "impact_status_counts": dict(sorted(impact_status_counts.items())),
+    }
+
+
+def _chunk_range(sidecar: dict[str, Any]) -> dict[str, Any]:
+    generation = sidecar.get("trace_generation") if isinstance(sidecar.get("trace_generation"), dict) else {}
+    offset = int(generation.get("isolated_impact_offset") or 0)
+    limit = int(generation.get("isolated_impact_limit") or 0)
+    return {
+        "sidecar_id": sidecar.get("sidecar_id"),
+        "offset": offset,
+        "limit": limit,
+        "end_exclusive": offset + limit if limit >= 0 else None,
+    }
+
+
 def _coverage(codex_context: dict[str, Any], traces: list[dict[str, Any]]) -> dict[str, Any]:
     trace_type_counts = Counter(str(row.get("trace_type") or "unknown") for row in traces)
     impact_status_counts = Counter(str(row.get("impact_status") or "unknown") for row in traces)
@@ -331,6 +481,17 @@ def _missing_readiness(record: PredictionRunRecord) -> dict[str, Any]:
         "uncovered_claim_count": 0,
         "recommended_action_zh": "先生成 full sidecar；如果要正式解释，需要使用与源 run 相同的迭代数。",
     }
+
+
+def _sidecar_selection_key(sidecar: dict[str, Any], path: Path) -> tuple[int, int, int, int, float]:
+    readiness = _formal_readiness(sidecar)
+    return (
+        1 if readiness.get("formal_ready") else 0,
+        1 if readiness.get("full_coverage") else 0,
+        int(readiness.get("covered_claim_count") or 0),
+        1 if readiness.get("same_iterations") else 0,
+        path.stat().st_mtime,
+    )
 
 
 def _trace_context(prediction: dict[str, Any]) -> dict[str, Any]:

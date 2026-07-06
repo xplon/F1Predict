@@ -641,6 +641,8 @@ sidecar 必须记录：
 
 正式同迭代 sidecar 允许分块生成。生成接口可以用 `isolated_impact_offset` 和 `isolated_impact_limit` 只重跑一段 claim，例如第 0-49 条、第 50-99 条。分块 sidecar 必须标记 `trace_generation.chunk_mode = true`，并且 `formal_readiness.full_coverage = false`，直到所有分块被合并并覆盖全部 claim。这样可以把昂贵的 1200 次迭代全量 trace 变成可恢复任务，而不是一次性不可控长跑。
 
+分块合并也必须是显式步骤：`POST /api/v2/prediction-impact-traces/merge` 或 `merge-prediction-impact-trace-sidecars` CLI 会读取多个 chunk sidecar，按 `claim_id` / 来源组去重，重新计算 coverage，并把结果标记为 `merge_status = merged_chunks`。如果只合并了部分 chunk，`formal_readiness.formal_ready` 仍然必须是 `false`；只有同迭代且全覆盖的合并结果才能成为正式解释 sidecar。
+
 用户指出“某个车队不合理”时，正确动作仍然是：
 
 ```text

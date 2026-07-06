@@ -487,6 +487,8 @@ formal_readiness.formal_ready = false
 
 2026-07-06 追加执行能力：`PredictionPipeline`、sidecar API 和 CLI 已支持 `isolated_impact_offset`。这让正式同迭代 sidecar 可以分块生成，而不是一次性对 453 条来源更新全部跑 1200 次迭代。分块结果会被标记为 `chunk_mode`，在合并成全覆盖 sidecar 前不会被认定为正式解释。
 
+随后新增 chunk merge：`POST /api/v2/prediction-impact-traces/merge` 和 `merge-prediction-impact-trace-sidecars` CLI 可以把多个 chunk sidecar 合并成一个分页 sidecar。当前 smoke 已验证两个 5 条 chunk 合并后覆盖 10/453 条，仍然被标为 `diagnostic_iterations_incomplete_coverage`，不会污染 latest，也不会被误认定为正式解释。
+
 下一步不再是“把 sidecar 做出来”，而是：
 
 - 为最新 British GP run 生成同迭代数的正式 sidecar，或继续明确标注低迭代诊断 sidecar；

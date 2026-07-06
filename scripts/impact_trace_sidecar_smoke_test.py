@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +32,10 @@ def main() -> None:
     _assert(
         "/api/v2/prediction-impact-traces/readiness" in openapi["paths"],
         "OpenAPI should expose sidecar readiness route",
+    )
+    _assert(
+        "/api/v2/prediction-impact-traces/merge" in openapi["paths"],
+        "OpenAPI should expose sidecar merge route",
     )
 
     response = api.handle_post(
@@ -91,6 +96,37 @@ def main() -> None:
         chunk["formal_readiness"]["status"] == "diagnostic_iterations_incomplete_coverage",
         "Low-iteration chunk should be diagnostic and incomplete",
     )
+
+    with tempfile.TemporaryDirectory() as tmp:
+        chunk_paths = []
+        for offset in (0, 5):
+            sidecar = api.impact_trace_store.build(
+                event_id="british_gp",
+                iterations=3,
+                isolated_impact_limit=5,
+                isolated_impact_offset=offset,
+                isolated_source_group_limit=0,
+            )
+            chunk_paths.append(str(api.impact_trace_store.write(sidecar, output_root=Path(tmp))))
+        merge_response = api.handle_post(
+            "/api/v2/prediction-impact-traces/merge",
+            {},
+            {
+                "sidecar_paths": chunk_paths,
+                "write": False,
+                "limit": 30,
+            },
+        )
+        _assert(merge_response.status == 201, "Sidecar merge POST should succeed")
+        merged = merge_response.payload
+        _assert(merged["trace_generation"]["merge_status"] == "merged_chunks", "Merged sidecar should mark merge status")
+        _assert(merged["trace_generation"]["merged_chunk_count"] == 2, "Merged sidecar should track chunk count")
+        _assert(
+            merged["coverage"]["impact_trace_single_claim_coverage_count"] == 10,
+            "Merged chunks should cover ten distinct claims",
+        )
+        _assert(merged["coverage"]["impact_trace_uncovered_claim_count"] == 443, "Merged chunks should remain partial")
+        _assert(merged["formal_readiness"]["formal_ready"] is False, "Partial merged chunks are not formal-ready")
 
     latest_readiness = api.handle_get(
         "/api/v2/prediction-impact-traces/readiness",

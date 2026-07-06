@@ -14,7 +14,7 @@ from typing import Any
 
 from f1predict.domain import parse_dt, utc_now
 from f1predict.explainability import PredictionExplainer
-from f1predict.impact_trace_sidecar import PredictionImpactTraceSidecarStore
+from f1predict.impact_trace_sidecar import PredictionImpactTraceSidecarStore, page_sidecar
 from f1predict.intelligence.codex import CodexEvidenceProvider
 from f1predict.pipeline import PredictionPipeline
 from f1predict.prediction_anomaly import PredictionAnomalyAuditor
@@ -229,6 +229,9 @@ class BackendApiV2:
             return ApiResponse(payload, status=201 if write else 200)
         if route == "/prediction-impact-traces":
             payload = self._build_prediction_impact_trace_sidecar(body, query)
+            return ApiResponse(payload, status=201)
+        if route == "/prediction-impact-traces/merge":
+            payload = self._merge_prediction_impact_trace_sidecars(body, query)
             return ApiResponse(payload, status=201)
         return ApiResponse({"error": "unknown_api_v2_route", "path": path}, status=404)
 
@@ -493,6 +496,9 @@ class BackendApiV2:
                 "/api/v2/prediction-impact-traces": {
                     "post": {"summary": "Build and optionally persist a full prediction-impact trace sidecar"},
                 },
+                "/api/v2/prediction-impact-traces/merge": {
+                    "post": {"summary": "Merge chunked prediction-impact trace sidecars"},
+                },
             },
         }
 
@@ -560,6 +566,32 @@ class BackendApiV2:
         if path is not None:
             payload["path"] = str(_relative_to_root(path, self.root))
         return payload
+
+    def _merge_prediction_impact_trace_sidecars(
+        self,
+        body: dict[str, Any],
+        query: dict[str, list[str]],
+    ) -> dict[str, Any]:
+        raw_paths = body.get("sidecar_paths") or body.get("paths") or []
+        if not isinstance(raw_paths, list) or not raw_paths:
+            raise ValueError("sidecar_paths must be a non-empty list")
+        paths = [self._resolve_path(path) for path in raw_paths]
+        sidecar = self.impact_trace_store.merge_paths(paths)
+        write = bool(body.get("write", True))
+        page_limit = int(body.get("limit") or _first(query, "limit", "40") or "40")
+        page_offset = int(body.get("offset") or _first(query, "offset", "0") or "0")
+        payload = page_sidecar(sidecar, limit=page_limit, offset=page_offset)
+        if write:
+            output_root = body.get("output_dir") or self.root / "reports" / "prediction_impact_traces"
+            path = self.impact_trace_store.write(sidecar, output_root=Path(output_root))
+            payload["path"] = str(_relative_to_root(path, self.root))
+        return payload
+
+    def _resolve_path(self, path: Any) -> Path:
+        resolved = Path(str(path))
+        if not resolved.is_absolute():
+            resolved = self.root / resolved
+        return resolved
 
     def _list_prediction_diffs(self, event_id: str | None = None) -> dict[str, Any]:
         root = self.root / "reports" / "prediction_diffs"
