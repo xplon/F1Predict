@@ -390,6 +390,26 @@ def default_simulator_candidate_configs() -> tuple[SimulatorConfig, ...]:
         ),
         replace(
             baseline,
+            config_id="source_weighted_team_window_pressure",
+            description=(
+                "Add a directional team race-window pressure term from source-backed tyre, setup, "
+                "strategy, race-execution, and reliability state; disabled in baseline until calibrated."
+            ),
+            team_race_window_pressure_scale=26.0,
+            team_race_window_pressure_cap=4.0,
+        ),
+        replace(
+            baseline,
+            config_id="source_weighted_team_window_pressure_strong",
+            description=(
+                "Stronger diagnostic version of source-weighted team race-window pressure, used to test "
+                "whether currently small state signals need a larger route scale."
+            ),
+            team_race_window_pressure_scale=84.0,
+            team_race_window_pressure_cap=6.0,
+        ),
+        replace(
+            baseline,
             config_id="grid_weighted",
             description="Stronger track-position penalty and slightly more stable qualifying order.",
             qualifying_noise_sd=0.36,

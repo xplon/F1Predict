@@ -1377,3 +1377,65 @@ British GP 上 Leclerc 概率从 baseline 的 0.0125 降到 0.0075
 - 单纯加大或关闭同队相关波动都不能解决 British GP 的 Leclerc 低胜率问题；
 - 下一轮应该把“车队比赛日窗口”拆成更可解释的来源化因素，例如调校窗口、轮胎温度窗口、长距离退化、可靠性、策略窗口，而不是只用一个全局噪声常数；
 - 任何默认模型变更仍必须通过 `PredictionRunRegistry` 的模型修订证明，不能因为小样本诊断分数略好就注册。
+
+## 26. 2026-07-07：新增来源化 team-window pressure 候选，但不注册
+
+基于上一节的结论，本轮把粗粒度 `team_race_window_noise` 拆出一个更可解释的方向性候选：
+
+```text
+BeliefState.car.tyre_deg
+BeliefState.team_ops.setup_quality
+BeliefState.team_ops.strategy_quality
+BeliefState.team_ops.race_execution
+BeliefState.car.reliability
+-> PaceModel.race_window_pressure()
+-> SingleRaceSimulator._sample_team_race_window_offsets()
+```
+
+它和旧的随机 team-window 区别是：
+
+- 旧机制只看不确定性，决定同队共享随机波动有多大；
+- 新候选会读取来源化状态的方向，状态显示轮胎/调校/策略/可靠性偏弱时，共享 race-window offset 往“变慢”方向移动；
+- 高不确定度会折扣该方向性压力，避免弱 seed prior 直接主导；
+- 默认配置 `team_race_window_pressure_scale = 0.0`，所以 latest 预测不变；
+- 只有 simulator calibration 候选 `source_weighted_team_window_pressure` / `source_weighted_team_window_pressure_strong` 会启用。
+
+新增验证：
+
+```text
+scripts/race_window_pressure_smoke_test.py
+```
+
+它验证三件事：
+
+```text
+来源化负向 tyre/setup/reliability 状态会产生正的 race_window_pressure；
+默认关闭时 shared team-window offset 不变；
+启用 pressure scale 后 offset 会按来源化方向变慢。
+```
+
+诊断校准产物：
+
+```text
+reports/simulator_calibration_source_window_pressure_v2/2026_asof_20260707T000000_0000.simulator_calibration.md
+```
+
+160 次小样本结果：
+
+```text
+source_weighted_team_window_pressure_strong composite_score = 2.3886
+source_weighted_team_window_pressure composite_score = 2.4060
+baseline team_window_v3 composite_score = 2.4092
+```
+
+看起来 strong 候选略优于 baseline，但这个结果不能注册，原因是：
+
+```text
+样本仍只有 9 场；
+候选选择仍是 in-sample；
+改进幅度很小；
+British GP 的 Leclerc 胜率没有改善，仍约为 0.0063；
+这说明当前 BeliefState 中 tyre/setup/reliability 等方向性来源仍太弱，无法解决 Ferrari/Leclerc 的低胜率问题。
+```
+
+因此这次改动的正确价值是“把 team-window 的来源化路由打通”，不是“预测已经修好”。下一步要让它真正影响合理性，必须补更强的来源化输入：同周末长距离、轮胎退化、调校窗口、可靠性和策略窗口，而不是继续调一个全局 scale。

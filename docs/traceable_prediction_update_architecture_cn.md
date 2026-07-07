@@ -680,6 +680,8 @@ sidecar 必须记录：
 
 赛道图前端展示也必须遵守同一条边界。真实官方赛道图可以作为视觉底图，但如果底图上带有旧规则标注，例如 2026 语境下不再直接适用的 DRS 文字，前端必须明确说明“这只是官方底图注记，不是模型输入”。模型需要的直道、超车难度、能量部署和规则替代机制，必须来自赛道向量、结构化来源或非结构化来源抽取后的状态更新，不能从图片文字直接进入预测。
 
+同理，比赛日窗口风险不能只保留为全局随机常数。架构上允许把 `tyre_deg`、`setup_quality`、`strategy_quality`、`race_execution`、`reliability` 等来源化状态路由到 `race_window_pressure`，再进入同队共享 race-window offset。但这个路由必须默认可关闭，并且只有经过 replay/calibration 证明后才能注册为默认模型；否则只能作为 diagnostic candidate。
+
 正式同迭代 sidecar 允许分块生成。生成接口可以用 `isolated_impact_offset` 和 `isolated_impact_limit` 只重跑一段 claim，例如第 0-49 条、第 50-99 条。分块 sidecar 必须标记 `trace_generation.chunk_mode = true`，并且 `formal_readiness.full_coverage = false`，直到所有分块被合并并覆盖全部 claim。这样可以把昂贵的 1200 次迭代全量 trace 变成可恢复任务，而不是一次性不可控长跑。
 
 分块合并也必须是显式步骤：`POST /api/v2/prediction-impact-traces/merge` 或 `merge-prediction-impact-trace-sidecars` CLI 会读取多个 chunk sidecar，按 `claim_id` / 来源组去重，重新计算 coverage，并把结果标记为 `merge_status = merged_chunks`。如果只合并了部分 chunk，`formal_readiness.formal_ready` 仍然必须是 `false`；只有同迭代且全覆盖的合并结果才能成为正式解释 sidecar。

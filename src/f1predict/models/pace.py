@@ -207,6 +207,44 @@ class PaceModel:
         ]
         return min(1.0, max(0.0, mean(values)))
 
+    def race_window_pressure(self, driver: Driver, event: RaceEvent) -> float:
+        """Directional shared race-window pressure from traceable state.
+
+        Positive means slower common team race time. This is intentionally
+        separate from uncertainty: uncertainty controls random spread, while
+        pressure uses source-backed tyre/setup/reliability/strategy state to
+        set direction. High uncertainty discounts the pressure so weak seed
+        priors cannot dominate.
+        """
+
+        if self.belief_state is None:
+            return 0.0
+        team_id = driver.team_id
+        tyre = self.belief_state.car_value(team_id, "tyre_deg")
+        setup = self.belief_state.team_ops_value(team_id, "setup_quality")
+        strategy = self.belief_state.team_ops_value(team_id, "strategy_quality")
+        race_execution = self.belief_state.team_ops_value(team_id, "race_execution")
+        reliability = self.belief_state.car_value(team_id, "reliability")
+        raw_pressure = -(
+            tyre * 0.85
+            + setup * 0.60
+            + strategy * 0.32
+            + race_execution * 0.24
+            + reliability * 0.42
+        )
+        uncertainties = [
+            self._car_uncertainty(team_id, "tyre_deg", 0.82),
+            self._team_ops_uncertainty(team_id, "setup_quality", 0.78),
+            self._team_ops_uncertainty(team_id, "strategy_quality", 0.70),
+            self._team_ops_uncertainty(team_id, "race_execution", 0.84),
+            self._car_uncertainty(team_id, "reliability", 0.58),
+        ]
+        evidence_confidence = max(0.0, min(1.0, 1.0 - mean(uncertainties)))
+        track_stress = 1.0
+        track_stress += max(0.0, self.belief_state.event_value("tyre_degradation_index", 0.0)) * 0.30
+        track_stress += max(0.0, self._effective_wet_probability(event)) * 0.14
+        return max(-1.0, min(1.0, raw_pressure * evidence_confidence * track_stress))
+
     def _effective_wet_probability(self, event: RaceEvent) -> float:
         if self.belief_state is not None:
             return min(1.0, max(0.0, self.belief_state.event_value("wet_probability", event.weather_prior.get("wet_probability", 0.0))))

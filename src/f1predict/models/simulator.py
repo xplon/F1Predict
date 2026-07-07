@@ -57,6 +57,8 @@ class SimulatorConfig:
     team_race_window_noise_sd: float = 4.2
     team_race_window_uncertainty_scale: float = 0.85
     team_race_window_noise_cap: float = 8.5
+    team_race_window_pressure_scale: float = 0.0
+    team_race_window_pressure_cap: float = 4.0
     winner_probability_calibration_blend: float = 0.0
     winner_rank_prior_temperature: float = 2.4
     winner_rank_prior_weight: float = 0.62
@@ -268,7 +270,7 @@ class SingleRaceSimulator:
         grid_positions = {driver_id: index for index, driver_id in enumerate(grid_order, start=1)}
         wet_race = self.random.random() < self._wet_probability(event)
         safety_car_lap = self._sample_safety_car_lap(event, wet_race)
-        team_window_offsets = self._sample_team_race_window_offsets(driver_ids)
+        team_window_offsets = self._sample_team_race_window_offsets(event, driver_ids)
         sampled: list[tuple[float, str]] = []
         for driver_id in driver_ids:
             driver = self.season_state.drivers[driver_id]
@@ -306,7 +308,7 @@ class SingleRaceSimulator:
             wet_race = self.random.random() < self._wet_probability(event)
             wet_laps = self._sample_wet_laps(event, wet_race)
             safety_car_lap = self._sample_safety_car_lap(event, wet_race)
-            team_window_offsets = self._sample_team_race_window_offsets(driver_ids)
+            team_window_offsets = self._sample_team_race_window_offsets(event, driver_ids)
             plans = {
                 driver_id: self._strategy_plan(
                     event,
@@ -525,7 +527,7 @@ class SingleRaceSimulator:
             + race_noise
         )
 
-    def _sample_team_race_window_offsets(self, driver_ids: list[str]) -> dict[str, float]:
+    def _sample_team_race_window_offsets(self, event: RaceEvent, driver_ids: list[str]) -> dict[str, float]:
         """Sample correlated race-day setup/tyre-window swings by team.
 
         Independent per-driver noise cannot express a common car-window miss:
@@ -533,6 +535,11 @@ class SingleRaceSimulator:
         race day, both cars are usually affected. This draw keeps the effect
         generic and tied to BeliefState uncertainty rather than to team names.
         Positive values are slower total race-time seconds.
+
+        An optional deterministic pressure term can add source-backed direction:
+        weak tyre/setup/reliability/strategy state makes the shared window
+        slower, while strong source-backed state can reduce the offset. It is
+        disabled by default and must be promoted through replay calibration.
         """
 
         representative_by_team: dict[str, Driver] = {}
@@ -547,8 +554,14 @@ class SingleRaceSimulator:
             uncertainty_multiplier = 1.0 + self.config.team_race_window_uncertainty_scale * (uncertainty - 0.55)
             sd = max(0.0, self.config.team_race_window_noise_sd * max(0.35, uncertainty_multiplier))
             raw_offset = self.random.gauss(0.0, sd)
+            pressure = self.pace_model.race_window_pressure(driver, event) * max(
+                0.0,
+                self.config.team_race_window_pressure_scale,
+            )
+            pressure_cap = max(0.0, self.config.team_race_window_pressure_cap)
+            pressure = max(-pressure_cap, min(pressure_cap, pressure))
             cap = max(0.0, self.config.team_race_window_noise_cap)
-            offsets[team_id] = max(-cap, min(cap, raw_offset))
+            offsets[team_id] = max(-cap, min(cap, raw_offset + pressure))
         return offsets
 
     def _strategy_plan(
