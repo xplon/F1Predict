@@ -94,6 +94,7 @@ METRIC_FACTOR_MAP = {
     "reliability": ("car", "reliability"),
     "wet_skill": ("driver", "wet_skill"),
     "strategy": ("team_ops", "strategy_quality"),
+    "setup_quality": ("team_ops", "setup_quality"),
     "power_unit": ("car", "power_unit_peak"),
     "energy_recovery": ("car", "ers_deployment"),
     "straight_line_speed": ("car", "straight_line_speed"),
@@ -112,6 +113,7 @@ FACTOR_CAPS = {
     "reliability": 0.045,
     "tyre_deg": 0.075,
     "strategy_quality": 0.08,
+    "setup_quality": 0.075,
     "ers_deployment": 0.11,
     "straight_line_speed": 0.11,
     "aero_efficiency": 0.10,
@@ -864,6 +866,8 @@ class BeliefStateBuilder:
             return ("stint_degradation", "strategy_plan")
         if factor == "strategy_quality":
             return ("pit_strategy", "safety_car_window")
+        if factor == "setup_quality":
+            return ("race_window_pressure", "race_pace_score", "qualifying_grid_sampler")
         if factor == "reliability":
             return ("dnf_sampler",)
         if factor == "wet_skill":

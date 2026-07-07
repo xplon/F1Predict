@@ -1553,3 +1553,119 @@ actual_winner_rank = 6
 - 但当前 practice tyre proxy 信号很弱、样本也不完整，不能单独修正 British GP；
 - 下一步应继续补 `team_ops.setup_quality`、调校窗口、长距离稳定性、策略窗口和同周末多 session 聚合；
 - 任何默认预测注册仍必须经过 replay/calibration 或模型修订证明，不能因为这条链路“看起来更合理”就注册。
+
+## 28. 2026-07-07：同周末 session 数据进入 `team_ops.setup_quality`
+
+上一节结束后，`team_ops.setup_quality` 仍主要来自弱 seed，真实同周末来源没有进入该状态。这个缺口会让“调校窗口/比赛日窗口”解释仍然不完整：模拟器已经有 `race_window_pressure()` 读取 setup 的入口，但没有可靠来源喂进去。
+
+本轮新增通用来源映射：
+
+```text
+FastF1 practice long-run team average
+-> target_type=team, metric=setup_quality
+-> BeliefState.team_ops.setup_quality
+
+FastF1 qualifying best-lap team average
+-> target_type=team, metric=setup_quality
+-> BeliefState.team_ops.setup_quality
+```
+
+这不是按车队名修数值。规则只看同一 session 内“车队平均秒数 vs 全场车队中位秒数”，并用很小尺度更新 setup 状态。`setup_quality` 也加入了 Codex 研究 metric 合同，未来如果非结构化来源明确说某队调校窗口、平衡、温度窗口问题，也可以走同一个因子，而不是写成散乱文本。
+
+实现位置：
+
+```text
+src/f1predict/domain.py
+src/f1predict/belief_state.py
+src/f1predict/models/pace.py
+src/f1predict/features/provider.py
+src/f1predict/intelligence/factor_contract.py
+src/f1predict/intelligence/factor_trace.py
+src/f1predict/intelligence/evidence_workflow.py
+src/f1predict/intelligence/research_plan.py
+src/f1predict/explanation_localization.py
+scripts/fastf1_team_setup_quality_smoke_test.py
+scripts/source_driven_contract_test.py
+```
+
+特别修正了解释文本。新的 ledger mechanism 不再只写“近期窗口表现被压缩成有界输入”，而是保留来源事实，例如：
+
+```text
+来源：结构化特征；
+英国大奖赛前调校窗口代理值为 93.774s vs 车队 field 94.257s from 1 车手 sample(s)，
+用于更新车队调校窗口质量，并影响正赛速度、排位采样和比赛日窗口风险。
+```
+
+真实 British GP 本地数据检查：
+
+```text
+features = 571
+team setup_quality features = 20
+BeliefState setup_quality ledger rows = 20
+```
+
+进入 `team_ops.setup_quality` 后的部分状态：
+
+```text
+mercedes: +0.025980
+red_bull: +0.024317
+mclaren: +0.015166
+ferrari: +0.005117
+racing_bulls: -0.005671
+williams: -0.011913
+alpine: -0.012366
+aston_martin: -0.016489
+cadillac: -0.027888
+```
+
+这和用户直觉不完全一致，尤其 Mercedes 仍然非常强。因此这里必须强调：这些数值是同周末 FP/Q 秒差代理，不是最终赛车实力结论。它们只说明当前来源链条怎样更新状态。
+
+验证：
+
+```text
+.venv\Scripts\python.exe -m compileall -q src scripts
+.venv\Scripts\python.exe scripts\fastf1_team_setup_quality_smoke_test.py
+.venv\Scripts\python.exe scripts\source_driven_contract_test.py
+.venv\Scripts\python.exe scripts\explainability_smoke_test.py
+```
+
+British GP 1200 次诊断预测没有修复核心问题：
+
+```text
+Russell win = 0.4850, average_finish = 2.6092
+Antonelli win = 0.4408, average_finish = 2.7642
+Hamilton win = 0.0458, average_finish = 4.3708
+Leclerc win = 0.0108, average_finish = 5.7533
+```
+
+相对上一版 latest，Leclerc 反而略降：
+
+```text
+Leclerc win_delta = -0.0017
+Leclerc average_finish_delta = +0.0125
+```
+
+这说明 setup 路由没有解决 Ferrari/Leclerc 的 British GP 低胜率问题。
+
+同时做了 120 次小样本 simulator calibration：
+
+```text
+reports/simulator_calibration_setup_quality_v1/2026_asof_20260707T000000_0000.simulator_calibration.md
+```
+
+和上一轮 `team_tyre_route_v1` 诊断相比，baseline composite 从 `2.3688` 变为 `2.3549`，小幅改善；但这仍然是：
+
+```text
+diagnostic_only
+in-sample
+small_sample_less_than_20_scored_events
+market_scored_subset_incomplete
+```
+
+所以本轮结论是：
+
+- `team_ops.setup_quality` 的来源化链路已经接通；
+- 解释文本已经能展示原始秒差事实，而不是裸分数；
+- 小样本整体指标略有改善，但不能作为正式模型优越证据；
+- British GP 的 Leclerc/Ferrari 问题仍未解决；
+- 下一步应继续补多 session 长距离、真实 race-week 天气/赛道温度、策略窗口和 race execution，而不是继续放大 setup 权重。

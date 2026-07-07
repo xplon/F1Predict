@@ -67,6 +67,11 @@ FACTOR_ROUTES: dict[str, FactorRoute] = {
         model_surface="pit strategy plan",
         notes=("Changes stop selection, operational noise, and pit-window behavior.",),
     ),
+    "setup_quality": FactorRoute(
+        route="race_window_setup",
+        model_surface="race-week setup window",
+        notes=("Changes same-weekend setup/window state used by race score and team race-window pressure.",),
+    ),
     "power_unit": FactorRoute(
         route="track_contextual_pace",
         model_surface="track-weighted pace score",

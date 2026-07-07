@@ -295,7 +295,7 @@ class CodexResearchPlanBuilder:
                 ),
                 acceptance_checks=(
                     "Prefer team releases, named team principal quotes, or established outlets quoting named staff.",
-                    "Tie every claimed effect to a metric such as race_pace, race_execution, power_unit, energy_recovery, straight_line_speed, drag_efficiency, low_speed_traction, launch_performance, weight, upgrade_effect, tyre_deg, strategy, or reliability.",
+                    "Tie every claimed effect to a metric such as race_pace, race_execution, power_unit, energy_recovery, straight_line_speed, drag_efficiency, low_speed_traction, launch_performance, weight, upgrade_effect, tyre_deg, strategy, setup_quality, or reliability.",
                     "Use small magnitude unless the source says the part or issue is event-specific and already run-tested.",
                 ),
                 rejection_rules=(
@@ -315,6 +315,7 @@ class CodexResearchPlanBuilder:
                     "weight",
                     "upgrade_effect",
                     "tyre_deg",
+                    "setup_quality",
                     "reliability",
                 ),
                 expected_claim_types=("upgrade", "track_fit", "setup", "power_unit", "aero", "launch", "weight", "reliability"),
@@ -371,9 +372,10 @@ class CodexResearchPlanBuilder:
                     "low_speed_traction",
                     "launch_performance",
                     "tyre_deg",
+                    "setup_quality",
                     "reliability",
                 ),
-                expected_claim_types=("session_pace", "long_run", "speed_trap", "sector_pace", "launch", "tyre_deg", "race_control"),
+                expected_claim_types=("session_pace", "long_run", "speed_trap", "sector_pace", "launch", "tyre_deg", "setup", "race_control"),
             ),
             CodexSourceTask(
                 task_id=f"{event.event_id}:market-rules",

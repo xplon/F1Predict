@@ -125,6 +125,7 @@ class PaceModel:
         driver_execution = self.belief_state.driver_value(driver.driver_id, "race_execution")
         team_execution = self.belief_state.team_ops_value(team_id, "race_execution")
         strategy = self.belief_state.team_ops_value(team_id, "strategy_quality")
+        setup_quality = self.belief_state.team_ops_value(team_id, "setup_quality")
         tyre = self.belief_state.driver_value(driver.driver_id, "tyre_management")
         wet_skill = self.belief_state.driver_value(driver.driver_id, "wet_skill") * wet_probability
         technical = self._belief_contextual_technical(driver, event, mode)
@@ -136,6 +137,7 @@ class PaceModel:
                 "belief_car_race_pace_carryover": car_race * 0.55,
                 "belief_driver_qualifying_ceiling": driver_qualifying * 1.20,
                 "belief_driver_race_pace_carryover": driver_race * 0.35,
+                "belief_team_setup_quality": setup_quality * 0.18,
                 "belief_technical_track_fit": technical * 0.90,
             }
         else:
@@ -146,6 +148,7 @@ class PaceModel:
                 "belief_driver_race_execution": driver_execution * 0.62,
                 "belief_team_race_execution": team_execution * 0.38,
                 "belief_team_strategy": strategy * 0.24,
+                "belief_team_setup_quality": setup_quality * 0.24,
                 "belief_driver_tyre_management": tyre * 0.34,
                 "belief_driver_wet_skill": wet_skill * 0.55,
                 "belief_technical_track_fit": technical,

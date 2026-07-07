@@ -15,6 +15,7 @@ Metric = Literal[
     "reliability",
     "wet_skill",
     "strategy",
+    "setup_quality",
     "power_unit",
     "energy_recovery",
     "straight_line_speed",

@@ -149,6 +149,20 @@ _CONTRACTS: dict[str, FactorMetricContract] = {
         ),
         notes="Positive direction means better tyre management or lower degradation.",
     ),
+    "setup_quality": FactorMetricContract(
+        metric="setup_quality",
+        targets=("team",),
+        valid_claim_types=(
+            "setup_window",
+            "balance",
+            "long_run",
+            "single_lap",
+            "race_week_setup_signal",
+            "session_pace",
+            *GENERIC_CLAIM_TYPES,
+        ),
+        notes="Positive direction means the team appears to be operating the car closer to its race-week setup window.",
+    ),
     "reliability": FactorMetricContract(
         metric="reliability",
         targets=("team", "driver"),

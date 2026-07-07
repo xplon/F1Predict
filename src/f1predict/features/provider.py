@@ -505,6 +505,20 @@ class ProcessedFeatureProvider:
                 summary,
             )
         )
+        adjustments.extend(
+            self._session_team_setup_quality_adjustments(
+                season,
+                event,
+                team_long_runs,
+                source,
+                observed_at,
+                summary,
+                feature_suffix="long_run_setup_quality",
+                explanation_basis="team long-run pace window",
+                minimum_scale=0.85,
+                value_scale=0.030,
+            )
+        )
         return adjustments
 
     def _fastf1_qualifying_lap_adjustments(
@@ -565,6 +579,20 @@ class ProcessedFeatureProvider:
                 source,
                 observed_at,
                 summary,
+            )
+        )
+        adjustments.extend(
+            self._session_team_setup_quality_adjustments(
+                season,
+                event,
+                team_fastest,
+                source,
+                observed_at,
+                summary,
+                feature_suffix="qualifying_setup_quality",
+                explanation_basis="team single-lap setup window",
+                minimum_scale=0.55,
+                value_scale=0.028,
             )
         )
         return adjustments
@@ -656,6 +684,58 @@ class ProcessedFeatureProvider:
                         f"{summary.session_name} team tyre-degradation proxy before {event.name}: "
                         f"{deg:+.4f}s/lap vs team field {field_deg:+.4f}s/lap from "
                         f"{len(team_tyre_degs[team_id])} driver sample(s); routed to car tyre window state."
+                    ),
+                )
+            )
+        return adjustments
+
+    def _session_team_setup_quality_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        team_values: defaultdict[str, list[float]],
+        source: str,
+        observed_at: str,
+        summary: NormalizedSessionLapSummary,
+        *,
+        feature_suffix: str,
+        explanation_basis: str,
+        minimum_scale: float,
+        value_scale: float,
+    ) -> list[FeatureAdjustment]:
+        team_avg = {
+            team_id: mean(values)
+            for team_id, values in team_values.items()
+            if values and team_id in season.teams
+        }
+        if len(team_avg) < 2:
+            return []
+        field_avg, team_scale = self._center_scale_values(list(team_avg.values()), minimum_scale=minimum_scale)
+        confidence_base = self._session_lap_confidence(summary.session_key, "setup_quality")
+        adjustments: list[FeatureAdjustment] = []
+        for team_id, value_seconds in sorted(team_avg.items()):
+            value = round(self._clamp((field_avg - value_seconds) / team_scale * value_scale, -value_scale, value_scale), 4)
+            if not value:
+                continue
+            coverage_weight = min(1.0, max(0.62, len(team_values[team_id]) / 2.0))
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-session-laps:{summary.year}:{event.event_id}:{summary.session_key}:"
+                        f"{team_id}:{feature_suffix}:{observed_at}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="setup_quality",
+                    value=value,
+                    confidence=round(confidence_base * coverage_weight, 4),
+                    observed_at=observed_at,
+                    explanation=(
+                        f"{summary.session_name} {explanation_basis} before {event.name}: "
+                        f"{value_seconds:.3f}s vs team field {field_avg:.3f}s from "
+                        f"{len(team_values[team_id])} driver sample(s); routed to team setup-window state."
                     ),
                 )
             )
@@ -764,6 +844,7 @@ class ProcessedFeatureProvider:
             "race_pace": 0.42,
             "team_race_pace": 0.34,
             "tyre_deg": 0.30,
+            "setup_quality": 0.22,
             "straight_line_speed": 0.24,
             "qualifying_pace": 0.44,
             "team_qualifying_pace": 0.34,

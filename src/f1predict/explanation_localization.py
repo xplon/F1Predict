@@ -52,6 +52,7 @@ METRIC_LABELS = {
     "reliability": "可靠性",
     "strategy": "策略能力",
     "strategy_quality": "策略质量",
+    "setup_quality": "调校窗口质量",
     "power_unit": "动力单元",
     "power_unit_peak": "动力单元峰值",
     "energy_recovery": "能量回收/部署",
@@ -115,6 +116,7 @@ SURFACE_LABELS = {
     "strategy_plan": "策略计划表面",
     "pit_strategy": "进站策略表面",
     "safety_car_window": "安全车窗口表面",
+    "race_window_pressure": "比赛日窗口压力表面",
     "dnf_sampler": "退赛采样器",
     "wet_race_branch": "湿地分支",
 }
@@ -455,6 +457,8 @@ def _parsed_feature_explanation(
         return f"{source_label}；{event_phrase}长距离速度代理值为 {_clean_value(value)}，作为同一比赛周末的正赛速度信号{confidence_phrase}。"
     if "tyre-degradation proxy" in text:
         return f"{source_label}；{event_phrase}轮胎衰退代理值为 {_clean_value(value)}，用于影响策略和长距离速度{confidence_phrase}。"
+    if "setup window" in text or "setup-window state" in text:
+        return f"{source_label}；{event_phrase}调校窗口代理值为 {_clean_value(value)}，用于更新车队调校窗口质量，并影响正赛速度、排位采样和比赛日窗口风险{confidence_phrase}。"
     if "speed-trap average" in text:
         return f"{source_label}；{event_phrase}测速点均速对比为 {_clean_value(value)}，作为直道速度信号{confidence_phrase}。"
     if "best valid lap" in text:

@@ -356,13 +356,31 @@ def _assert_team_race_execution_reaches_simulation() -> None:
         observed_at="2026-06-30T00:00:00+00:00",
         explanation="Source-backed team long-run tyre degradation signal.",
     )
+    team_setup_feature = FeatureAdjustment(
+        feature_id="contract-team-setup-feature",
+        event_id=event.event_id,
+        source="contract structured team setup window source",
+        target_type="team",
+        target_id="team_a",
+        metric="setup_quality",
+        value=0.035,
+        confidence=0.80,
+        observed_at="2026-06-30T00:00:00+00:00",
+        explanation="Source-backed race-week setup window signal.",
+    )
     builder = BeliefStateBuilder()
     baseline = builder.build(season, event, [], [], [], knowledge_cutoff="2026-07-01T00:00:00+00:00")
     belief_state = builder.build(
         season,
         event,
         [],
-        [team_execution_feature, driver_speed_feature, driver_reliability_feature, team_tyre_feature],
+        [
+            team_execution_feature,
+            driver_speed_feature,
+            driver_reliability_feature,
+            team_tyre_feature,
+            team_setup_feature,
+        ],
         [],
         knowledge_cutoff="2026-07-01T00:00:00+00:00",
     )
@@ -402,6 +420,20 @@ def _assert_team_race_execution_reaches_simulation() -> None:
         raise AssertionError("Team-level tyre degradation updates must be present in the state update ledger")
     if "stint_degradation" not in tyre_updates[0].affected_model_surfaces:
         raise AssertionError("Team-level tyre degradation must expose its stint degradation simulation route")
+    if belief_state.team_ops_value("team_a", "setup_quality") <= baseline.team_ops_value("team_a", "setup_quality"):
+        raise AssertionError("Team-level setup-quality features must update team_ops.setup_quality")
+    setup_updates = [
+        row
+        for row in belief_state.update_ledger
+        if row.claim_id == team_setup_feature.feature_id
+        and row.target_type == "team"
+        and row.target_id == "team_a"
+        and row.factor == "setup_quality"
+    ]
+    if not setup_updates:
+        raise AssertionError("Team-level setup-quality updates must be present in the state update ledger")
+    if "race_window_pressure" not in setup_updates[0].affected_model_surfaces:
+        raise AssertionError("Team-level setup quality must expose its race-window simulation route")
 
     baseline_score = PaceModel(season, [], [], belief_state=baseline).driver_score(season.drivers["driver_a"], event)
     updated_pace = PaceModel(
@@ -416,6 +448,18 @@ def _assert_team_race_execution_reaches_simulation() -> None:
     )
     if updated_score <= baseline_score:
         raise AssertionError("Team-level race_execution must affect the race pace score consumed by simulation")
+    baseline_qualifying_score = PaceModel(season, [], [], belief_state=baseline).driver_score(
+        season.drivers["driver_a"],
+        event,
+        mode="qualifying",
+    )
+    updated_qualifying_score = updated_pace.driver_score(
+        season.drivers["driver_a"],
+        event,
+        mode="qualifying",
+    )
+    if updated_qualifying_score <= baseline_qualifying_score:
+        raise AssertionError("Team-level setup quality must affect the qualifying score consumed by simulation")
     if updated_pace.reliability(season.drivers["driver_a"]) >= PaceModel(season, [], [], belief_state=baseline).reliability(
         season.drivers["driver_a"]
     ):
