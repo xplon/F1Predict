@@ -473,6 +473,26 @@ def default_simulator_candidate_configs() -> tuple[SimulatorConfig, ...]:
             operational_noise_per_stop=1.35,
             safety_car_bunching_per_grid_position=0.22,
         ),
+        replace(
+            baseline,
+            config_id="red_flag_tail",
+            description=(
+                "Enable source-backed red-flag tail sampling as a diagnostic: pit-window relief, tyre-relief, "
+                "field bunching, and restart variance. Baseline keeps this disabled until replay validation."
+            ),
+            red_flag_probability_scale=1.0,
+        ),
+        replace(
+            baseline,
+            config_id="red_flag_tail_strong",
+            description=(
+                "Stronger diagnostic red-flag tail to test whether rare-interruption variance reduces brittle "
+                "top-pick confidence on replay rows."
+            ),
+            red_flag_probability_scale=1.8,
+            red_flag_restart_noise_sd=1.15,
+            red_flag_bunching_per_grid_position=0.34,
+        ),
     )
 
 

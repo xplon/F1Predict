@@ -2138,3 +2138,52 @@ scripts/belief_route_scale_smoke_test.py
 ```
 
 该测试确认 `belief_car_race_pace_route_scale` 只改变 race score 中的 `belief_car_race_pace` 组件，不影响 `belief_car_qualifying_pace` 或 `belief_car_race_pace_carryover`，避免 route 诊断本身不可解释。
+
+## 33. 2026-07-07 追加：红旗尾部接入后，当前预测仍不能认为已修复
+
+本轮新增了来源驱动的红旗尾部诊断能力，但默认关闭：
+
+```text
+red_flag_probability_scale = 0.0
+```
+
+这意味着当前前端 latest 没有因为该能力自动改变。这样做是有意的：红旗是低频高影响事件，如果未经回放验证就启用，很容易把预测“调得看起来更散”，但不一定更准。
+
+低迭代诊断结果：
+
+```text
+report = reports/red_flag_tail_diagnostics_v1_focus/2026_asof_20260707T000000_0000.simulator_calibration.md
+iterations = 60
+
+baseline composite_score = 2.2128
+red_flag_tail composite_score = 2.1013
+red_flag_tail_strong composite_score = 2.3974
+
+baseline top_pick_hit_rate = 66.7%
+red_flag_tail top_pick_hit_rate = 44.4%
+red_flag_tail_strong top_pick_hit_rate = 22.2%
+```
+
+这个结果的正确读法是：
+
+- 红旗尾部可能改善概率校准和 log loss；
+- 但它也可能降低 top-pick 命中；
+- 强版本已经表现更差；
+- 所以它不是 British GP/Leclerc/Mercedes 偏差的直接修复。
+
+当前前端状态仍是：
+
+```text
+British GP latest
+status = diagnostic_only
+simulation count = 1,200
+replay rows = 312
+top four = Russell / Antonelli / Hamilton / Leclerc
+```
+
+因此目前最重要的失败仍然存在：
+
+- British GP 仍偏向 Mercedes 双车；
+- Leclerc 仍偏低；
+- 前端异常审计显示“无主要异常”只是规则未捕捉，不代表预测合理；
+- 下一步必须把近期状态窗口、比赛周末来源、车队真实强弱和事件风险一起做正式 replay，而不是只启用红旗尾部。

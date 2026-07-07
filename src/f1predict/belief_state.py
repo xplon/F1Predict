@@ -93,6 +93,8 @@ METRIC_FACTOR_MAP = {
     "tyre_deg": ("car", "tyre_deg"),
     "reliability": ("car", "reliability"),
     "wet_skill": ("driver", "wet_skill"),
+    "safety_car_probability": ("event", "safety_car_probability"),
+    "red_flag_probability": ("event", "red_flag_probability"),
     "strategy": ("team_ops", "strategy_quality"),
     "setup_quality": ("team_ops", "setup_quality"),
     "power_unit": ("car", "power_unit_peak"),
@@ -1038,6 +1040,10 @@ class BeliefStateBuilder:
             return ("dnf_sampler",)
         if factor == "wet_skill":
             return ("wet_race_branch",)
+        if factor == "safety_car_probability":
+            return ("safety_car_sampler", "pit_strategy", "field_bunching")
+        if factor == "red_flag_probability":
+            return ("red_flag_sampler", "pit_strategy", "race_restart_variance")
         return ("race_pace_score",)
 
     @staticmethod

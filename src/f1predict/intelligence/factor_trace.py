@@ -62,6 +62,16 @@ FACTOR_ROUTES: dict[str, FactorRoute] = {
         model_surface="wet-race branch",
         notes=("Changes wet probability or wet-performance contribution depending on target scope.",),
     ),
+    "safety_car_probability": FactorRoute(
+        route="safety_car_sampler",
+        model_surface="safety-car event sampler",
+        notes=("Changes the event-level safety-car probability used by pit-window and field-bunching simulation.",),
+    ),
+    "red_flag_probability": FactorRoute(
+        route="red_flag_sampler",
+        model_surface="red-flag event sampler",
+        notes=("Changes the event-level red-flag tail used by pit-window, tyre-relief, and restart-variance diagnostics.",),
+    ),
     "strategy": FactorRoute(
         route="pit_strategy",
         model_surface="pit strategy plan",

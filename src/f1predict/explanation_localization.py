@@ -77,6 +77,7 @@ METRIC_LABELS = {
     "team_priority": "队内资源优先级",
     "wet_probability": "湿地概率",
     "safety_car_probability": "安全车概率",
+    "red_flag_probability": "红旗概率",
 }
 
 DIRECTION_LABELS = {
@@ -116,6 +117,10 @@ SURFACE_LABELS = {
     "strategy_plan": "策略计划表面",
     "pit_strategy": "进站策略表面",
     "safety_car_window": "安全车窗口表面",
+    "safety_car_sampler": "安全车采样器",
+    "field_bunching": "车阵压缩表面",
+    "red_flag_sampler": "红旗采样器",
+    "race_restart_variance": "重启波动表面",
     "race_window_pressure": "比赛日窗口压力表面",
     "dnf_sampler": "退赛采样器",
     "wet_race_branch": "湿地分支",

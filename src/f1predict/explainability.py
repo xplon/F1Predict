@@ -69,6 +69,8 @@ METRIC_LABELS: dict[str, str] = {
     "tyre_deg": "轮胎衰退",
     "reliability": "可靠性",
     "wet_skill": "湿地能力",
+    "safety_car_probability": "安全车概率",
+    "red_flag_probability": "红旗概率",
     "strategy": "策略",
     "power_unit": "动力单元",
     "energy_recovery": "能量回收",

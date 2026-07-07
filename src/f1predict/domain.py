@@ -14,6 +14,8 @@ Metric = Literal[
     "tyre_deg",
     "reliability",
     "wet_skill",
+    "safety_car_probability",
+    "red_flag_probability",
     "strategy",
     "setup_quality",
     "power_unit",

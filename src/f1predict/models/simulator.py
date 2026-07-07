@@ -26,6 +26,7 @@ class StrategyPlan:
     pit_loss: float
     degradation_rate: float
     safety_car_adjusted: bool = False
+    red_flag_adjusted: bool = False
 
 
 @dataclass(frozen=True)
@@ -52,6 +53,12 @@ class SimulatorConfig:
     safety_car_pit_gain_cap: float = 8.0
     safety_car_pit_gain_fraction: float = 0.38
     safety_car_bunching_per_grid_position: float = 0.16
+    red_flag_probability_scale: float = 0.0
+    red_flag_pit_gain_cap: float = 12.0
+    red_flag_pit_gain_fraction: float = 0.55
+    red_flag_bunching_per_grid_position: float = 0.28
+    red_flag_degradation_relief_fraction: float = 0.35
+    red_flag_restart_noise_sd: float = 0.85
     launch_time_scale: float = 22.0
     known_qualifying_position_noise_sd: float = 0.32
     team_race_window_noise_sd: float = 4.2
@@ -300,11 +307,17 @@ class SingleRaceSimulator:
         grid_positions = {driver_id: index for index, driver_id in enumerate(grid_order, start=1)}
         wet_race = self.random.random() < self._wet_probability(event)
         safety_car_lap = self._sample_safety_car_lap(event, wet_race)
+        red_flag_lap = self._sample_red_flag_lap(event, wet_race)
         team_window_offsets = self._sample_team_race_window_offsets(event, driver_ids)
         sampled: list[tuple[float, str]] = []
         for driver_id in driver_ids:
             driver = self.season_state.drivers[driver_id]
-            plan = self._strategy_plan(event, driver, safety_car_lap=safety_car_lap)
+            plan = self._strategy_plan(
+                event,
+                driver,
+                safety_car_lap=safety_car_lap,
+                red_flag_lap=red_flag_lap,
+            )
             reliability = self.pace_model.reliability(driver)
             race_time = self._sample_race_time(
                 event=event,
@@ -313,6 +326,7 @@ class SingleRaceSimulator:
                 grid_position=grid_positions[driver_id],
                 wet_race=wet_race,
                 safety_car_lap=safety_car_lap,
+                red_flag_lap=red_flag_lap,
                 reliability=reliability,
                 team_window_offset=team_window_offsets.get(driver.team_id, 0.0),
             )
@@ -338,12 +352,14 @@ class SingleRaceSimulator:
             wet_race = self.random.random() < self._wet_probability(event)
             wet_laps = self._sample_wet_laps(event, wet_race)
             safety_car_lap = self._sample_safety_car_lap(event, wet_race)
+            red_flag_lap = self._sample_red_flag_lap(event, wet_race)
             team_window_offsets = self._sample_team_race_window_offsets(event, driver_ids)
             plans = {
                 driver_id: self._strategy_plan(
                     event,
                     self.season_state.drivers[driver_id],
                     safety_car_lap=safety_car_lap,
+                    red_flag_lap=red_flag_lap,
                 )
                 for driver_id in driver_ids
             }
@@ -376,12 +392,15 @@ class SingleRaceSimulator:
                 lap_records: dict[str, dict[str, Any]] = {}
                 wet_phase = wet_race and lap <= wet_laps
                 safety_phase = safety_car_lap is not None and safety_car_lap <= lap <= safety_car_lap + 1
+                red_flag_phase = red_flag_lap is not None and red_flag_lap <= lap <= red_flag_lap + 1
                 for driver_id in driver_ids:
                     driver = self.season_state.drivers[driver_id]
                     plan = plans[driver_id]
                     stint, compound, tyre_age, pit_stop = self._lap_strategy_state(lap, plan)
                     base = self._base_lap_time(event, driver)
                     deg = tyre_age * plan.degradation_rate
+                    if red_flag_lap is not None and lap >= red_flag_lap:
+                        deg *= max(0.0, 1.0 - self.config.red_flag_degradation_relief_fraction)
                     weather = self._wet_lap_penalty(driver, wet_phase, lap, event.laps)
                     traffic = self.config.traffic_gap_per_position * max(
                         0,
@@ -389,8 +408,16 @@ class SingleRaceSimulator:
                     )
                     race_window_delta = team_window_offsets.get(driver.team_id, 0.0) / max(1, event.laps)
                     pit_delta = plan.pit_loss if pit_stop else 0.0
+                    if pit_stop and plan.red_flag_adjusted:
+                        pit_delta -= min(
+                            self.config.red_flag_pit_gain_cap,
+                            plan.pit_loss * self.config.red_flag_pit_gain_fraction,
+                        )
                     safety_delta = 6.5 if safety_phase else 0.0
+                    red_flag_delta = 11.5 if red_flag_phase else 0.0
                     lap_noise = self.random.gauss(0.0, self.config.replay_lap_noise_sd)
+                    if red_flag_phase:
+                        lap_noise += self.random.gauss(0.0, self.config.red_flag_restart_noise_sd)
                     dnf_lap = dnf_laps.get(driver_id)
                     dnf = dnf_lap is not None and lap >= dnf_lap
                     if dnf_lap is not None and lap == dnf_lap:
@@ -399,9 +426,27 @@ class SingleRaceSimulator:
                     elif dnf:
                         lap_time = None
                     else:
-                        lap_time = base + deg + weather + traffic + race_window_delta + pit_delta + safety_delta + lap_noise
+                        lap_time = (
+                            base
+                            + deg
+                            + weather
+                            + traffic
+                            + race_window_delta
+                            + pit_delta
+                            + safety_delta
+                            + red_flag_delta
+                            + lap_noise
+                        )
                         cumulative[driver_id] += lap_time
-                    track_status = "safety_car" if safety_phase else "wet" if wet_phase else "green"
+                    track_status = (
+                        "red_flag"
+                        if red_flag_phase
+                        else "safety_car"
+                        if safety_phase
+                        else "wet"
+                        if wet_phase
+                        else "green"
+                    )
                     if dnf:
                         track_status = "dnf"
                     lap_records[driver_id] = {
@@ -415,7 +460,7 @@ class SingleRaceSimulator:
                         "dnf": dnf,
                     }
 
-                if safety_phase:
+                if safety_phase or red_flag_phase:
                     active_order = [
                         driver_id
                         for driver_id in sorted(driver_ids, key=lambda item: (cumulative[item], grid_positions[item]))
@@ -423,8 +468,9 @@ class SingleRaceSimulator:
                     ]
                     if active_order:
                         leader_time = cumulative[active_order[0]]
+                        gap_step = 0.42 if red_flag_phase else 0.95
                         for index, driver_id in enumerate(active_order[1:12], start=1):
-                            bunched_gap = index * 0.95 + self.random.uniform(0.0, 0.2)
+                            bunched_gap = index * gap_step + self.random.uniform(0.0, 0.2)
                             cumulative[driver_id] = min(cumulative[driver_id], leader_time + bunched_gap)
 
                 ranked = sorted(driver_ids, key=lambda item: (cumulative[item], grid_positions[item]))
@@ -459,6 +505,7 @@ class SingleRaceSimulator:
                             "wet_race": wet_race,
                             "wet_laps": wet_laps,
                             "safety_car_lap": safety_car_lap,
+                            "red_flag_lap": red_flag_lap,
                             "reliability": round(reliabilities[driver_id], 4),
                         }
                     )
@@ -502,6 +549,7 @@ class SingleRaceSimulator:
         grid_position: int,
         wet_race: bool,
         safety_car_lap: int | None,
+        red_flag_lap: int | None,
         reliability: float,
         team_window_offset: float,
     ) -> float:
@@ -511,11 +559,18 @@ class SingleRaceSimulator:
 
         base_lap = self._base_lap_time(event, driver)
         stint_degradation = self._total_degradation(event.laps, plan)
+        if red_flag_lap is not None:
+            stint_degradation *= max(0.0, 1.0 - self.config.red_flag_degradation_relief_fraction)
         pit_time = plan.pit_loss * plan.stops
         if plan.safety_car_adjusted:
             pit_time -= min(
                 self.config.safety_car_pit_gain_cap,
                 plan.pit_loss * self.config.safety_car_pit_gain_fraction,
+            )
+        if plan.red_flag_adjusted:
+            pit_time -= min(
+                self.config.red_flag_pit_gain_cap,
+                plan.pit_loss * self.config.red_flag_pit_gain_fraction,
             )
 
         grid_penalty = (
@@ -530,6 +585,11 @@ class SingleRaceSimulator:
             if safety_car_lap is not None
             else 0.0
         )
+        red_flag_bunching = (
+            -self.config.red_flag_bunching_per_grid_position * min(grid_position - 1, 14)
+            if red_flag_lap is not None
+            else 0.0
+        )
         team = self.season_state.teams[driver.team_id]
         strategy_signal = self.pace_model.strategy_signal(driver, event)
         effective_strategy = min(1.0, max(0.0, team.strategy + strategy_signal))
@@ -542,6 +602,7 @@ class SingleRaceSimulator:
             0.0,
             self.config.race_noise_base_sd + event.laps * self.config.race_noise_per_lap_sd,
         )
+        restart_noise = self.random.gauss(0.0, self.config.red_flag_restart_noise_sd) if red_flag_lap is not None else 0.0
 
         return (
             base_lap * event.laps
@@ -551,10 +612,12 @@ class SingleRaceSimulator:
             - launch_bonus
             + wet_penalty
             + safety_car_bunching
+            + red_flag_bunching
             + team_window_offset
             - strategy_quality
             + operational_noise
             + race_noise
+            + restart_noise
         )
 
     def _sample_team_race_window_offsets(self, event: RaceEvent, driver_ids: list[str]) -> dict[str, float]:
@@ -599,6 +662,7 @@ class SingleRaceSimulator:
         event: RaceEvent,
         driver: Driver,
         safety_car_lap: int | None = None,
+        red_flag_lap: int | None = None,
     ) -> StrategyPlan:
         team = self.season_state.teams[driver.team_id]
         strategy_signal = self.pace_model.strategy_signal(driver, event)
@@ -620,6 +684,12 @@ class SingleRaceSimulator:
             if abs(closest - safety_car_lap) <= 4 and effective_strategy + driver.racecraft > 1.65:
                 pit_laps = tuple(sorted(safety_car_lap if lap == closest else lap for lap in pit_laps))
                 safety_adjusted = True
+        red_flag_adjusted = False
+        if red_flag_lap is not None and pit_laps:
+            closest = min(pit_laps, key=lambda lap: abs(lap - red_flag_lap))
+            if abs(closest - red_flag_lap) <= 5 and effective_strategy + driver.racecraft > 1.58:
+                pit_laps = tuple(sorted(red_flag_lap if lap == closest else lap for lap in pit_laps))
+                red_flag_adjusted = True
 
         start_compound = "medium"
         alternate = "hard"
@@ -638,6 +708,7 @@ class SingleRaceSimulator:
             pit_loss=pit_loss,
             degradation_rate=deg_rate,
             safety_car_adjusted=safety_adjusted,
+            red_flag_adjusted=red_flag_adjusted,
         )
 
     @staticmethod
@@ -698,7 +769,7 @@ class SingleRaceSimulator:
         return 0.18 + self._track_features(event).track_position_value * 0.55
 
     def _wet_probability(self, event: RaceEvent) -> float:
-        return min(1.0, max(0.0, event.weather_prior.get("wet_probability", 0.0)))
+        return self.pace_model.wet_probability(event)
 
     def _wet_race_penalty(self, event: RaceEvent, driver: Driver, wet_race: bool) -> float:
         if not wet_race:
@@ -719,10 +790,30 @@ class SingleRaceSimulator:
         return 1.45 * intensity - driver.wet_skill * 0.42
 
     def _sample_safety_car_lap(self, event: RaceEvent, wet_race: bool) -> int | None:
-        probability = self._track_features(event).safety_car_probability + (0.08 if wet_race else 0.0)
+        probability = self.pace_model.safety_car_probability(
+            event,
+            self._track_features(event).safety_car_probability,
+        ) + (0.08 if wet_race else 0.0)
         if self.random.random() >= min(0.65, probability):
             return None
         return self.random.randint(max(4, event.laps // 5), max(5, event.laps - 5))
+
+    def _sample_red_flag_lap(self, event: RaceEvent, wet_race: bool) -> int | None:
+        probability = self._red_flag_probability(event, wet_race)
+        if probability <= 0.0 or self.random.random() >= probability:
+            return None
+        return self.random.randint(max(4, event.laps // 5), max(5, event.laps - 6))
+
+    def _red_flag_probability(self, event: RaceEvent, wet_race: bool) -> float:
+        scale = max(0.0, self.config.red_flag_probability_scale)
+        if scale <= 0.0:
+            return 0.0
+        base = self.pace_model.red_flag_probability(
+            event,
+            self._track_features(event).red_flag_probability,
+        )
+        probability = (base + (0.03 if wet_race else 0.0)) * scale
+        return min(0.85, max(0.0, probability))
 
     @staticmethod
     def _representative_safety_car_lap(event: RaceEvent, wet_race: bool) -> int | None:

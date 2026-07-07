@@ -190,6 +190,32 @@ _CONTRACTS: dict[str, FactorMetricContract] = {
         ),
         notes="Event-level weather changes wet probability; driver-level claims affect relative wet performance.",
     ),
+    "safety_car_probability": FactorMetricContract(
+        metric="safety_car_probability",
+        targets=("event",),
+        valid_claim_types=(
+            "safety_car",
+            "incident_risk",
+            "track_condition",
+            "weather",
+            "race_control",
+            *GENERIC_CLAIM_TYPES,
+        ),
+        notes="Event-level claim for safety-car likelihood; use sourced track, weather, incident, or race-control context.",
+    ),
+    "red_flag_probability": FactorMetricContract(
+        metric="red_flag_probability",
+        targets=("event",),
+        valid_claim_types=(
+            "red_flag",
+            "incident_risk",
+            "track_condition",
+            "weather",
+            "race_control",
+            *GENERIC_CLAIM_TYPES,
+        ),
+        notes="Event-level claim for red-flag likelihood; keep review_required unless supported by concrete track/weather/race-control evidence.",
+    ),
     "strategy": FactorMetricContract(
         metric="strategy",
         targets=("team", "event", "market"),

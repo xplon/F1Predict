@@ -329,6 +329,37 @@ class PaceModel:
         value = event.weather_prior.get("wet_probability", 0.0) + event_adjustment
         return min(1.0, max(0.0, value))
 
+    def wet_probability(self, event: RaceEvent) -> float:
+        return self._effective_wet_probability(event)
+
+    def safety_car_probability(self, event: RaceEvent, base_probability: float) -> float:
+        if self.belief_state is None:
+            return min(1.0, max(0.0, base_probability))
+        state = self.belief_state.event_risk_state.factors.get("safety_car_probability")
+        if state is None or set(state.provenance).issubset({"event.weather_prior", "weak_static_prior"}):
+            return min(1.0, max(0.0, base_probability))
+        return min(
+            1.0,
+            max(
+                0.0,
+                state.value,
+            ),
+        )
+
+    def red_flag_probability(self, event: RaceEvent, base_probability: float) -> float:
+        if self.belief_state is None:
+            return min(1.0, max(0.0, base_probability))
+        state = self.belief_state.event_risk_state.factors.get("red_flag_probability")
+        if state is None or set(state.provenance).issubset({"event.weather_prior", "weak_static_prior"}):
+            return min(1.0, max(0.0, base_probability))
+        return min(
+            1.0,
+            max(
+                0.0,
+                state.value,
+            ),
+        )
+
     def _belief_contextual_technical(self, driver: Driver, event: RaceEvent, mode: str) -> float:
         team_id = driver.team_id
         metric_factors = {

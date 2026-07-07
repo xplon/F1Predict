@@ -1150,3 +1150,82 @@ scripts/belief_route_scale_smoke_test.py
 ```
 
 它验证 `belief_car_race_pace_route_scale` 只改变 `belief_car_race_pace` 组件，不影响 `belief_car_qualifying_pace` 或 `belief_car_race_pace_carryover`。这保证后续每条 route 的诊断结果能追溯到明确的模型通道。
+
+## 21. 2026-07-07 追加：事件风险尾部必须是来源驱动的诊断通路，不能直接污染默认预测
+
+用户反复强调，预测不能因为一句反馈直接改数值。安全车、红旗、退赛、策略窗口等随机事件尤其容易被滥用成“人为调散概率”的借口，所以本轮把事件风险尾部按以下边界接入：
+
+```text
+来源/结构化事件事实
+-> BeliefState.event_risk_state
+-> safety_car_probability / red_flag_probability
+-> simulator sampler
+-> pit window / field bunching / tyre relief / restart variance
+```
+
+新增指标：
+
+```text
+safety_car_probability
+red_flag_probability
+```
+
+新增模型表面：
+
+```text
+safety_car_sampler
+field_bunching
+red_flag_sampler
+race_restart_variance
+```
+
+默认配置保持：
+
+```text
+red_flag_probability_scale = 0.0
+```
+
+因此红旗尾部能力存在，但默认预测不变。只有显式选择诊断候选时才启用：
+
+```text
+red_flag_tail
+red_flag_tail_strong
+```
+
+低迭代诊断报告：
+
+```text
+reports/red_flag_tail_diagnostics_v1_focus/2026_asof_20260707T000000_0000.simulator_calibration.md
+iterations = 60
+```
+
+结果：
+
+```text
+baseline composite_score = 2.2128
+red_flag_tail composite_score = 2.1013
+red_flag_tail_strong composite_score = 2.3974
+
+baseline mean_actual_log_loss = 1.4145
+red_flag_tail mean_actual_log_loss = 1.3019
+red_flag_tail_strong mean_actual_log_loss = 1.4698
+
+baseline top_pick_hit_rate = 66.7%
+red_flag_tail top_pick_hit_rate = 44.4%
+red_flag_tail_strong top_pick_hit_rate = 22.2%
+```
+
+诊断含义：
+
+- 普通红旗尾部有 log loss 正向信号，但 top-pick 命中率变差；
+- 强红旗尾部明显不可取；
+- 该通路值得进入下一轮正式验证，但不能注册为 latest；
+- 前端当前仍展示旧 latest，这是正确边界，不是遗漏更新。
+
+新增验证：
+
+```text
+scripts/red_flag_tail_smoke_test.py
+```
+
+它验证三件事：默认红旗尾部关闭；来源化事件状态能改变红旗概率；红旗窗口能改变策略计划。
