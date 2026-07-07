@@ -1332,3 +1332,48 @@ console = 0 errors / 0 warnings；
 ```
 
 剩余风险：这只是前端规则口径说明，不等于已经为 2026 新规则建立完整的“替代 DRS/能量部署/超车辅助机制”数据源。后续如果要让该机制影响预测，必须作为来源化赛道/赛车技术信息进入 `RawSourceRecord -> NormalizedFactorClaim -> BeliefState -> simulation`，不能从图片文字直接推断。
+
+## 25. 2026-07-07：头部胜率过度集中候选校准复核
+
+British GP 赛后复盘暴露的核心模型问题之一是：头部冠军概率过度集中，Leclerc 这种预测 P4 且领奖台概率不低的车手，赛前冠军概率只有 `1.25%`。上一节的 winner probability probe 不能注册后，本轮继续用现有 simulator calibration 框架复核几类通用概率分散机制，而不是按车手或车队手动修数值。
+
+本轮诊断产物：
+
+```text
+reports/simulator_calibration_probability_focus/2026_asof_20260707T000000_0000.simulator_calibration.md
+reports/simulator_calibration_no_team_window_review/2026_asof_20260707T000000_0000.simulator_calibration.md
+```
+
+120 次迭代的概率集中候选集显示：
+
+```text
+no_correlated_team_window: composite_score = 2.0658
+stronger_team_window: composite_score = 2.1276
+baseline team_window_v3: composite_score = 2.1852
+chaos_weighted: composite_score = 2.2923
+wider_race_variance: composite_score = 2.2979
+```
+
+这说明“相关车队比赛日窗口”本身需要复核：在这个小样本里，完全关闭同队相关窗口反而综合分更好。但 120 次迭代不足以支持模型修订，所以又做了 400 次、只比较 baseline 与 `no_correlated_team_window` 的复核：
+
+```text
+no_correlated_team_window composite_score = 2.2476
+baseline team_window_v3 composite_score = 2.2539
+```
+
+400 次复核仍让 `no_correlated_team_window` 微弱领先，但证据并不稳定，原因是：
+
+```text
+no_correlated_team_window 的 mean_actual_winner_probability 更高：+0.0150
+no_correlated_team_window 的 Brier 更好：-0.0041
+no_correlated_team_window 的 top-pick 校准 gap 更好：-0.0180
+但 no_correlated_team_window 的 mean_actual_log_loss 变差：+0.0286
+British GP 上 Leclerc 概率从 baseline 的 0.0125 降到 0.0075
+```
+
+因此这轮不能得出“应该撤销 team-window v3”或“应该注册 no_correlated_team_window”的结论。正确结论是：
+
+- 相关车队窗口机制并没有被当前小样本稳健证明有效；
+- 单纯加大或关闭同队相关波动都不能解决 British GP 的 Leclerc 低胜率问题；
+- 下一轮应该把“车队比赛日窗口”拆成更可解释的来源化因素，例如调校窗口、轮胎温度窗口、长距离退化、可靠性、策略窗口，而不是只用一个全局噪声常数；
+- 任何默认模型变更仍必须通过 `PredictionRunRegistry` 的模型修订证明，不能因为小样本诊断分数略好就注册。
