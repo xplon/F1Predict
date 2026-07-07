@@ -1350,3 +1350,100 @@ British GP Leclerc probability: 0.0167 -> 0.0083
 ```
 
 这进一步确认：该候选不是可以直接上线的修复。它在少数整体指标上有轻微信号，但 log loss、top-pick 校准 gap 和 British GP 的实际冠军概率变差；样本只有 9 场、迭代数低、没有留出集。因此它只能保持 diagnostic candidate，不能注册 latest。
+
+## 23. 2026-07-07 追加：近期车队可靠性候选进入 DNF 采样，但仍不注册 latest
+
+为继续处理“随机事件尾部/退赛风险没有足够来源化”的问题，本轮新增了一个默认关闭的诊断候选：
+
+```text
+cutoff-valid FastF1 recent team non-finished classifications
+-> team non-finished rate vs field non-finished rate
+-> FeatureAdjustment(target_type=team, metric=reliability)
+-> BeliefState.car.reliability
+-> dnf_sampler
+```
+
+这条通路只读取知识截止前 FastF1 已存储的近几站正赛分类结果，不读取用户对某支车队或某个车手的主观判断，也不按实体 id 特判。它和“近期全场完赛顺位”分开：前者影响 `race_pace_score`，这条只影响 `dnf_sampler`，避免把退赛风险误写成速度优势。
+
+默认边界：
+
+```text
+ProcessedFeatureProvider() 默认 enable_recent_team_reliability_form = False
+默认 prediction-packet 仍是 571 条 feature
+显式 --enable-recent-team-reliability-form 才生成 582 条 feature，其中 11 条为近期车队可靠性候选
+```
+
+显式候选命令：
+
+```text
+.venv\Scripts\python.exe -m f1predict.cli prediction-packet --event british_gp --knowledge-cutoff 2026-07-05T00:00:00+00:00 --iterations 1200 --enable-recent-team-reliability-form --write --output-dir reports\prediction_packets_recent_team_reliability_probe
+```
+
+British GP 候选包：
+
+```text
+reports/prediction_packets_recent_team_reliability_probe/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+status = diagnostic_only
+packet_payload_sha256 = 43c5871b5fe9589cdfe01f0a80b82ae70b3370b3d81d0f766c873cd3e382083c
+feature_count = 582
+recent_team_reliability_feature_count = 11
+recent_team_reliability_ledger_count = 11
+```
+
+示例状态输入：
+
+```text
+Aston Martin 近期未完赛率 4/6 = 0.667 vs 全场 0.273 -> reliability -0.0250
+Cadillac      近期未完赛率 4/6 = 0.667 vs 全场 0.273 -> reliability -0.0250
+Ferrari       近期未完赛率 2/6 = 0.333 vs 全场 0.273 -> reliability -0.0055
+Racing Bulls  近期未完赛率 0/6 = 0.000 vs 全场 0.273 -> reliability +0.0120
+Mercedes      近期未完赛率 1/6 = 0.167 vs 全场 0.273 -> reliability +0.0095
+```
+
+BeliefState 账本中的中文机制会明确写成“近期车队未完赛率……作为赛车可靠性输入，并影响退赛采样”，受影响模型表面为：
+
+```text
+affected_model_surfaces = ["dnf_sampler"]
+```
+
+候选预测相对当前 registered latest 的变化：
+
+```text
+当前 registered latest:
+Russell 47.75%, Antonelli 43.75%, Hamilton 5.33%, Leclerc 1.58%
+
+近期车队可靠性候选:
+Antonelli 39.08%, Russell 38.75%, Hamilton 9.17%, Leclerc 4.25%
+```
+
+这说明该通路确实改变了预测概率：它降低了 Mercedes 双车过度集中的胜率，并把 Leclerc 的冠军尾部提高到 4.25%。但它仍然没有解决核心排序问题：候选仍是 Mercedes 双车领先，且异常审计重新报出 Leclerc/Hamilton 队友顺序冲突。
+
+随后运行了低迭代 replay 诊断：
+
+```text
+.venv\Scripts\python.exe scripts\recent_team_reliability_replay_diagnostic.py --year 2026 --as-of 2026-07-07T00:00:00+00:00 --iterations 120 --output-dir reports\recent_team_reliability_replay_diagnostic
+```
+
+产物：
+
+```text
+reports/recent_team_reliability_replay_diagnostic/2026_asof_20260707T000000_0000.recent_team_reliability_replay_diagnostic.md
+```
+
+结果：
+
+```text
+top_pick_hit_rate: baseline 0.6667 -> candidate 0.7778
+mean_actual_winner_probability: 0.3472 -> 0.3417
+mean_winner_brier_score: 0.6489 -> 0.6574
+mean_actual_log_loss: 1.4010 -> 1.3165
+weighted_top_pick_calibration_gap: 0.2148 -> 0.3444
+British GP Leclerc probability: 0.0167 -> 0.0417
+```
+
+读法：
+
+- 正向：top-pick 命中和 log loss 在这个小样本诊断里改善，British GP 实际冠军概率也被抬高；
+- 负向：实际冠军平均概率、Brier 和 top-pick 校准 gap 变差；
+- 边界：9 场、120 次迭代、无留出集，不能当正式 ablation；
+- 结论：该候选保留为下一轮正式 calibration 的候选，不能注册为前端 latest。

@@ -98,9 +98,14 @@ def _simulator_config_from_id(config_id: str | None):
 
 
 def _feature_provider_from_args(args: argparse.Namespace) -> ProcessedFeatureProvider | None:
-    if not getattr(args, "enable_recent_full_field_finish_form", False):
+    enable_recent_full_field_finish_form = getattr(args, "enable_recent_full_field_finish_form", False)
+    enable_recent_team_reliability_form = getattr(args, "enable_recent_team_reliability_form", False)
+    if not enable_recent_full_field_finish_form and not enable_recent_team_reliability_form:
         return None
-    return ProcessedFeatureProvider(enable_recent_full_field_finish_form=True)
+    return ProcessedFeatureProvider(
+        enable_recent_full_field_finish_form=enable_recent_full_field_finish_form,
+        enable_recent_team_reliability_form=enable_recent_team_reliability_form,
+    )
 
 
 def main() -> None:
@@ -115,6 +120,7 @@ def main() -> None:
     predict.add_argument("--iterations", type=int, default=5000)
     predict.add_argument("--simulator-config-id", default=None)
     predict.add_argument("--enable-recent-full-field-finish-form", action="store_true")
+    predict.add_argument("--enable-recent-team-reliability-form", action="store_true")
 
     prediction_packet = sub.add_parser("prediction-packet", help="Build an auditable single-event prediction packet")
     prediction_packet.add_argument("--event", default="british_gp")
@@ -122,6 +128,7 @@ def main() -> None:
     prediction_packet.add_argument("--iterations", type=int, default=1200)
     prediction_packet.add_argument("--simulator-config-id", default=None)
     prediction_packet.add_argument("--enable-recent-full-field-finish-form", action="store_true")
+    prediction_packet.add_argument("--enable-recent-team-reliability-form", action="store_true")
     prediction_packet.add_argument("--isolated-impact-limit", type=int, default=0)
     prediction_packet.add_argument("--isolated-source-group-limit", type=int, default=0)
     prediction_packet.add_argument("--write", action="store_true")
@@ -327,6 +334,7 @@ def main() -> None:
     simulator_calibration.add_argument("--iterations", type=int, default=800)
     simulator_calibration.add_argument("--candidate", action="append", default=[])
     simulator_calibration.add_argument("--enable-recent-full-field-finish-form", action="store_true")
+    simulator_calibration.add_argument("--enable-recent-team-reliability-form", action="store_true")
     simulator_calibration.add_argument("--write", action="store_true")
     simulator_calibration.add_argument("--output-dir", default="reports/simulator_calibration")
 

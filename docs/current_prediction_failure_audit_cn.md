@@ -2284,3 +2284,100 @@ British GP Leclerc probability: 0.0167 -> 0.0083
 ```
 
 这个结果支持保持默认关闭：候选在少数整体指标上有轻微信号，但 log loss、top-pick 校准 gap 和 British GP 实际冠军概率都变差。它可以继续作为“近期状态窗口怎样进入 BeliefState”的候选通路，但不能作为当前默认预测修复。
+
+## 35. 2026-07-07 收尾追加：近期车队可靠性候选有影响，但不能上线
+
+本轮为了处理“随机事件尾部/退赛风险没有充分来源化”的问题，新增了一个默认关闭的诊断候选：
+
+```text
+FastF1 近几站正赛分类
+-> 车队未完赛率 vs 全场未完赛率
+-> team reliability
+-> BeliefState.car.reliability
+-> dnf_sampler
+```
+
+这不是根据用户说某队强弱来改数值；它只用知识截止前 FastF1 存储的正赛分类状态，且所有车队同一公式处理。
+
+默认状态保持不变：
+
+```text
+registered latest 仍指向:
+reports/prediction_runs/runs/british_gp/british_gp_20260705T000000_0000_20260707T122518_0000_d225707bdb.prediction_run.json
+
+latest packet:
+reports/prediction_packets_practice_conflict_gate_probe/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+
+latest top four:
+Russell 47.75%
+Antonelli 43.75%
+Hamilton 5.33%
+Leclerc 1.58%
+
+latest feature_count = 571
+status = diagnostic_only
+```
+
+新增候选包没有注册到 latest：
+
+```text
+reports/prediction_packets_recent_team_reliability_probe/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+packet_payload_sha256 = 43c5871b5fe9589cdfe01f0a80b82ae70b3370b3d81d0f766c873cd3e382083c
+feature_count = 582
+recent_team_reliability_feature_count = 11
+recent_team_reliability_ledger_count = 11
+```
+
+关键来源化输入示例：
+
+```text
+Aston Martin 近期未完赛率 4/6 = 0.667 vs 全场 0.273 -> reliability -0.0250
+Cadillac      近期未完赛率 4/6 = 0.667 vs 全场 0.273 -> reliability -0.0250
+Ferrari       近期未完赛率 2/6 = 0.333 vs 全场 0.273 -> reliability -0.0055
+Racing Bulls  近期未完赛率 0/6 = 0.000 vs 全场 0.273 -> reliability +0.0120
+Mercedes      近期未完赛率 1/6 = 0.167 vs 全场 0.273 -> reliability +0.0095
+```
+
+候选 British GP 预测：
+
+```text
+Antonelli 39.08%
+Russell   38.75%
+Hamilton   9.17%
+Leclerc    4.25%
+Piastri    3.00%
+Norris     3.00%
+Verstappen 2.17%
+Hadjar     0.58%
+```
+
+这说明本轮改动确实影响了结果，而不是只改解释层：Mercedes 双车胜率从约 91.5% 降到约 77.8%，Leclerc 从 1.58% 提到 4.25%。但该候选没有通过“是否应该上线”的门槛：
+
+- top 仍然是 Mercedes 双车；
+- Leclerc 仍低于 Hamilton，异常审计重新报出中优先级队友顺序冲突；
+- 它只处理可靠性，不处理同周末长距离、轮胎温度窗口、调校窗口、策略窗口等更关键的比赛日状态；
+- replay 诊断结果混合，不能作为正式有效证明。
+
+低迭代 replay 诊断产物：
+
+```text
+reports/recent_team_reliability_replay_diagnostic/2026_asof_20260707T000000_0000.recent_team_reliability_replay_diagnostic.md
+```
+
+结果：
+
+```text
+top_pick_hit_rate: baseline 0.6667 -> candidate 0.7778
+mean_actual_winner_probability: 0.3472 -> 0.3417
+mean_winner_brier_score: 0.6489 -> 0.6574
+mean_actual_log_loss: 1.4010 -> 1.3165
+weighted_top_pick_calibration_gap: 0.2148 -> 0.3444
+British GP Leclerc probability: 0.0167 -> 0.0417
+```
+
+结论：
+
+- 该候选是有效的“来源 -> 状态 -> 模型表面 -> 概率变化”链路补充；
+- 它不是当前预测质量修复；
+- 不能注册 latest；
+- 下一步仍应围绕近期车队真实强弱、同周末长距离/调校/轮胎、策略窗口和正式 replay/calibration 做系统修正。

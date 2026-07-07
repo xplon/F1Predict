@@ -39,6 +39,7 @@ class ProcessedFeatureProvider:
         session_lap_repository: FastF1SessionLapRepository | None = None,
         official_standings_repository: OfficialStandingsRepository | None = None,
         enable_recent_full_field_finish_form: bool = False,
+        enable_recent_team_reliability_form: bool = False,
     ) -> None:
         self.processed_root = Path(processed_root)
         self.raw_root = Path(raw_root)
@@ -49,6 +50,7 @@ class ProcessedFeatureProvider:
             processed_root=processed_root,
         )
         self.enable_recent_full_field_finish_form = enable_recent_full_field_finish_form
+        self.enable_recent_team_reliability_form = enable_recent_team_reliability_form
 
     def load_event_features(
         self,
@@ -1378,6 +1380,18 @@ class ProcessedFeatureProvider:
                     field_team_finish,
                 )
             )
+        if self.enable_recent_team_reliability_form:
+            adjustments.extend(
+                self._fastf1_recent_team_reliability_adjustments(
+                    season,
+                    event,
+                    result_rows,
+                    driver_lookup,
+                    source,
+                    observed_at,
+                    confidence,
+                )
+            )
 
         team_avg_conversion = self._team_average_grid_conversion(season, driver_results)
         field_team_conversion = mean(team_avg_conversion.values()) if team_avg_conversion else 0.0
@@ -1460,6 +1474,69 @@ class ProcessedFeatureProvider:
                         f"team recent-window average finish {avg_finish:.2f} vs field {field_team_finish:.2f} "
                         f"across previous {len(result_rows)} race result(s); used as a bounded recent team/car "
                         "race-pace prior so points-only scoring does not hide P11-P22 outcomes."
+                    ),
+                )
+            )
+        return adjustments
+
+    def _fastf1_recent_team_reliability_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        driver_lookup: dict[str, str],
+        source: str,
+        observed_at: str,
+        confidence: float,
+    ) -> list[FeatureAdjustment]:
+        team_starts: defaultdict[str, int] = defaultdict(int)
+        team_non_finishes: defaultdict[str, int] = defaultdict(int)
+        for _, result, _ in result_rows:
+            for row in result.classified:
+                driver_id = self._result_driver_id(row, driver_lookup)
+                if driver_id is None or driver_id not in season.drivers:
+                    continue
+                team_id = season.drivers[driver_id].team_id
+                team_starts[team_id] += 1
+                status = str(row.get("status") or "")
+                if not self._finished_status(status):
+                    team_non_finishes[team_id] += 1
+
+        team_rates = {
+            team_id: team_non_finishes.get(team_id, 0) / starts
+            for team_id, starts in team_starts.items()
+            if starts > 0 and team_id in season.teams
+        }
+        if not team_rates:
+            return []
+
+        field_rate = mean(team_rates.values())
+        adjustments: list[FeatureAdjustment] = []
+        for team_id, rate in sorted(team_rates.items()):
+            value = round(self._clamp((field_rate - rate) * 0.090, -0.025, 0.012), 4)
+            if not value:
+                continue
+            non_finishes = team_non_finishes.get(team_id, 0)
+            starts = team_starts[team_id]
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-form-team-reliability:{season.season}:{event.event_id}:"
+                        f"{team_id}:reliability:{len(result_rows)}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="reliability",
+                    value=value,
+                    confidence=max(0.14, confidence - 0.05),
+                    observed_at=observed_at,
+                    explanation=(
+                        f"Cutoff-valid FastF1 recent team non-finished classifications before {event.name}: "
+                        f"team non-finished rate {rate:.3f} ({non_finishes}/{starts}) vs field {field_rate:.3f} "
+                        f"across previous {len(result_rows)} race result(s); used as a bounded team/car "
+                        "reliability prior for DNF sampling, not as a hand-written team order."
                     ),
                 )
             )

@@ -208,6 +208,7 @@ def localize_public_text_zh(text: Any) -> str:
     replacements = {
         "Cutoff-valid FastF1 race results": "知识截止前可用的 FastF1 正赛结果",
         "Cutoff-valid FastF1 full-field race classifications": "知识截止前可用的 FastF1 全场正赛排名",
+        "Cutoff-valid FastF1 recent team non-finished classifications": "知识截止前可用的 FastF1 近期车队未完赛记录",
         "Same-event FastF1 qualifying classification": "同一比赛周末 FastF1 排位结果",
         "Same-event FastF1 qualifying team average position": "同一比赛周末 FastF1 车队平均排位",
         "Official driver standings": "官方车手积分榜",
@@ -228,6 +229,7 @@ def localize_public_text_zh(text: Any) -> str:
         "grid-to-finish conversion": "发车到完赛转换",
         "non-finished classification(s)": "次未完赛记录",
         "non-finished classification": "未完赛记录",
+        "team non-finished rate": "车队未完赛率",
         "long-run proxy": "长距离速度代理值",
         "team long-run proxy": "车队长距离速度代理值",
         "Confidence was down-weighted": "置信度被降低",
@@ -494,6 +496,12 @@ def _parsed_feature_explanation(
     if "best valid lap" in text:
         return f"{source_label}；{event_phrase}最快有效圈对比为 {_clean_value(value)}，作为排位速度信号{confidence_phrase}。"
     if "non-finished classification" in text:
+        if "team non-finished rate" in text:
+            value = _after_phrase(text, "team non-finished rate")
+            return (
+                f"{source_label}；近期车队未完赛率为 {_clean_value(value)}，"
+                f"与全场未完赛率对比后作为赛车可靠性输入，并影响退赛采样{confidence_phrase}。"
+            )
         value = text.split(";", 1)[0]
         return f"{source_label}；近期未完赛记录为 {_clean_value(value)}，作为小幅可靠性风险输入{confidence_phrase}。"
     if "relative points delta" in text:
