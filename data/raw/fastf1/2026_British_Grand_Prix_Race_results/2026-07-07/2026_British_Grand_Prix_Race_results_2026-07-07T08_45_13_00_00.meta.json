@@ -1,0 +1,14 @@
+{
+  "source": "fastf1",
+  "dataset": "2026_British Grand Prix_Race_results",
+  "captured_at": "2026-07-07T08:45:13+00:00",
+  "params": {
+    "year": 2026,
+    "event": "British Grand Prix",
+    "resolved_event": "British Grand Prix",
+    "session": "R",
+    "session_name": "Race"
+  },
+  "item_count": 1,
+  "data_path": "data\\raw\\fastf1\\2026_British_Grand_Prix_Race_results\\2026-07-07\\2026_British_Grand_Prix_Race_results_2026-07-07T08_45_13_00_00.json"
+}

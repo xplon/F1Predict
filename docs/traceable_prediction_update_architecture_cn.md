@@ -817,3 +817,43 @@ formal_readiness.status = formal_trace_ready
 2. latest API 和前端会在读取时叠加同一 run 的最新 sidecar，因此以 sidecar 的 `formal_readiness` 和覆盖率作为当前解释链状态。
 
 截至本次收尾，前端可见状态已经是 `535/535`、`matched_source_run_iterations`、`正式解释已就绪`。这只说明解释链完整，不说明预测模型已经完成校准或具备正式盈利 edge。
+
+## 16. 2026-07-07 追加：赛后复盘是评估闭环，不是赛前预测输入
+
+在 British GP 结束后，系统新增 `PostEventReviewBuilder`：
+
+```text
+registered prediction packet
+-> FastF1 post-event result snapshot
+-> driver id alias normalization
+-> winner / podium / points / rank-error diagnostics
+-> post-event review JSON + Markdown
+```
+
+这个对象解决的是另一个闭环问题：用户不只需要知道“预测为什么这么来”，还需要知道“比赛结束后，这套预测到底哪里对、哪里错”。但它必须和预测输入严格隔离：
+
+- 赛后结果快照可以用于 `post_event_review`、`replay_analysis`、`calibration`；
+- 赛后结果不能写回该场赛前 `BeliefState`；
+- 赛后结果不能解释该场赛前预测为什么变化；
+- 如果基于赛后复盘调整模型，只能通过通用模型修订证明、历史 replay/calibration 或新的来源化状态更新进入 registry；
+- 单站结果只能提出候选问题，不能成为“把某个车手手动调高/调低”的证据。
+
+British GP 当前复盘产物：
+
+```text
+reports/post_event_review/british_gp/british_gp_20260705T000000_0000.post_event_review.json
+reports/post_event_review/british_gp/british_gp_20260705T000000_0000.post_event_review.md
+```
+
+复盘结果显示：
+
+```text
+预测第一 = Russell
+实际冠军 = Leclerc
+实际冠军赛前预计排名 = 4
+实际冠军赛前胜率 = 0.0125
+领奖台重合率 = 0.6667
+积分区重合率 = 0.7
+```
+
+这说明解释链条已经能够交代预测依据，但预测质量闭环继续暴露出模型校准问题：Leclerc 胜率过低，Antonelli 风险尾部不足，强队双车概率仍有过度集中的倾向。下一轮模型修订应把这些作为历史 replay/calibration 的候选误差类型，而不是把 British GP 结果当作手调标签。

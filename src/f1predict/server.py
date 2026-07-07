@@ -21,6 +21,7 @@ from f1predict.model_error_review import ModelErrorReviewBuilder
 from f1predict.mvp_gate import MVPGateBuilder
 from f1predict.official_standings import OfficialStandingsRepository
 from f1predict.pipeline import PredictionPipeline
+from f1predict.post_event_review import PostEventReviewBuilder
 from f1predict.prediction_packet import PredictionPacketBuilder
 from f1predict.readiness import FormalReadinessBuilder
 from f1predict.replay_analysis import ReplayAnalysisBuilder
@@ -360,6 +361,21 @@ class AppHandler(BaseHTTPRequestHandler):
                         report_dir="model_error_review",
                         suffix=".model_error_review.json",
                     )
+            except Exception as exc:  # noqa: BLE001
+                self._json({"error": str(exc)}, status=400)
+                return
+            self._json(payload)
+            return
+        if parsed.path == "/api/post-event-review":
+            query = parse_qs(parsed.query)
+            event_id = query.get("event_id", ["british_gp"])[0]
+            cutoff = query.get("knowledge_cutoff", [None])[0]
+            try:
+                payload = PostEventReviewBuilder().build(event_id, knowledge_cutoff=cutoff).to_dict()
+                payload["source"] = "registered_prediction_plus_fastf1_result"
+            except FileNotFoundError as exc:
+                self._json({"error": str(exc)}, status=404)
+                return
             except Exception as exc:  # noqa: BLE001
                 self._json({"error": str(exc)}, status=400)
                 return

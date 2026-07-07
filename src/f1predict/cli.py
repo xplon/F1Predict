@@ -46,6 +46,7 @@ from f1predict.mvp_completion_audit import MVPCompletionAuditBuilder
 from f1predict.mvp_gate import MVPGateBuilder
 from f1predict.official_standings import OfficialStandingsRepository
 from f1predict.pipeline import PredictionPipeline
+from f1predict.post_event_review import PostEventReviewBuilder
 from f1predict.prediction_packet import PredictionPacketBuilder
 from f1predict.readiness import FormalReadinessBuilder
 from f1predict.readiness_intake import ReadinessIntakeExporter, ReadinessIntakeVerifier
@@ -271,6 +272,15 @@ def main() -> None:
     mvp_completion_audit.add_argument("--as-of", required=True)
     mvp_completion_audit.add_argument("--write", action="store_true")
     mvp_completion_audit.add_argument("--output-dir", default="reports/mvp_completion_audit")
+
+    post_event_review = sub.add_parser(
+        "post-event-review",
+        help="Compare a registered prediction packet with the post-event FastF1 result",
+    )
+    post_event_review.add_argument("--event", required=True)
+    post_event_review.add_argument("--knowledge-cutoff", default=None)
+    post_event_review.add_argument("--write", action="store_true")
+    post_event_review.add_argument("--output-dir", default="reports/post_event_review")
 
     track_assets = sub.add_parser(
         "audit-track-assets",
@@ -892,6 +902,19 @@ def main() -> None:
             print(json.dumps({name: str(path) for name, path in paths.items()}, ensure_ascii=False, indent=2))
         else:
             print(json.dumps(builder.build(args.year, args.as_of).to_dict(), ensure_ascii=False, indent=2))
+    elif args.command == "post-event-review":
+        builder = PostEventReviewBuilder()
+        if args.write:
+            paths = builder.write(args.event, knowledge_cutoff=args.knowledge_cutoff, output_dir=args.output_dir)
+            print(json.dumps({name: str(path) for name, path in paths.items()}, ensure_ascii=False, indent=2))
+        else:
+            print(
+                json.dumps(
+                    builder.build(args.event, knowledge_cutoff=args.knowledge_cutoff).to_dict(),
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
     elif args.command == "audit-track-assets":
         season = PredictionPipeline(iterations=1).data_source.load()
         auditor = TrackAssetAuditor()

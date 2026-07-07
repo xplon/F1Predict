@@ -21,6 +21,7 @@ const state = {
   improvement: null,
   calibration: null,
   modelErrorReview: null,
+  postEventReview: null,
   simulatorCalibration: null,
   freeze: null,
   predictionLoading: false,
@@ -195,6 +196,7 @@ async function loadDashboardPanels() {
     ["improvementPlan", loadImprovementPlan],
     ["calibration", loadCalibrationReport],
     ["modelErrorReview", loadModelErrorReview],
+    ["postEventReview", loadPostEventReview],
     ["simulatorCalibration", loadSimulatorCalibration],
     ["replayFreeze", loadReplayFreeze]
   ].map(([label, loader]) => loadDiagnosticPanel(label, loader)));
@@ -242,6 +244,7 @@ function markDiagnosticPanelTimeout(label) {
     improvementPlan: "improvementStatus",
     calibration: "calibrationStatus",
     modelErrorReview: "modelErrorStatus",
+    postEventReview: "postEventReviewStatus",
     simulatorCalibration: "simulatorCalibrationStatus",
     replayFreeze: "freezeStatus"
   };
@@ -443,6 +446,20 @@ async function loadCalibrationReport() {
 async function loadModelErrorReview() {
   state.modelErrorReview = await getJson("/api/model-error-review?iterations=800");
   renderModelErrorReview();
+}
+
+async function loadPostEventReview() {
+  const eventId = document.getElementById("eventSelect").value || "british_gp";
+  try {
+    state.postEventReview = await getJson(`/api/post-event-review?event_id=${encodeURIComponent(eventId)}`);
+  } catch (error) {
+    state.postEventReview = {
+      event_id: eventId,
+      status: "unavailable",
+      error: String(error?.message || error)
+    };
+  }
+  renderPostEventReview();
 }
 
 async function loadSimulatorCalibration() {
@@ -3300,6 +3317,81 @@ function renderModelErrorReview() {
         </article>
       `;
     })
+  ].join("");
+}
+
+function renderPostEventReview() {
+  const report = state.postEventReview;
+  if (!report) {
+    return;
+  }
+  const statusElement = document.getElementById("postEventReviewStatus");
+  const summaryElement = document.getElementById("postEventReviewSummary");
+  const listElement = document.getElementById("postEventReviewList");
+  if (report.error) {
+    statusElement.textContent = `${report.status || "unavailable"} | ${report.event_id || ""}`;
+    summaryElement.innerHTML = `
+      <div class="metric-card">
+        <span>Result</span>
+        <strong>Unavailable</strong>
+      </div>
+    `;
+    listElement.innerHTML = `
+      <article class="model-error-card">
+        <div>
+          <h3>No post-event review</h3>
+          <span class="pill">${escapeHtml(report.status || "unavailable")}</span>
+        </div>
+        <div>
+          <p>${escapeHtml(report.error)}</p>
+        </div>
+      </article>
+    `;
+    return;
+  }
+  statusElement.textContent =
+    `${report.status} | ${report.winner_hit ? "winner hit" : "winner missed"} | ${report.event_name}`;
+  const summaryRows = [
+    ["Predicted P1", driverNames[report.predicted_winner] || report.predicted_winner || "n/a"],
+    ["Actual winner", driverNames[report.actual_winner] || report.actual_winner || "n/a"],
+    ["Winner rank", report.actual_winner_predicted_rank == null ? "n/a" : `P${report.actual_winner_predicted_rank}`],
+    ["Winner p", report.actual_winner_win_probability == null ? "n/a" : pct(report.actual_winner_win_probability)],
+    ["Podium overlap", report.podium_overlap_rate == null ? "n/a" : pct(report.podium_overlap_rate)],
+    ["Points overlap", report.points_overlap_rate == null ? "n/a" : pct(report.points_overlap_rate)]
+  ];
+  summaryElement.innerHTML = summaryRows
+    .map(([label, value]) => `
+      <div class="metric-card">
+        <span>${escapeHtml(label)}</span>
+        <strong>${escapeHtml(value)}</strong>
+      </div>
+    `)
+    .join("");
+  const rows = report.top10_actual_position_summary || [];
+  listElement.innerHTML = [
+    `<article class="model-error-card ${report.winner_hit ? "" : "diagnostic-miss"}">
+      <div>
+        <h3>${escapeHtml(report.event_name || "Post-event review")}</h3>
+        <span class="pill">${escapeHtml(report.prediction_status || "diagnostic_only")}</span>
+        <p>${escapeHtml(report.summary_zh || "")}</p>
+      </div>
+      <div>
+        <p>Run ${escapeHtml(shortHash(report.prediction_run_id || ""))}</p>
+        <p>Result ${escapeHtml(report.result_source || "unknown")} | after cutoff: ${report.result_captured_after_prediction_cutoff ? "yes" : "no"}</p>
+        <p>${escapeHtml((report.warnings || []).join(", "))}</p>
+      </div>
+    </article>`,
+    ...rows.map(row => `
+      <article class="model-error-card">
+        <div>
+          <h3>P${escapeHtml(row.predicted_rank)} ${escapeHtml(driverNames[row.driver_id] || row.driver_id)}</h3>
+          <span class="pill">Actual ${row.actual_position == null ? "n/a" : `P${row.actual_position}`}</span>
+        </div>
+        <div>
+          <p>Win ${pct(row.win_probability || 0)} | expected points ${Number(row.expected_points || 0).toFixed(2)}</p>
+        </div>
+      </article>
+    `)
   ].join("");
 }
 

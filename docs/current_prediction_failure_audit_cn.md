@@ -1099,3 +1099,162 @@ impact_trace_covered_claim_count = 535 / 535
 ```
 
 这不等于预测已经正确，也不等于具备正式 edge。它只表示当前异常审计规则不再发现高/中/低优先级的明显来源-排名张力。下一阶段仍然要用历史 replay、概率校准和市场基线比较来证明预测质量。
+
+## 23. 2026-07-07：新增 British GP 赛后预测复盘，不把赛后结果写回预测
+
+今天继续推进“预测结果是否大致合理”的目标时，先补了一个缺失证据：British GP 已经结束，但本地此前没有 FastF1 正赛结果快照，所以 `replay-report --as-of 2026-07-07T00:00:00+00:00` 会把 British GP 标为 `missing_due_data`。这意味着我们无法严肃回答“最新赛前预测到底表现怎么样”。
+
+本轮用项目现有 CLI 摄取了 British GP 正赛结果：
+
+```text
+python -m f1predict.cli ingest-fastf1-results --year 2026 --event "British Grand Prix" --session R
+```
+
+得到的结果快照为：
+
+```text
+data/raw/fastf1/2026_British_Grand_Prix_Race_results/2026-07-07/2026_British_Grand_Prix_Race_results_2026-07-07T08_45_13_00_00.json
+```
+
+FastF1 结果显示实际前十：
+
+```text
+1 Leclerc
+2 Russell
+3 Hamilton
+4 Norris
+5 Hadjar
+6 Lawson
+7 Lindblad
+8 Bortoleto
+9 Colapinto
+10 Gasly
+```
+
+随后新增了通用的 `PostEventReviewBuilder` 和 CLI：
+
+```text
+python -m f1predict.cli post-event-review --event british_gp --write
+```
+
+生成产物：
+
+```text
+reports/post_event_review/british_gp/british_gp_20260705T000000_0000.post_event_review.json
+reports/post_event_review/british_gp/british_gp_20260705T000000_0000.post_event_review.md
+```
+
+这份复盘读取的是最新注册赛前预测包：
+
+```text
+run_id = british_gp_20260705T000000_0000_20260707T065149_0000_d76ec2c3e4
+knowledge_cutoff = 2026-07-05T00:00:00+00:00
+packet_payload_sha256 = d76ec2c3e444fc48e648dc0208bf31a52b1c5158612b7cf81a386d1989e50478
+```
+
+关键结果：
+
+```text
+预测第一：Russell
+实际冠军：Leclerc
+冠军命中：False
+实际冠军 Leclerc 的赛前预计排名：第 4
+Leclerc 的赛前预测胜率：0.0125
+预测第一 Russell 的实际完赛位置：第 2
+领奖台重合率：0.6667
+积分区重合率：0.7
+平均绝对排名误差：4.6364
+```
+
+这说明当前模型有两个层面的真实状态：
+
+第一，整体前排结构不是完全离谱。实际领奖台 Leclerc/Russell/Hamilton 中，Russell 和 Hamilton 已经在预测前三，Leclerc 也在预测第 4；实际前十里 Hadjar、Lindblad、Gasly 等中游位置也大致进入了预测前十附近。
+
+第二，冠军概率分布仍明显有问题。Leclerc 最终获胜，但赛前胜率只有 `1.25%`；Antonelli 赛前被给到 `44.0%` 冠军概率和第 2 预计排名，实际只完赛第 15。这说明当前模型仍然过度相信部分 Mercedes/Antonelli 的强信号，低估了 Ferrari/Leclerc 在同场排位和正赛执行中的上行空间，也没有充分表达单场事故、策略、退化或比赛执行导致的尾部风险。
+
+这次新增的是评估能力，不是模型调参：
+
+- 没有改变预测概率；
+- 没有改变 registered latest run；
+- 没有把赛后结果写入赛前 BeliefState；
+- 结果快照晚于预测截止，复盘产物明确标记 `result_snapshot_after_prediction_cutoff_for_evaluation_only`；
+- `post_event_review_smoke_test.py` 验证了 Leclerc 冠军、Russell 预测第一、领奖台/积分区 overlap、以及 `arvid_lindblad -> lindblad`、`max_verstappen -> verstappen` 这类 FastF1/内部 driver id 映射。
+
+下一步模型方向因此更明确：
+
+```text
+不要按 Leclerc 或 Antonelli 手调；
+应复查同场排位、长距离、策略、轮胎衰退、可靠性/事故尾部风险和车队近期状态在模拟器中的通用权重；
+把 British GP 加入 replay/calibration 以后，再用同口径候选配置比较是否真的降低排名误差和概率过度集中。
+```
+
+当前结论：解释链条已经能解释预测从哪里来；赛后复盘证明英国站预测“前排结构部分合理，但冠军概率和 Antonelli 风险明显不合理”。因此 goal 仍不能标记为全部完成，除非后续模型校准能在不手调实体的前提下改善这类错误。
+
+补充：在结果摄取后，已重跑 2026-07-07 的 replay coverage、replay analysis 和 calibration：
+
+```text
+python -m f1predict.cli replay-report --year 2026 --as-of 2026-07-07T00:00:00+00:00 --write
+python -m f1predict.cli analyze-replay --year 2026 --as-of 2026-07-07T00:00:00+00:00 --iterations 1200 --write
+python -m f1predict.cli calibration-report --year 2026 --as-of 2026-07-07T00:00:00+00:00 --iterations 1200 --write
+```
+
+新增/刷新产物：
+
+```text
+reports/replay/2026_asof_20260707T000000_0000.json
+reports/replay_analysis/2026_asof_20260707T000000_0000.analysis.json
+reports/replay_analysis/2026_asof_20260707T000000_0000.analysis.md
+reports/calibration/2026_asof_20260707T000000_0000.calibration.json
+reports/calibration/2026_asof_20260707T000000_0000.calibration.md
+```
+
+British GP 在 replay coverage 中已经从缺失结果变成可评分行：
+
+```text
+status = replayed
+top_pick = russell
+actual_winner = leclerc
+hit = false
+actual_winner_rank = 4
+mean_abs_rank_error = 4.6364
+podium_overlap_rate = 0.6667
+points_overlap_rate = 0.7
+```
+
+9 场整体诊断指标：
+
+```text
+diagnostic_scored_events = 9
+top_pick_hits = 6
+top_pick_hit_rate = 0.6667
+median_actual_winner_rank = 1
+mean_abs_rank_error = 4.3232
+mean_podium_overlap_rate = 0.6667
+mean_points_overlap_rate = 0.7222
+```
+
+概率校准指标：
+
+```text
+scored_events = 9
+market_scored_events = 2
+mean_top_pick_probability = 0.4708
+mean_actual_winner_probability = 0.3562
+weighted_top_pick_calibration_gap = 0.1959
+mean_actual_log_loss = 1.4793
+formal_probability_claim_ready = false
+```
+
+British GP 单场校准行尤其说明问题：
+
+```text
+top_pick = russell
+actual_winner = leclerc
+top_pick_probability = 0.4825
+actual_winner_probability = 0.0125
+actual_winner_rank = 4
+actual_log_loss = 4.382
+paper_trade_hit = false
+```
+
+这进一步支持上面的判断：当前模型不是全局排序完全崩坏，而是概率分布过度集中、部分强队/车手风险尾部不足、Ferrari/Leclerc 的胜出可能被压得过低。下一步如果要改变默认预测，必须通过通用模型修订证明或新的来源化状态更新，不能因为这场结果直接把 Leclerc 手动抬高。
