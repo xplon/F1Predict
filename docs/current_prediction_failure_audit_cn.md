@@ -1042,3 +1042,60 @@ uncovered_claim_count = 0
 预测包：仍是 diagnostic_only
 预测质量：方向比早期版本合理，但尚未通过历史回放/校准/市场基线证明
 ```
+
+## 22. 2026-07-07：修正 Gasly/Alpine 低优先级异常的归因口径
+
+继续审计 latest run 时发现，上一节保留的低优先级 `driver_specific_lift_over_weak_team_support / Gasly-Alpine` 更像是异常审计的归因口径问题，而不是新的预测数值问题。
+
+当时的异常文案说：
+
+```text
+车队/赛车层来源偏弱，但车手层正向来源把 Gasly 抬入前十附近。
+```
+
+重新查看 `BeliefState` 和 `StateUpdateLedger` 后，Gasly 本人的来源账本并不是净正向：
+
+```text
+Gasly 同场排位 P12/22 -> qualifying_ceiling 明显负向
+Gasly 同场排位圈速慢于全场均值 -> qualifying_ceiling 负向
+Gasly 赛季/近期积分与官方积分榜 -> race_pace 小幅正向
+Gasly 近期/赛季发车到完赛转换 -> race_execution 小幅正向
+综合看：车手本人正向信号不足以被描述成“把他抬入前十”的强证据
+```
+
+同时 Alpine 车队层也不是单纯强负向：
+
+```text
+同场平均排位、排位圈速 -> 负向
+近期全场完赛位置重估、练习赛长距离代理 -> 正向
+官方车队积分和每站积分 -> 小幅负向
+```
+
+因此第 10 名附近的 Gasly 更准确的解释是：
+
+```text
+中游车队分布非常密集；
+Gasly 相对 Colapinto 的同队排位和历史表现更好；
+Alpine 车队层有负向，也有近期完赛/长距离 counterevidence；
+当前排序是弱差距下的诊断结果，不应被异常审计误写成“车手个人来源强行覆盖弱车队”。
+```
+
+本轮代码修正：
+
+- 新增 `_DriverSupport`，按车手本人统计 `positive/negative/net/source/claim/update`；
+- `driver_specific_lift_over_weak_team_support` 只有在“最佳车手本人来源净正向、正向来源超过负向来源、且正向强度超过车队层支持”时才会触发；
+- 不再用全队聚合或队友来源来解释某一名车手；
+- `scripts/prediction_anomaly_audit_smoke_test.py` 改为验证 Gasly 不会被固定报异常，同时保留真正 driver-specific lift 的解释约束。
+
+这次修正不改变任何预测概率、排名、BeliefState 或 sidecar。它只改变 API 运行时异常审计：
+
+```text
+GET /api/v2/prediction-packets/latest?event_id=british_gp
+run_id = british_gp_20260705T000000_0000_20260707T065149_0000_d76ec2c3e4
+packet_payload_sha256 = d76ec2c3e444fc48e648dc0208bf31a52b1c5158612b7cf81a386d1989e50478
+prediction_anomaly_audit.status = no_major_anomaly_detected
+prediction_anomaly_audit.anomaly_count = 0
+impact_trace_covered_claim_count = 535 / 535
+```
+
+这不等于预测已经正确，也不等于具备正式 edge。它只表示当前异常审计规则不再发现高/中/低优先级的明显来源-排名张力。下一阶段仍然要用历史 replay、概率校准和市场基线比较来证明预测质量。

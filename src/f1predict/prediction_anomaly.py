@@ -154,6 +154,41 @@ class _TeamSupport:
         )
 
 
+@dataclass
+class _DriverSupport:
+    driver_id: str
+    team_id: str
+    positive_update_count: int = 0
+    negative_update_count: int = 0
+    source_ids: set[str] | None = None
+    claim_ids: set[str] | None = None
+    update_ids: list[str] | None = None
+    recent_positive_count: int = 0
+    recent_negative_count: int = 0
+    same_event_positive_count: int = 0
+    same_event_negative_count: int = 0
+    net_value: float = 0.0
+    positive_value: float = 0.0
+    negative_value: float = 0.0
+
+    def __post_init__(self) -> None:
+        self.source_ids = set() if self.source_ids is None else self.source_ids
+        self.claim_ids = set() if self.claim_ids is None else self.claim_ids
+        self.update_ids = [] if self.update_ids is None else self.update_ids
+
+    def bucket(self) -> str:
+        return _support_bucket(self.net_value, self.positive_update_count, self.negative_update_count)
+
+    def direct_lift_over_team(self, team_support: _TeamSupport) -> bool:
+        return (
+            self.bucket() in {"positive", "slight_positive"}
+            and self.net_value > 0.008
+            and self.positive_value > max(0.012, self.negative_value * 0.8)
+            and self.positive_update_count > self.negative_update_count
+            and self.positive_value > max(0.03, team_support.team_positive_value)
+        )
+
+
 @dataclass(frozen=True)
 class _ImpactTraceEvidence:
     traces: list[dict[str, Any]]
@@ -223,9 +258,10 @@ class PredictionAnomalyAuditor:
             if row.get("source_id")
         }
         team_support = self._team_support(season, rows, ledger, sources)
+        driver_support = self._driver_support(season, ledger, sources)
         qualifying_positions = self._same_event_qualifying_positions(features)
         anomalies: list[dict[str, Any]] = []
-        anomalies.extend(self._team_support_anomalies(season, rows, team_support, sources, impact_trace))
+        anomalies.extend(self._team_support_anomalies(season, rows, team_support, driver_support, sources, impact_trace))
         anomalies.extend(
             self._teammate_conflict_anomalies(
                 season,
@@ -394,6 +430,56 @@ class PredictionAnomalyAuditor:
                         row.team_same_event_negative_count += 1
         return support
 
+    def _driver_support(
+        self,
+        season: SeasonState,
+        ledger: list[dict[str, Any]],
+        sources: dict[str, dict[str, Any]],
+    ) -> dict[str, _DriverSupport]:
+        support = {
+            driver_id: _DriverSupport(driver_id=driver_id, team_id=driver.team_id)
+            for driver_id, driver in season.drivers.items()
+        }
+        for update in ledger:
+            if _is_seed_or_blocked(update, sources):
+                continue
+            if str(update.get("target_type") or "") != "driver":
+                continue
+            driver_id = str(update.get("target_id") or "")
+            factor = str(update.get("factor") or "")
+            if driver_id not in support or factor not in PACE_FACTORS:
+                continue
+            delta = _float(update.get("delta"))
+            row = support[driver_id]
+            row.net_value += delta
+            if delta > 0:
+                row.positive_update_count += 1
+                row.positive_value += delta
+            elif delta < 0:
+                row.negative_update_count += 1
+                row.negative_value += abs(delta)
+            source_id = str(update.get("source_id") or "")
+            claim_id = str(update.get("claim_id") or "")
+            update_id = str(update.get("update_id") or "")
+            if source_id:
+                row.source_ids.add(source_id)
+            if claim_id:
+                row.claim_ids.add(claim_id)
+            if update_id:
+                row.update_ids.append(update_id)
+            source_label = _source_label(update, sources)
+            if _is_recent_source(source_label):
+                if delta > 0:
+                    row.recent_positive_count += 1
+                elif delta < 0:
+                    row.recent_negative_count += 1
+            if _is_same_event_source(source_label):
+                if delta > 0:
+                    row.same_event_positive_count += 1
+                elif delta < 0:
+                    row.same_event_negative_count += 1
+        return support
+
     @staticmethod
     def _same_event_qualifying_positions(features: list[dict[str, Any]]) -> dict[str, int]:
         positions: dict[str, int] = {}
@@ -415,6 +501,7 @@ class PredictionAnomalyAuditor:
         season: SeasonState,
         rows: list[_PredictionRow],
         support: dict[str, _TeamSupport],
+        driver_support: dict[str, _DriverSupport],
         sources: dict[str, dict[str, Any]],
         impact_trace: list[dict[str, Any]],
     ) -> list[dict[str, Any]]:
@@ -514,10 +601,11 @@ class PredictionAnomalyAuditor:
                 bucket in {"negative", "slight_negative"}
                 and best_rank <= 10
                 and avg_rank > 10.0
-                and team_support.positive_update_count > team_support.team_positive_update_count
-                and team_support.positive_value > max(0.03, team_support.team_positive_value)
             ):
                 best_driver = team_rows[0]
+                best_driver_support = driver_support.get(best_driver.driver_id)
+                if best_driver_support is None or not best_driver_support.direct_lift_over_team(team_support):
+                    continue
                 anomalies.append(
                     self._anomaly(
                         code="driver_specific_lift_over_weak_team_support",
@@ -534,7 +622,10 @@ class PredictionAnomalyAuditor:
                             f"车队/赛车层来源为{_bucket_zh(bucket)}："
                             f"{team_support.team_positive_update_count} 条正向、"
                             f"{team_support.team_negative_update_count} 条负向；"
-                            f"但车手层正向来源把该车手抬入前十附近。"
+                            f"该车手本人来源为{_bucket_zh(best_driver_support.bucket())}："
+                            f"{best_driver_support.positive_update_count} 条正向、"
+                            f"{best_driver_support.negative_update_count} 条负向，"
+                            "并且净正向信号超过车队层支持。"
                         ),
                         model_risk_zh=(
                             "这不是硬冲突，但前端不能只显示“无异常”。需要说明当前排名主要来自车手个人近期积分、"
@@ -544,7 +635,7 @@ class PredictionAnomalyAuditor:
                             "复核该车手个人来源是否足以覆盖车队层弱信号；优先补长距离、轮胎衰退、策略和队友对比，"
                             "不要按车队名手动压低。"
                         ),
-                        support=team_support,
+                        support=best_driver_support,
                         sources=sources,
                         impact_trace=impact_trace,
                     )
@@ -703,7 +794,7 @@ class PredictionAnomalyAuditor:
         evidence_summary_zh: str,
         model_risk_zh: str,
         recommended_action_zh: str,
-        support: _TeamSupport,
+        support: _TeamSupport | _DriverSupport,
         sources: dict[str, dict[str, Any]],
         impact_trace: list[dict[str, Any]],
     ) -> dict[str, Any]:
@@ -764,7 +855,11 @@ class PredictionAnomalyAuditor:
         }
 
     @staticmethod
-    def _chain_zh(support: _TeamSupport, sources: dict[str, dict[str, Any]], impact_ids: list[str]) -> list[dict[str, str]]:
+    def _chain_zh(
+        support: _TeamSupport | _DriverSupport,
+        sources: dict[str, dict[str, Any]],
+        impact_ids: list[str],
+    ) -> list[dict[str, str]]:
         source_titles = [
             str((sources.get(source_id) or {}).get("title") or source_id)
             for source_id in sorted(support.source_ids or set())[:3]
