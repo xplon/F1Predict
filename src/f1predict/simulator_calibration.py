@@ -474,3 +474,99 @@ def default_simulator_candidate_configs() -> tuple[SimulatorConfig, ...]:
             safety_car_bunching_per_grid_position=0.22,
         ),
     )
+
+
+def route_scale_diagnostic_candidate_configs() -> tuple[SimulatorConfig, ...]:
+    """Single-route BeliefState scale diagnostics.
+
+    Each candidate changes exactly one routed BeliefState component and keeps
+    the simulator defaults otherwise matched. This is diagnostic-only: it is
+    meant to identify which route deserves a formal replay/calibration pass,
+    not to promote a new default by itself.
+    """
+
+    baseline = SimulatorConfig()
+    return (
+        baseline,
+        replace(
+            baseline,
+            config_id="route_car_race_pace_damped_070",
+            description=(
+                "Matched diagnostic: only damp BeliefState car race-pace route to test whether "
+                "race-result-derived car state is over-amplified."
+            ),
+            belief_car_race_pace_route_scale=0.70,
+        ),
+        replace(
+            baseline,
+            config_id="route_car_qualifying_pace_damped_070",
+            description=(
+                "Matched diagnostic: only damp BeliefState car qualifying-pace route to test "
+                "whether grid priors are over-amplified."
+            ),
+            belief_car_qualifying_pace_route_scale=0.70,
+        ),
+        replace(
+            baseline,
+            config_id="route_car_race_carryover_damped_065",
+            description=(
+                "Matched diagnostic: only damp car race-pace carryover into qualifying to test "
+                "whether race form is leaking too strongly into grid sampling."
+            ),
+            belief_car_race_pace_carryover_route_scale=0.65,
+        ),
+        replace(
+            baseline,
+            config_id="route_driver_race_pace_damped_070",
+            description=(
+                "Matched diagnostic: only damp driver race-pace route to test whether recent "
+                "driver form is over-amplified."
+            ),
+            belief_driver_race_pace_route_scale=0.70,
+        ),
+        replace(
+            baseline,
+            config_id="route_driver_qualifying_damped_070",
+            description=(
+                "Matched diagnostic: only damp driver qualifying-ceiling route to test whether "
+                "single-lap driver priors are over-amplified."
+            ),
+            belief_driver_qualifying_ceiling_route_scale=0.70,
+        ),
+        replace(
+            baseline,
+            config_id="route_driver_race_carryover_damped_065",
+            description=(
+                "Matched diagnostic: only damp driver race-pace carryover into qualifying to test "
+                "whether long-run form leaks too strongly into grid sampling."
+            ),
+            belief_driver_race_pace_carryover_route_scale=0.65,
+        ),
+        replace(
+            baseline,
+            config_id="route_team_setup_quality_damped_060",
+            description=(
+                "Matched diagnostic: only damp team setup-quality route to test whether weak "
+                "practice/session proxy signals are over-amplified."
+            ),
+            belief_team_setup_quality_route_scale=0.60,
+        ),
+        replace(
+            baseline,
+            config_id="route_team_strategy_damped_060",
+            description=(
+                "Matched diagnostic: only damp team strategy route to test whether operations "
+                "state is over-amplified."
+            ),
+            belief_team_strategy_route_scale=0.60,
+        ),
+        replace(
+            baseline,
+            config_id="route_technical_track_fit_damped_070",
+            description=(
+                "Matched diagnostic: only damp technical track-fit route to test whether track "
+                "context multipliers are over-amplified."
+            ),
+            belief_technical_track_fit_route_scale=0.70,
+        ),
+    )

@@ -55,7 +55,11 @@ from f1predict.replay_analysis import ReplayAnalysisBuilder
 from f1predict.reviewed_market import ReviewedMarketSnapshotArchiver, reviewed_market_template
 from f1predict.run_tracking import InformationIntakeStore, MatchedPredictionDiff, PredictionRunRegistry
 from f1predict.seed_roster import SeedRosterSyncPlanner
-from f1predict.simulator_calibration import SimulatorCalibrationBuilder, default_simulator_candidate_configs
+from f1predict.simulator_calibration import (
+    SimulatorCalibrationBuilder,
+    default_simulator_candidate_configs,
+    route_scale_diagnostic_candidate_configs,
+)
 from f1predict.source_replacements import SourceReplacementApplier, SourceReplacementCandidateBuilder
 from f1predict.track_assets import TrackAssetAuditor
 
@@ -82,7 +86,7 @@ def _raw_snapshot_captured_at(path: Path | str) -> str | None:
 def _simulator_config_from_id(config_id: str | None):
     if not config_id:
         return None
-    candidate_configs = default_simulator_candidate_configs()
+    candidate_configs = (*default_simulator_candidate_configs(), *route_scale_diagnostic_candidate_configs()[1:])
     configs = {config.config_id: config for config in candidate_configs}
     default_config = candidate_configs[0]
     configs["default"] = default_config
@@ -315,6 +319,17 @@ def main() -> None:
     simulator_calibration.add_argument("--candidate", action="append", default=[])
     simulator_calibration.add_argument("--write", action="store_true")
     simulator_calibration.add_argument("--output-dir", default="reports/simulator_calibration")
+
+    route_scale_diagnostics = sub.add_parser(
+        "route-scale-diagnostics",
+        help="Run matched diagnostics over single BeliefState route-scale candidates",
+    )
+    route_scale_diagnostics.add_argument("--year", type=int, required=True)
+    route_scale_diagnostics.add_argument("--as-of", required=True)
+    route_scale_diagnostics.add_argument("--iterations", type=int, default=240)
+    route_scale_diagnostics.add_argument("--candidate", action="append", default=[])
+    route_scale_diagnostics.add_argument("--write", action="store_true")
+    route_scale_diagnostics.add_argument("--output-dir", default="reports/route_scale_diagnostics")
 
     freeze_manifest = sub.add_parser("replay-freeze-manifest", help="Build a hash manifest for a replay state")
     freeze_manifest.add_argument("--year", type=int, required=True)
@@ -957,6 +972,27 @@ def main() -> None:
                 raise ValueError(f"Unknown simulator calibration candidate(s): {', '.join(missing)}")
             candidate_configs = tuple(selected)
         builder = SimulatorCalibrationBuilder(pipeline=pipeline, candidate_configs=candidate_configs)
+        if args.write:
+            paths = builder.write(args.year, args.as_of, iterations=args.iterations, output_dir=args.output_dir)
+            print(json.dumps({name: str(path) for name, path in paths.items()}, ensure_ascii=False, indent=2))
+        else:
+            print(json.dumps(builder.build(args.year, args.as_of, iterations=args.iterations).to_dict(), ensure_ascii=False, indent=2))
+    elif args.command == "route-scale-diagnostics":
+        pipeline = PredictionPipeline(iterations=args.iterations)
+        route_configs = route_scale_diagnostic_candidate_configs()
+        if args.candidate:
+            wanted = set(args.candidate)
+            baseline = route_configs[0]
+            selected = [baseline]
+            selected.extend(config for config in route_configs[1:] if config.config_id in wanted)
+            missing = sorted(wanted - {config.config_id for config in selected})
+            if missing:
+                raise ValueError(f"Unknown route-scale diagnostic candidate(s): {', '.join(missing)}")
+            route_configs = tuple(selected)
+        builder = SimulatorCalibrationBuilder(
+            pipeline=pipeline,
+            candidate_configs=route_configs,
+        )
         if args.write:
             paths = builder.write(args.year, args.as_of, iterations=args.iterations, output_dir=args.output_dir)
             print(json.dumps({name: str(path) for name, path in paths.items()}, ensure_ascii=False, indent=2))

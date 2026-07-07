@@ -139,25 +139,79 @@ class PaceModel:
         if mode == "qualifying":
             components = {
                 "belief_car_overall": car_overall * 0.85 * car_scale,
-                "belief_car_qualifying_pace": car_qualifying * 2.15 * car_scale,
-                "belief_car_race_pace_carryover": car_race * 0.55 * car_scale,
-                "belief_driver_qualifying_ceiling": driver_qualifying * 1.20 * driver_scale,
-                "belief_driver_race_pace_carryover": driver_race * 0.35 * driver_scale,
-                "belief_team_setup_quality": setup_quality * 0.18 * team_scale,
-                "belief_technical_track_fit": technical * 0.90 * technical_scale,
+                "belief_car_qualifying_pace": (
+                    car_qualifying
+                    * 2.15
+                    * car_scale
+                    * self._belief_route_scale("car_qualifying_pace")
+                ),
+                "belief_car_race_pace_carryover": (
+                    car_race
+                    * 0.55
+                    * car_scale
+                    * self._belief_route_scale("car_race_pace_carryover")
+                ),
+                "belief_driver_qualifying_ceiling": (
+                    driver_qualifying
+                    * 1.20
+                    * driver_scale
+                    * self._belief_route_scale("driver_qualifying_ceiling")
+                ),
+                "belief_driver_race_pace_carryover": (
+                    driver_race
+                    * 0.35
+                    * driver_scale
+                    * self._belief_route_scale("driver_race_pace_carryover")
+                ),
+                "belief_team_setup_quality": (
+                    setup_quality
+                    * 0.18
+                    * team_scale
+                    * self._belief_route_scale("team_setup_quality")
+                ),
+                "belief_technical_track_fit": (
+                    technical
+                    * 0.90
+                    * technical_scale
+                    * self._belief_route_scale("technical_track_fit")
+                ),
             }
         else:
             components = {
                 "belief_car_overall": car_overall * 0.85 * car_scale,
-                "belief_car_race_pace": car_race * 1.95 * car_scale,
-                "belief_driver_race_pace": driver_race * 0.85 * driver_scale,
+                "belief_car_race_pace": (
+                    car_race
+                    * 1.95
+                    * car_scale
+                    * self._belief_route_scale("car_race_pace")
+                ),
+                "belief_driver_race_pace": (
+                    driver_race
+                    * 0.85
+                    * driver_scale
+                    * self._belief_route_scale("driver_race_pace")
+                ),
                 "belief_driver_race_execution": driver_execution * 0.62 * driver_scale,
                 "belief_team_race_execution": team_execution * 0.38 * team_scale,
-                "belief_team_strategy": strategy * 0.24 * team_scale,
-                "belief_team_setup_quality": setup_quality * 0.24 * team_scale,
+                "belief_team_strategy": (
+                    strategy
+                    * 0.24
+                    * team_scale
+                    * self._belief_route_scale("team_strategy")
+                ),
+                "belief_team_setup_quality": (
+                    setup_quality
+                    * 0.24
+                    * team_scale
+                    * self._belief_route_scale("team_setup_quality")
+                ),
                 "belief_driver_tyre_management": tyre * 0.34 * driver_scale,
                 "belief_driver_wet_skill": wet_skill * 0.55 * driver_scale,
-                "belief_technical_track_fit": technical * technical_scale,
+                "belief_technical_track_fit": (
+                    technical
+                    * technical_scale
+                    * self._belief_route_scale("technical_track_fit")
+                ),
             }
         total = sum(components.values())
         return {**components, "total": total}
@@ -165,6 +219,13 @@ class PaceModel:
     def _belief_scale(self, component: str) -> float:
         try:
             value = float(self.belief_component_scales.get(component, 1.0))
+        except (TypeError, ValueError):
+            value = 1.0
+        return max(0.0, min(2.5, value))
+
+    def _belief_route_scale(self, route: str) -> float:
+        try:
+            value = float(self.belief_component_scales.get(f"route:{route}", 1.0))
         except (TypeError, ValueError):
             value = 1.0
         return max(0.0, min(2.5, value))

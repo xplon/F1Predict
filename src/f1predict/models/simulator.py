@@ -63,6 +63,15 @@ class SimulatorConfig:
     belief_driver_state_scale: float = 1.0
     belief_team_state_scale: float = 1.0
     belief_technical_state_scale: float = 1.0
+    belief_car_race_pace_route_scale: float = 1.0
+    belief_car_qualifying_pace_route_scale: float = 1.0
+    belief_car_race_pace_carryover_route_scale: float = 1.0
+    belief_driver_race_pace_route_scale: float = 1.0
+    belief_driver_qualifying_ceiling_route_scale: float = 1.0
+    belief_driver_race_pace_carryover_route_scale: float = 1.0
+    belief_team_setup_quality_route_scale: float = 1.0
+    belief_team_strategy_route_scale: float = 1.0
+    belief_technical_track_fit_route_scale: float = 1.0
     winner_probability_calibration_blend: float = 0.0
     winner_rank_prior_temperature: float = 2.4
     winner_rank_prior_weight: float = 0.62
@@ -77,6 +86,15 @@ class SimulatorConfig:
             "driver": self.belief_driver_state_scale,
             "team": self.belief_team_state_scale,
             "technical": self.belief_technical_state_scale,
+            "route:car_race_pace": self.belief_car_race_pace_route_scale,
+            "route:car_qualifying_pace": self.belief_car_qualifying_pace_route_scale,
+            "route:car_race_pace_carryover": self.belief_car_race_pace_carryover_route_scale,
+            "route:driver_race_pace": self.belief_driver_race_pace_route_scale,
+            "route:driver_qualifying_ceiling": self.belief_driver_qualifying_ceiling_route_scale,
+            "route:driver_race_pace_carryover": self.belief_driver_race_pace_carryover_route_scale,
+            "route:team_setup_quality": self.belief_team_setup_quality_route_scale,
+            "route:team_strategy": self.belief_team_strategy_route_scale,
+            "route:technical_track_fit": self.belief_technical_track_fit_route_scale,
         }
 
 

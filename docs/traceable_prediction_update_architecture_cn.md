@@ -1085,3 +1085,68 @@ reports/prediction_packets_belief_route_scale_probe/british_gp/british_gp_202607
 ```
 
 它用于下一轮正式验证，不用于今晚替换前端结果。
+
+## 20. 2026-07-07 追加：BeliefState 路由必须支持单路线诊断，避免“把车整体调低”的粗暴修正
+
+用户指出的核心问题之一是“车的重要性似乎被低估/高估，整体排名不合理”。架构上不能把这个问题简化成“把某个车队或车手改高/改低”，也不能只做粗粒度的 `car_state_scale`。真正需要的是能把 BeliefState 的不同状态表面逐条接到模拟器路由，并能单独做同口径诊断。
+
+本轮新增了 route-level scale，默认值全部为 `1.0`，因此不改变默认预测：
+
+```text
+route:car_race_pace
+route:car_qualifying_pace
+route:car_race_pace_carryover
+route:driver_race_pace
+route:driver_qualifying_ceiling
+route:driver_race_pace_carryover
+route:team_setup_quality
+route:team_strategy
+route:technical_track_fit
+```
+
+这些 scale 只允许作为诊断候选或经 replay/calibration 证明后的模型修订使用。它们不能因为用户一句话直接注册为 latest，也不能在解释里被说成“新来源导致预测改变”。
+
+新增 CLI：
+
+```text
+python -m f1predict.cli route-scale-diagnostics \
+  --year 2026 \
+  --as-of 2026-07-07T00:00:00+00:00 \
+  --iterations 60 \
+  --candidate route_car_race_pace_damped_070 \
+  --candidate route_car_qualifying_pace_damped_070 \
+  --write \
+  --output-dir reports/route_scale_diagnostics_v1_focus
+```
+
+这条命令使用同一 replay 输入、同一预测管线、同一迭代数，只改变被点名的单一路由。它仍是 `diagnostic_only`，尤其当前只有 9 场 replay、市场快照也不完整，所以不能当作正式 ablation 结论。
+
+首次聚焦诊断结果：
+
+```text
+report = reports/route_scale_diagnostics_v1_focus/2026_asof_20260707T000000_0000.simulator_calibration.md
+iterations = 60
+
+baseline composite_score = 2.2128
+route_car_qualifying_pace_damped_070 composite_score = 2.2128
+route_car_race_pace_damped_070 composite_score = 3.3509
+
+baseline mean_actual_log_loss = 1.4145
+route_car_qualifying_pace_damped_070 mean_actual_log_loss = 1.4145
+route_car_race_pace_damped_070 mean_actual_log_loss = 2.4898
+```
+
+诊断含义：
+
+- 单独压低 `car_race_pace` 路由不是可靠修正，低迭代 replay 中反而明显变差；
+- `car_qualifying_pace` 在当前已有同周末排位顺序输入时几乎不改变结果；
+- 因此“Mercedes/Ferrari/Leclerc 问题”不能靠简单降低赛车路由解决；
+- 下一步更应该做来源递推、近期状态窗口、随机事件尾部和比赛日窗口，而不是继续调粗粒度权重。
+
+为避免诊断工具自身变成黑箱，新增 smoke test：
+
+```text
+scripts/belief_route_scale_smoke_test.py
+```
+
+它验证 `belief_car_race_pace_route_scale` 只改变 `belief_car_race_pace` 组件，不影响 `belief_car_qualifying_pace` 或 `belief_car_race_pace_carryover`。这保证后续每条 route 的诊断结果能追溯到明确的模型通道。

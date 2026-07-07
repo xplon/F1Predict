@@ -2024,3 +2024,117 @@ Leclerc = 5.17%
 - 但 Leclerc 仍然只有第 4，说明 Ferrari/近期状态/正赛随机性/赛道适配的结构性建模仍不足；
 - 候选配置不能上线，只能作为下一轮正式 calibration 的候选；
 - 后续需要把“赛车实力递推”和“随机事件尾部”作为核心建模任务，而不是继续做 British GP 单站局部修正。
+
+## 32. 2026-07-07 追加：历史结果派生信号已做饱和门禁，单独压低 car race pace 不是正确修正
+
+继续排查 British GP 中 Mercedes 双车过度集中、Leclerc/Ferrari 偏低的问题时，发现一个通用结构性风险：同一段历史成绩可能通过多个派生来源重复进入同一个状态因子。
+
+典型路径包括：
+
+```text
+official standings
+FastF1 recent form
+FastF1 season form
+FastF1 momentum
+team strength reestimate
+finish-position reestimate
+```
+
+这些路径不是假来源，但它们高度相关。如果全部当作互相独立的证据叠加，`car.race_pace` 会被同一段历史结果重复推高或压低。为此新增了 BeliefState 层的通用饱和门禁：
+
+```text
+历史比赛结果派生信号
+-> correlated_result_family
+-> 同一 target/factor 同方向累计更新 soft cap
+-> 超过阈值后饱和降权
+-> StateUpdateLedger 写入 correlated_result_family_saturation
+```
+
+这不是按用户举例修改数值。规则只读取来源类型、目标对象、状态因子、更新方向和累计幅度；不读取 Leclerc、Russell、Mercedes、Ferrari 等实体 id 作为特判。
+
+对应候选包：
+
+```text
+reports/prediction_packets_correlated_result_saturation_probe/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+status = diagnostic_only
+hash = a9d428b910dc...
+saturated_rows = 6
+registered_latest = false
+```
+
+British GP 前 8 名冠军概率变为：
+
+```text
+Russell   38.00%
+Antonelli 35.83%
+Hamilton  11.17%
+Norris     4.67%
+Leclerc    3.83%
+Piastri    2.50%
+Verstappen 2.83%
+Hadjar     1.17%
+```
+
+方向上缓解了 Mercedes 双车极端集中，但 Leclerc 仍明显偏低，所以这不是预测修复，只是解决了一个“同源结果重复计数”的必要问题。
+
+随后尝试把“是不是 car race pace 路由本身过强”拆成单路由诊断。新增 route-level scale，默认全部为 `1.0`，不改变当前默认预测：
+
+```text
+route:car_race_pace
+route:car_qualifying_pace
+route:car_race_pace_carryover
+route:driver_race_pace
+route:driver_qualifying_ceiling
+route:driver_race_pace_carryover
+route:team_setup_quality
+route:team_strategy
+route:technical_track_fit
+```
+
+聚焦诊断命令：
+
+```text
+.venv\Scripts\python.exe -m f1predict.cli route-scale-diagnostics `
+  --year 2026 `
+  --as-of 2026-07-07T00:00:00+00:00 `
+  --iterations 60 `
+  --candidate route_car_race_pace_damped_070 `
+  --candidate route_car_qualifying_pace_damped_070 `
+  --write `
+  --output-dir reports\route_scale_diagnostics_v1_focus
+```
+
+报告：
+
+```text
+reports/route_scale_diagnostics_v1_focus/2026_asof_20260707T000000_0000.simulator_calibration.md
+```
+
+结果：
+
+```text
+baseline composite_score = 2.2128
+route_car_qualifying_pace_damped_070 composite_score = 2.2128
+route_car_race_pace_damped_070 composite_score = 3.3509
+
+baseline mean_actual_log_loss = 1.4145
+route_car_qualifying_pace_damped_070 mean_actual_log_loss = 1.4145
+route_car_race_pace_damped_070 mean_actual_log_loss = 2.4898
+```
+
+这说明一个重要负结论：不能简单把 `car_race_pace` 路由压低来让 British GP 看起来更合理。这个做法在当前低迭代回放中反而明显恶化 log loss。`car_qualifying_pace` 的影响接近 0，也符合当前模拟已经读取同周末 FastF1 排位顺序的事实。
+
+因此下一步不应该是“手动降低车的重要性”或“手动抬高某个车队”，而应该继续做：
+
+- 近期状态窗口递推：最近几站、同周末 session、升级信息必须按时间和质量进入状态；
+- 随机事件尾部：安全车、红旗、退赛、策略窗口需要产生更真实的尾部；
+- 比赛日窗口：调校、轮胎窗口、天气和赛道温度要进入同队共享 race-window offset；
+- route-scale 正式验证：只有在足够迭代、同口径 replay/calibration 不变差时，才允许某个 route scale 成为模型修订候选。
+
+本轮新增验证：
+
+```text
+scripts/belief_route_scale_smoke_test.py
+```
+
+该测试确认 `belief_car_race_pace_route_scale` 只改变 race score 中的 `belief_car_race_pace` 组件，不影响 `belief_car_qualifying_pace` 或 `belief_car_race_pace_carryover`，避免 route 诊断本身不可解释。
