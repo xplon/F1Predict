@@ -861,3 +861,40 @@ average_finish 从小到大
 ```
 
 这项修正仍然不改变当前 British GP 预测数值。它改变的是系统边界：以后即使我误把你的话写成 evidence，也会被质量门控压成 0 权重，并在解释层明确标出它不是预测依据。
+
+## 19. 2026-07-07：最新 run 的解释 sidecar 已补齐到 535/535
+
+在 2026-07-07 的 BeliefState 特征映射修复之后，新的 British GP latest run 变为：
+
+```text
+run_id = british_gp_20260705T000000_0000_20260707T054040_0000_a96fffb1fc
+status = diagnostic_only
+state_update_count = 535
+```
+
+一开始这个 run 只有局部 sidecar，覆盖 `10/535` 条状态更新，因此异常审计会正确报告：
+
+```text
+impact_trace_incomplete_for_material_updates
+```
+
+随后已用同一 `run_id`、同一 `packet_payload_sha256`、同一 `iterations = 1200` 分块补齐并合并 sidecar：
+
+```text
+sidecar_id = british_gp_f6fd000ef3aa_20260707T060939_0000_merged_f783f87561
+formal_readiness.status = formal_trace_ready
+covered_claim_count = 535
+uncovered_claim_count = 0
+```
+
+这解决的是“每条来源化状态更新是否都有同口径影响追踪”的可解释性缺口。现在前端/API 可以从 sidecar 中追溯：
+
+```text
+原始来源 -> 信息分析 -> 状态更新 -> 模拟路由 -> 预测变化
+```
+
+但这仍然不等于预测质量已经通过验证。当前预测包依然必须显示 `diagnostic_only`，下一阶段仍要优先处理：
+
+- 最近 3-5 站、同周末 FP/排位/正赛长距离信息是否足够强地进入 BeliefState；
+- 进入状态后的信息是否真的通过模拟路由改变合理的车队/车手分布；
+- 历史回放、概率校准和市场基线比较是否能证明预测质量改善。

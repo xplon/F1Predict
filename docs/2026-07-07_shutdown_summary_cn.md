@@ -120,31 +120,31 @@ state_update_count = 535
 top8 = russell, antonelli, hamilton, leclerc, norris, piastri, hadjar, verstappen
 ```
 
-新 run 的 impact trace sidecar 目前只补了局部同迭代解释，不是全量 formal sidecar：
+2026-07-07 14:10 追加状态：新 run 的 impact trace sidecar 已补齐并合并成全量 formal sidecar：
 
 ```text
-sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_70e01a6d5581_20260707T054338_0000_fac9fb6641
-formal_readiness.status = formal_iterations_incomplete_coverage
+sidecar_id = british_gp_f6fd000ef3aa_20260707T060939_0000_merged_f783f87561
+formal_readiness.status = formal_trace_ready
 same_iterations = true
-covered_claim_count = 10
-uncovered_claim_count = 525
+covered_claim_count = 535
+uncovered_claim_count = 0
 ```
 
-也就是说，前端现在应该能读取 latest packet 和局部 impact trace，不应再直接报 sidecar 缺失；但它不能被称为“完整影响追踪已生成”。
+也就是说，前端现在应该能读取 latest packet 和完整 impact trace sidecar。这个结论只说明解释链条补齐，不说明预测模型已经具备真实 edge。
 
 ## 3. 展示效果与局限
 
 当前展示效果比之前更清楚：
 
 - 可以展示全场预计排名，而不是把冠军概率顺序误当成预计完赛顺序。
-- 可以读取新 run 的局部 impact trace sidecar，不再是 sidecar 文件缺失。
-- 异常审计现在会明确暴露 sidecar 覆盖不足；这不是前端展示成功，而是一个还需要补完的状态。
+- 可以读取新 run 的完整 impact trace sidecar，不再是 sidecar 文件缺失或局部覆盖。
+- 异常审计现在使用 535/535 全覆盖 sidecar；解释覆盖不足异常不应再出现。
 - 用户反馈不会被混入证据链。
 
 但当前预测效果仍然只能称为诊断态：
 
 - packet 状态仍是 `diagnostic_only`。
-- 新 latest 的 sidecar 只覆盖 10/535 条状态更新，完整解释链还没有补完。
+- 新 latest 的 sidecar 已覆盖 535/535 条状态更新；解释链条这一项已补齐。
 - 概率校准和真实 edge 还没有通过历史回放证明。
 - 当前排名是否足够符合 F1 常识，还不能用今天这次工作宣称已经解决。
 - 今天新增的大部分工作解决的是“可信解释和注册边界”，不是“模型性能提升”。
@@ -162,7 +162,7 @@ node --check web/app.js
 git diff --check
 ```
 
-`prediction_anomaly_audit_smoke_test.py` 已更新为覆盖两种状态：如果 latest sidecar 是全量覆盖，则要求无覆盖缺口；如果 latest sidecar 只是局部覆盖，则必须显式出现 `impact_trace_incomplete_for_material_updates` 异常。当前新 latest 属于后者，测试通过不代表全量 sidecar 已完成，只代表系统没有掩盖这个风险。
+`prediction_anomaly_audit_smoke_test.py` 已更新为覆盖两种状态：如果 latest sidecar 是全量覆盖，则要求无覆盖缺口；如果 latest sidecar 只是局部覆盖，则必须显式出现 `impact_trace_incomplete_for_material_updates` 异常。当前新 latest 属于前者，测试通过表示 full sidecar 覆盖已补齐。
 
 `git diff --check` 只有 Windows 换行提示，没有 whitespace error。
 
