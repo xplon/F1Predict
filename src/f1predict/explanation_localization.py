@@ -219,6 +219,9 @@ def localize_public_text_zh(text: Any) -> str:
         "team total points per race": "车队每站积分",
         "average points": "平均积分",
         "driver average points": "车手平均积分",
+        "driver recent-window average finish": "车手近期窗口平均完赛名次",
+        "team recent-window average finish": "车队近期窗口平均完赛名次",
+        "average finish": "平均完赛名次",
         "relative points delta": "相对积分变化",
         "average opportunity-normalized grid-to-finish conversion": "机会归一化发车到完赛转换均值",
         "opportunity-normalized finished-race grid-to-finish conversion": "机会归一化完赛发车到完赛转换",
@@ -239,6 +242,10 @@ def localize_public_text_zh(text: Any) -> str:
         "confidence-weighted boost": "按置信度折算的正向修正",
         "qualifying team average position": "车队平均排位名次",
         "qualifying classification": "排位结果",
+        "full-field race classifications": "全场正赛排名",
+        "full-field finish": "全场完赛顺位",
+        "points-only scoring": "只看积分的前十截断计分",
+        "P11-P22 outcomes": "第 11 到第 22 名完赛结果",
         "before": "在",
         "vs field": "对比全场均值",
         "confidence": "置信度",
@@ -501,7 +508,10 @@ def _parsed_feature_explanation(
     if "grid-to-finish conversion" in text or "grid conversion" in text:
         return f"{source_label}；发车位到完赛名次转换表现为 {_clean_value(value)}，作为正赛执行输入{confidence_phrase}。"
     if "race classifications" in text:
-        return f"{source_label}；{event_phrase}全场正赛排名被汇总为 {_clean_value(value)}，用于近期完赛位置重估{confidence_phrase}。"
+        return (
+            f"{source_label}；{event_phrase}全场正赛排名被汇总为 {_clean_value(value)}，"
+            f"用于近期完赛位置重估，并补充只看积分时看不见的第 11 到第 22 名信息{confidence_phrase}。"
+        )
     if "recent" in text.lower() or "window" in text.lower():
         return f"{source_label}；近期窗口表现被压缩成有界输入，用于移动当前状态先验{confidence_phrase}。"
     return ""

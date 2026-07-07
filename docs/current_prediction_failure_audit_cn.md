@@ -2187,3 +2187,78 @@ top four = Russell / Antonelli / Hamilton / Leclerc
 - Leclerc 仍偏低；
 - 前端异常审计显示“无主要异常”只是规则未捕捉，不代表预测合理；
 - 下一步必须把近期状态窗口、比赛周末来源、车队真实强弱和事件风险一起做正式 replay，而不是只启用红旗尾部。
+
+## 34. 2026-07-07 追加：近期全场完赛车队状态已接入，但暴露出新的校准问题
+
+本轮继续处理“最近几站状态没有充分影响最终结果”的问题。检查代码后发现，最近几站 FastF1 正赛结果里已经收集了 `team_finishes`，但旧逻辑主要使用积分、排位和发车到完赛转换；最近窗口里的全场完赛顺位没有直接形成一条可追踪的车队/赛车状态更新。
+
+这次新增的是通用来源映射，不是按用户举例手调：
+
+```text
+最近几站 FastF1 全场正赛排名
+-> 车队平均完赛名次 vs 全场车队均值
+-> team race_pace
+-> BeliefState.car.race_pace
+```
+
+为避免把单个车手近期事故、策略波动或退赛重复写成“车手速度”，实现只保留车队/赛车层的近期全场完赛输入，不生成车手层 `driver.race_pace`。
+
+British GP 本地诊断包：
+
+```text
+reports/prediction_packets_recent_full_field_finish_probe/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+status = diagnostic_only
+新增近期全场完赛车队特征 = 11
+新增 BeliefState ledger 行 = 11
+```
+
+关键状态输入：
+
+```text
+Mercedes      近期车队平均完赛 5.83 vs 全场 11.50 -> race_pace +0.0460
+McLaren       近期车队平均完赛 7.17 vs 全场 11.50 -> race_pace +0.0352
+Red Bull      近期车队平均完赛 7.33 vs 全场 11.50 -> race_pace +0.0339
+Ferrari       近期车队平均完赛 8.00 vs 全场 11.50 -> race_pace +0.0284
+Racing Bulls  近期车队平均完赛 8.17 vs 全场 11.50 -> race_pace +0.0271
+Aston Martin  近期车队平均完赛 17.67 vs 全场 11.50 -> race_pace -0.0501
+Cadillac      近期车队平均完赛 19.00 vs 全场 11.50 -> race_pace -0.0609
+```
+
+候选预测相对当前 latest 的变化：
+
+```text
+Russell   47.75% -> 38.92%
+Antonelli 43.75% -> 37.67%
+Hamilton  5.33% ->  9.83%
+Leclerc   1.58% ->  3.00%
+```
+
+正向部分：
+
+- Mercedes 双车冠军概率不再接近 90% 以上；
+- Leclerc 的冠军尾部从 1.58% 提到 3.00%；
+- Racing Bulls、Aston Martin、Cadillac 的近期全场完赛事实能够直接进入状态链，而不是只看积分榜。
+
+负向部分也很明确：
+
+- 候选预计排名变成 Russell / Antonelli / Hamilton / Piastri / Norris / Verstappen / Leclerc / Hadjar；
+- Leclerc 的平均完赛名次从 5.52 变成 6.24，整数排名从第 4 变成第 7；
+- 这说明近期全场完赛通路虽然必要，但当前权重和已有 `season-form`、`momentum`、`finish-position-reestimate` 之间仍可能重复计数或过度放大。
+
+注册门禁结果：
+
+```text
+status = model_only_prediction_change_blocked
+allow_registration = false
+blocker_codes = non_source_driven_prediction_change, state_mapping_revision_proof_required
+source_identity_changed = false
+```
+
+这个阻断是正确的。因为本轮不是新增外部来源，而是把同一批 FastF1 结果来源派生出新的状态行。没有 replay/calibration 或模型映射修订证明前，不能覆盖前端 latest。
+
+本轮结论：
+
+- 近期全场完赛状态链路已经真正接进预测；
+- 它确实影响最终概率，而不是只写文档；
+- 但候选结果还不能称为更合理；
+- 下一步必须做同口径历史 replay/calibration，解决近期结果派生来源之间的重复计数和权重问题，再决定是否注册。

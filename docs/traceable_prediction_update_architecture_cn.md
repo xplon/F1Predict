@@ -1229,3 +1229,90 @@ scripts/red_flag_tail_smoke_test.py
 ```
 
 它验证三件事：默认红旗尾部关闭；来源化事件状态能改变红旗概率；红旗窗口能改变策略计划。
+
+## 22. 2026-07-07 追加：近期全场完赛顺位进入车队/赛车状态，但暂不注册 latest
+
+继续排查“近期状态窗口没有充分影响预测”的问题时，发现 `_fastf1_form_adjustments()` 虽然已经收集了最近几站的 `team_finishes`，但没有把这部分全场完赛顺位直接转成近期车队/赛车状态。这样会留下一个结构性缺口：积分只能看前十名，全场完赛顺位能区分第 11 到第 22 名，但近期窗口里的这部分信息没有作为独立、可解释的 BeliefState 更新出现。
+
+本轮新增的通路是：
+
+```text
+cutoff-valid FastF1 full-field race classifications
+-> recent team average finish vs field average finish
+-> FeatureAdjustment(target_type=team, metric=race_pace)
+-> BeliefState.car.race_pace
+-> race_pace_score / qualifying_grid_sampler
+```
+
+这条规则只读取最近窗口内每支车队的平均完赛名次和全场均值，不读取任何用户判断，也不按车队或车手 id 特判。为避免把单个车手近期事故、策略波动或 DNF 重复写成“车手速度”，本轮只保留车队/赛车层更新，不生成车手层 `recent full-field finish -> driver.race_pace`。
+
+British GP 诊断包里新增了 11 条状态输入：
+
+```text
+candidate packet = reports/prediction_packets_recent_full_field_finish_probe/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+status = diagnostic_only
+feature_count = 571 -> 582
+recent_full_field_feature_count = 11
+recent_full_field_ledger_count = 11
+BeliefState update_fingerprint = ca7690c5092f88f4ffe4e30a10b7eebbc31b485c77409f0910f040b500eebf94
+```
+
+示例来源化状态：
+
+```text
+Mercedes recent team finish 5.83 vs field 11.50 -> race_pace +0.0460
+McLaren recent team finish 7.17 vs field 11.50 -> race_pace +0.0352
+Red Bull recent team finish 7.33 vs field 11.50 -> race_pace +0.0339
+Ferrari recent team finish 8.00 vs field 11.50 -> race_pace +0.0284
+Racing Bulls recent team finish 8.17 vs field 11.50 -> race_pace +0.0271
+Aston Martin recent team finish 17.67 vs field 11.50 -> race_pace -0.0501
+Cadillac recent team finish 19.00 vs field 11.50 -> race_pace -0.0609
+```
+
+诊断预测变化：
+
+```text
+当前 registered latest:
+Russell 47.75%, Antonelli 43.75%, Hamilton 5.33%, Leclerc 1.58%
+
+近期全场完赛候选:
+Russell 38.92%, Antonelli 37.67%, Hamilton 9.83%, Leclerc 3.00%
+```
+
+这说明该通路确实能降低 Mercedes 双车胜率过度集中，并抬高非 Mercedes 头部车手的冠军尾部。但它也把 McLaren / Red Bull 抬到 Leclerc 前面：
+
+```text
+candidate expected order:
+1 Russell
+2 Antonelli
+3 Hamilton
+4 Piastri
+5 Norris
+6 Verstappen
+7 Leclerc
+8 Hadjar
+```
+
+因此它不能被描述成“预测已经更合理”或“Ferrari/Leclerc 问题已修复”。更准确的结论是：近期全场完赛状态链条已经接入，而且能显著影响预测；但它和已有的 season-form、momentum、finish-position-reestimate 之间仍存在权重/重复计数校准问题，必须进入历史 replay/calibration 后才能决定是否注册。
+
+注册门禁也按预期阻止了它成为 latest：
+
+```text
+status = model_only_prediction_change_blocked
+allow_registration = false
+blocker_codes = non_source_driven_prediction_change, state_mapping_revision_proof_required
+input_changed = true
+belief_state_update_changed = true
+source_identity_changed = false
+probability_changed = true
+```
+
+原因是这次不是新增原始来源身份，而是同一批 FastF1 结果来源的派生映射增加了新状态行。按照本架构，它必须提供模型/映射修订证明或 replay/calibration 报告，不能静默覆盖前端 latest。
+
+新增 smoke test：
+
+```text
+python scripts/fastf1_recent_full_field_finish_smoke_test.py
+```
+
+它验证三件事：近期全场完赛特征只进入车队/赛车状态；中文解释必须说明“全场正赛排名”和“第 11 到第 22 名”；BeliefState ledger 必须能追踪到这些更新，并且影响 `race_pace_score`。
