@@ -385,6 +385,13 @@ class ProcessedFeatureProvider:
             session_weight = min(1.0, max(0.45, clean_laps / 10.0))
             delta = field_long_run - float(row["long_run_proxy_seconds"])
             value = round(self._clamp(delta / long_run_scale * 0.085, -0.085, 0.085), 4)
+            quality_multiplier, quality_note = self._practice_long_run_quality_multiplier(
+                season,
+                event,
+                target_type="driver",
+                target_id=driver_id,
+                value=value,
+            )
             adjustments.append(
                 FeatureAdjustment(
                     feature_id=(
@@ -397,12 +404,13 @@ class ProcessedFeatureProvider:
                     target_id=driver_id,
                     metric="race_pace",
                     value=value,
-                    confidence=round(confidence_base * session_weight, 4),
+                    confidence=round(confidence_base * session_weight * quality_multiplier, 4),
                     observed_at=observed_at,
                     explanation=(
                         f"{summary.session_name} long-run proxy before {event.name}: "
                         f"{row['long_run_proxy_seconds']:.3f}s vs field {field_long_run:.3f}s "
                         f"over {row.get('long_run_lap_count')} clean lap(s); used as a same-weekend race-pace signal."
+                        f"{quality_note}"
                     ),
                 )
             )
@@ -620,6 +628,13 @@ class ProcessedFeatureProvider:
             value = round(self._clamp((field_avg - lap_time) / team_scale * 0.065, -0.065, 0.065), 4)
             if not value:
                 continue
+            quality_multiplier, quality_note = self._practice_long_run_quality_multiplier(
+                season,
+                event,
+                target_type="team",
+                target_id=team_id,
+                value=value,
+            )
             adjustments.append(
                 FeatureAdjustment(
                     feature_id=(
@@ -632,11 +647,12 @@ class ProcessedFeatureProvider:
                     target_id=team_id,
                     metric="race_pace",
                     value=value,
-                    confidence=confidence,
+                    confidence=round(confidence * quality_multiplier, 4),
                     observed_at=observed_at,
                     explanation=(
                         f"{summary.session_name} team long-run proxy before {event.name}: "
                         f"{lap_time:.3f}s vs team field {field_avg:.3f}s; used as same-weekend car race pace."
+                        f"{quality_note}"
                     ),
                 )
             )
@@ -718,6 +734,16 @@ class ProcessedFeatureProvider:
             if not value:
                 continue
             coverage_weight = min(1.0, max(0.62, len(team_values[team_id]) / 2.0))
+            quality_multiplier = 1.0
+            quality_note = ""
+            if feature_suffix.startswith("long_run"):
+                quality_multiplier, quality_note = self._practice_long_run_quality_multiplier(
+                    season,
+                    event,
+                    target_type="team",
+                    target_id=team_id,
+                    value=value,
+                )
             adjustments.append(
                 FeatureAdjustment(
                     feature_id=(
@@ -730,16 +756,108 @@ class ProcessedFeatureProvider:
                     target_id=team_id,
                     metric="setup_quality",
                     value=value,
-                    confidence=round(confidence_base * coverage_weight, 4),
+                    confidence=round(confidence_base * coverage_weight * quality_multiplier, 4),
                     observed_at=observed_at,
                     explanation=(
                         f"{summary.session_name} {explanation_basis} before {event.name}: "
                         f"{value_seconds:.3f}s vs team field {field_avg:.3f}s from "
                         f"{len(team_values[team_id])} driver sample(s); routed to team setup-window state."
+                        f"{quality_note}"
                     ),
                 )
             )
         return adjustments
+
+    def _practice_long_run_quality_multiplier(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        *,
+        target_type: str,
+        target_id: str,
+        value: float,
+    ) -> tuple[float, str]:
+        """Down-weight practice long-run pace when same-weekend qualifying strongly disagrees.
+
+        Practice long-run proxies are useful but fuel load, compound, run plan,
+        and traffic are not fully normalized in the local FastF1 summary. When
+        that weakly normalized signal is directionally extreme and the same
+        weekend's qualifying classification points the other way, keep the
+        source in the trace but reduce its model input strength.
+        """
+
+        if abs(value) < 0.030:
+            return 1.0, ""
+
+        driver_positions, team_average_positions, driver_count = self._same_event_qualifying_positions(season, event)
+        if driver_count <= 0:
+            return 1.0, ""
+
+        multiplier = 1.0
+        if target_type == "driver":
+            position = driver_positions.get(target_id)
+            if position is None:
+                return 1.0, ""
+            front_cutoff = max(4, round(driver_count * 0.22))
+            upper_mid_cutoff = max(8, round(driver_count * 0.36))
+            back_cutoff = max(15, round(driver_count * 0.68))
+            if position <= front_cutoff and value <= -0.035:
+                multiplier = 0.35
+            elif position <= upper_mid_cutoff and value <= -0.060:
+                multiplier = 0.55
+            elif position >= back_cutoff and value >= 0.060:
+                multiplier = 0.55
+        elif target_type == "team":
+            average_position = team_average_positions.get(target_id)
+            if average_position is None:
+                return 1.0, ""
+            front_team_cutoff = max(4.5, driver_count * 0.22)
+            back_team_cutoff = max(14.0, driver_count * 0.64)
+            if average_position <= front_team_cutoff and value <= -0.030:
+                multiplier = 0.35
+            elif average_position >= back_team_cutoff and value >= 0.050:
+                multiplier = 0.55
+
+        if multiplier >= 1.0:
+            return 1.0, ""
+        return (
+            multiplier,
+            " Confidence was down-weighted because this practice long-run signal conflicts with "
+            "same-weekend qualifying position, so fuel-load, compound, and run-plan comparability remain uncertain.",
+        )
+
+    @staticmethod
+    def _same_event_qualifying_positions(
+        season: SeasonState,
+        event: RaceEvent,
+    ) -> tuple[dict[str, int], dict[str, float], int]:
+        refs = event.feature_refs if isinstance(event.feature_refs, dict) else {}
+        payload = refs.get("fastf1_qualifying_order")
+        rows = payload.get("driver_positions") if isinstance(payload, dict) else None
+        if not isinstance(rows, list):
+            return {}, {}, 0
+
+        driver_positions: dict[str, int] = {}
+        team_positions: defaultdict[str, list[int]] = defaultdict(list)
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            driver_id = str(row.get("driver_id") or "")
+            try:
+                position = int(row.get("qualifying_position") or 0)
+            except (TypeError, ValueError):
+                continue
+            if position <= 0 or driver_id not in season.drivers:
+                continue
+            driver_positions[driver_id] = position
+            team_positions[season.drivers[driver_id].team_id].append(position)
+
+        team_average_positions = {
+            team_id: mean(positions)
+            for team_id, positions in team_positions.items()
+            if positions
+        }
+        return driver_positions, team_average_positions, len(driver_positions)
 
     def _session_team_qualifying_adjustments(
         self,

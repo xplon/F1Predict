@@ -1814,3 +1814,111 @@ Simulation Replay
 - 可解释链条在当前 latest run 上再次达到同迭代全覆盖；
 - 预测质量问题仍未解决，尤其是 Leclerc/Ferrari 胜率过低、Mercedes 双车过度集中、Antonelli 风险不足；
 - 下一步应该继续做通用模型改进和来源补充，而不是再做同步类收尾。
+
+## 30. 2026-07-07：练习赛长距离信号冲突门禁已注册，并补齐 565/565 sidecar
+
+本轮继续追查 British GP 中 Leclerc/Ferrari 被压得过低的问题。定位到一个具体来源映射风险：
+
+```text
+FastF1 practice1 long-run proxy
+-> 确实进入了 driver race_pace / team race_pace / team_ops.setup_quality
+-> 但 fuel load、轮胎配方、run plan、traffic 没有完全归一化
+-> 当它和同周末排位结果强烈冲突时，不能用原始置信度强力压低正赛速度
+```
+
+这不是按用户判断手调 Leclerc 或 Ferrari。实现采用的是通用质量门禁：
+
+```text
+同一条练习赛长距离观测
++ 同周末 FastF1 排位位置
++ 观测方向和幅度
+-> 判断是否存在强冲突
+-> 若存在冲突，只降低该观测的 confidence
+-> 原始来源仍保留在 ledger 和 trace 中
+```
+
+代码层面只读取 `target_type`、`target_id`、观测值、同周末排位位置和车队平均排位，不包含任何车手或车队特判。也就是说，规则不是“Leclerc 应该更强”，而是“弱归一化练习赛长距离信号如果和更强的同周末排位证据冲突，就必须降低置信度”。
+
+候选包第一次无证明注册被正确阻断：
+
+```text
+status = model_only_prediction_change_blocked
+blocker_codes = non_source_driven_prediction_change, state_mapping_revision_proof_required
+source_identity_changed = false
+belief_state_update_changed = true
+race_probability_changed = true
+```
+
+随后补充模型/来源映射修订证明后注册为新的诊断 latest：
+
+```text
+model_revision_proof = reports/model_revision_proofs/2026-07-07_practice_long_run_conflict_gate_cn.md
+run_id = british_gp_20260705T000000_0000_20260707T122518_0000_d225707bdb
+packet_payload_sha256 = d225707bdba831e520aff765d5c9535b882d8dbd10edff0386e84a424ec309c1
+belief_state_id = british_gp_ca70e1cb3b_5c1d96c830
+state_update_count = 565
+status = diagnostic_only
+registration_gate.status = model_revision_proof_allowed
+```
+
+预测变化是小幅修正，不是质量达标：
+
+```text
+上一版 latest:
+Russell win = 48.50%
+Antonelli win = 44.08%
+Hamilton win = 4.58%
+Leclerc win = 1.08%
+
+本版 latest:
+Russell win = 47.75%
+Antonelli win = 43.75%
+Hamilton win = 5.33%
+Leclerc win = 1.58%
+```
+
+Leclerc/Ferrari 的方向有所缓和，但仍明显偏低；Mercedes 双车仍过度集中；Antonelli 的下行尾部仍不足。因此这次只能称为“来源质量映射修正”，不能称为预测模型已修好。
+
+为新 run 重新生成并合并 full sidecar：
+
+```text
+sidecar_id = british_gp_7db773a15fb8_20260707T131516_0000_merged_239e821a3d
+source_run_id = british_gp_20260705T000000_0000_20260707T122518_0000_d225707bdb
+source_iterations = 1200
+trace_iterations = 1200
+comparison_status = matched_source_run_iterations
+claim_count = 565
+covered_claim_count = 565
+uncovered_claim_count = 0
+trace_count = 576
+formal_readiness.status = formal_trace_ready
+```
+
+API 验证显示前端 latest 已经重新对齐：
+
+```text
+GET /api/v2/prediction-packets/latest?event_id=british_gp
+-> run_id = british_gp_20260705T000000_0000_20260707T122518_0000_d225707bdb
+-> state_update_count = 565
+-> anomaly_audit_sidecar = british_gp_7db773a15fb8_20260707T131516_0000_merged_239e821a3d
+
+GET /api/v2/prediction-impact-traces/latest?event_id=british_gp&limit=1
+-> formal_trace_ready
+-> covered = 565 / 565
+-> trace_count = 576
+
+GET /api/post-event-review?event_id=british_gp
+-> prediction_run_id = british_gp_20260705T000000_0000_20260707T122518_0000_d225707bdb
+-> predicted_winner = russell
+-> actual_winner = leclerc
+-> actual_winner_predicted_rank = 4
+-> actual_winner_win_probability = 0.015833
+```
+
+当前边界：
+
+- 解释链条再次完整；
+- 前端/API 已经能读取新 run 的 full sidecar；
+- 预测仍是 `diagnostic_only`；
+- 这不是正式 edge；
+- 下一步仍应优先做历史 replay/calibration、赛车实力权重、随机事件尾部和前几站状态递推，而不是继续靠单站局部修正。

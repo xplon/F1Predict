@@ -222,6 +222,10 @@ def localize_public_text_zh(text: Any) -> str:
         "non-finished classification": "未完赛记录",
         "long-run proxy": "长距离速度代理值",
         "team long-run proxy": "车队长距离速度代理值",
+        "Confidence was down-weighted": "置信度被降低",
+        "same-weekend qualifying position": "同一比赛周末排位位置",
+        "fuel-load, compound, and run-plan comparability remain uncertain": "油量、轮胎配方和跑法可比性仍不确定",
+        "team field": "车队全场均值",
         "tyre-degradation proxy": "轮胎衰退代理值",
         "speed-trap average": "测速点均速",
         "best valid lap": "最快有效圈",
@@ -318,6 +322,8 @@ def source_label_zh(*, feature_id: str = "", source: str = "", explanation: str 
     raw = f"{feature_id} {source} {explanation}".lower()
     if "fastf1-qualifying-result" in raw or "fastf1_qualifying_result" in raw or "qualifying classification" in raw:
         return "来源：同场 FastF1 排位结果"
+    if "fastf1-session-laps" in raw or "fastf1_session_laps" in raw:
+        return "来源：同周末 FastF1 圈速摘要"
     if "team-strength-reestimate" in raw or "team total points per race" in raw:
         return "来源：FastF1 本赛季车队强度重估"
     if "official-standings" in raw or "official driver standings" in raw or "official constructor standings" in raw:
@@ -452,13 +458,25 @@ def _parsed_feature_explanation(
     if "Official driver standings" in text:
         return f"{source_label}；{event_phrase}官方车手积分榜记录为 {_clean_value(value)}，作为车手状态先验{confidence_phrase}。"
     if "team long-run proxy" in text:
-        return f"{source_label}；{event_phrase}车队长距离速度代理值为 {_clean_value(value)}，作为同一比赛周末的正赛速度信号{confidence_phrase}。"
+        return (
+            f"{source_label}；{event_phrase}车队长距离速度代理值为 {_clean_value(value)}，"
+            f"作为同一比赛周末的正赛速度信号{confidence_phrase}"
+            f"{_practice_conflict_note(text)}。"
+        )
     if "long-run proxy" in text:
-        return f"{source_label}；{event_phrase}长距离速度代理值为 {_clean_value(value)}，作为同一比赛周末的正赛速度信号{confidence_phrase}。"
+        return (
+            f"{source_label}；{event_phrase}长距离速度代理值为 {_clean_value(value)}，"
+            f"作为同一比赛周末的正赛速度信号{confidence_phrase}"
+            f"{_practice_conflict_note(text)}。"
+        )
     if "tyre-degradation proxy" in text:
         return f"{source_label}；{event_phrase}轮胎衰退代理值为 {_clean_value(value)}，用于影响策略和长距离速度{confidence_phrase}。"
     if "setup window" in text or "setup-window state" in text:
-        return f"{source_label}；{event_phrase}调校窗口代理值为 {_clean_value(value)}，用于更新车队调校窗口质量，并影响正赛速度、排位采样和比赛日窗口风险{confidence_phrase}。"
+        return (
+            f"{source_label}；{event_phrase}调校窗口代理值为 {_clean_value(value)}，"
+            f"用于更新车队调校窗口质量，并影响正赛速度、排位采样和比赛日窗口风险{confidence_phrase}"
+            f"{_practice_conflict_note(text)}。"
+        )
     if "speed-trap average" in text:
         return f"{source_label}；{event_phrase}测速点均速对比为 {_clean_value(value)}，作为直道速度信号{confidence_phrase}。"
     if "best valid lap" in text:
@@ -559,6 +577,12 @@ def _clean_value(value: Any) -> str:
     output = str(value or "未解析").strip(" :;")
     output = localize_public_text_zh(output)
     return output or "未解析"
+
+
+def _practice_conflict_note(text: str) -> str:
+    if "Confidence was down-weighted" not in text:
+        return ""
+    return "；但该练习赛长距离信号与同一比赛周末排位位置明显冲突，因此降低置信度，避免把油量、轮胎配方或跑法差异直接当作正赛速度"
 
 
 def _list(value: Any) -> list[Any]:

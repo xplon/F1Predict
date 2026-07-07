@@ -967,3 +967,43 @@ output/playwright/f1predict-latest-full.png
 - 预测结果仍是 `diagnostic_only`；
 - 这不是正式 edge；
 - 下一阶段要继续修预测质量，而不是再把同步工作包装成模型改进。
+
+## 18. 2026-07-07 追加：来源质量门禁属于 EvidenceQualityProfile，不属于手调结果
+
+后续所有结构化来源都不能默认“有数据就全权重进入模型”。尤其是练习赛长距离、轮胎衰退、调校窗口这类 proxy，如果没有完整 fuel load、轮胎配方、run plan、traffic 归一化，就必须接受来源质量门禁。
+
+本轮 British GP 实现了第一个通用门禁：
+
+```text
+practice long-run proxy
++ same-weekend qualifying classification
++ target scope(driver/team)
++ signal direction and magnitude
+-> conflict gate
+-> confidence multiplier
+-> ledger explanation
+-> same-seed impact trace
+```
+
+这个门禁的关键边界：
+
+- 它不读取“用户说谁强谁弱”；
+- 它不写死任何车手或车队；
+- 它不删除来源，只降低弱归一化来源的置信度；
+- 它必须把降权原因写进 `NormalizedFactorClaim` / `StateUpdateLedger` 的说明里；
+- 它改变预测时必须走模型/来源映射修订门禁，并提供证明；
+- 它的影响仍要通过 full sidecar 做同种子 leave-one-information trace。
+
+这种机制回答的是用户最核心的要求之一：预测变化不能来自一句话，而要来自可追溯信息链。用户指出异常时，正确动作是找到是哪类来源或路由不可信，并形成可复用的质量规则；不是把某个车手或车队的数值直接调到用户认为合理的位置。
+
+截至本次实现，新 latest run 的 full sidecar 已恢复：
+
+```text
+run_id = british_gp_20260705T000000_0000_20260707T122518_0000_d225707bdb
+sidecar_id = british_gp_7db773a15fb8_20260707T131516_0000_merged_239e821a3d
+covered_claim_count = 565
+uncovered_claim_count = 0
+formal_readiness.status = formal_trace_ready
+```
+
+这只证明“解释链完整”，不证明“预测质量完成”。质量完成还需要历史回放、概率校准、与市场/基线的正式比较，以及更多来源维度进入状态更新。
