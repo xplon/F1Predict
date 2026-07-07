@@ -166,6 +166,10 @@ canvas {
   overflow-wrap: anywhere;
 }
 
+.track-rule-note {
+  color: var(--text);
+}
+
 .replay-controls {
   display: grid;
   grid-template-columns: 86px minmax(0, 1fr);
@@ -317,7 +321,14 @@ canvas {
 }
 
 .probability-row {
-  grid-template-columns: 52px minmax(0, 1.2fr) repeat(4, minmax(68px, 0.7fr));
+  grid-template-columns: 50px minmax(92px, 1.1fr) repeat(4, minmax(64px, 0.62fr));
+}
+
+.probability-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .row.header {

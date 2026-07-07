@@ -1262,7 +1262,7 @@ function drawTrack(event) {
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
 
-  renderTrackAudit(audit);
+  renderTrackAudit(audit, event);
   if (audit.assetPath && drawTrackAsset(ctx, width, height, audit, event)) {
     return;
   }
@@ -1314,20 +1314,50 @@ function trackMapAudit(event) {
     geometryOverlay: asset.geometry_overlay || null,
     circuitShortName: asset.circuit_short_name || null,
     pointCount: track.source_point_count || (Array.isArray(event.track_map) ? event.track_map.length : 0),
-    capturedAt: asset.captured_at || track.captured_at || null
+    capturedAt: asset.captured_at || track.captured_at || null,
+    ruleContext: trackRuleContext(event, source, asset)
   };
 }
 
-function renderTrackAudit(audit) {
+function trackRuleContext(event, source, asset = {}) {
+  const year = eventYear(event);
+  const officialF1Map = source === "f1_official_circuit_map" || String(asset.source_url || "").includes("Circuit%20maps");
+  if (year >= 2026 && officialF1Map) {
+    return {
+      status: "legacy_map_annotation",
+      label: "2026规则口径",
+      badge: "2026：不读取DRS标注",
+      summary: "官方底图可能保留 DRS/测速点等历史视觉标注；本项目只把它作为赛道形状底图，模拟输入来自赛道向量、直道/弯角/超车难度和来源化状态更新。"
+    };
+  }
+  return {
+    status: "visual_reference_only",
+    label: "视觉底图",
+    badge: "赛道底图",
+    summary: "赛道图用于定位和核对；预测模型读取的是来源化赛道向量和状态更新。"
+  };
+}
+
+function eventYear(event) {
+  const value = String(event?.date || event?.year || state.season?.year || "");
+  const match = value.match(/\d{4}/);
+  return match ? Number(match[0]) : 0;
+}
+
+function renderTrackAudit(audit, event) {
   const element = document.getElementById("trackAudit");
   const status = audit.assetPath
     ? audit.geometryOverlay ? "official track map + replay overlay" : "official track map"
     : audit.visualVerified ? "visual verified geometry" : "geometry fallback";
+  const rule = audit.ruleContext || trackRuleContext(event, audit.source);
   element.innerHTML = `
     <article class="track-audit-card ${audit.assetPath || audit.visualVerified ? "verified" : "pending"}">
       <span class="pill">${escapeHtml(status)}</span>
       <p>${escapeHtml(audit.source)} | ${escapeHtml(audit.quality)} | ${escapeHtml(audit.circuitShortName || "circuit verified")}</p>
       <p>${audit.capturedAt ? `captured ${escapeHtml(shortDate(audit.capturedAt))}` : "local official visual asset"}</p>
+      <span class="pill">${escapeHtml(rule.label)}</span>
+      <p class="track-rule-note">${escapeHtml(rule.summary)}</p>
+      <p>${escapeHtml(rule.status)}</p>
     </article>
   `;
 }
@@ -1341,7 +1371,39 @@ function drawTrackAsset(ctx, width, height, audit, event) {
       drawTrack(event);
     }
   });
+  if (bounds) {
+    drawTrackRuleBadge(ctx, width, height, audit.ruleContext);
+  }
   return bounds !== false;
+}
+
+function drawTrackRuleBadge(ctx, width, height, rule) {
+  if (!rule?.badge) {
+    return;
+  }
+  ctx.save();
+  ctx.font = "700 13px system-ui";
+  const text = rule.badge;
+  const textWidth = ctx.measureText(text).width;
+  const boxWidth = Math.min(width - 28, Math.max(190, textWidth + 28));
+  const boxHeight = 30;
+  const x = 14;
+  const y = height - boxHeight - 14;
+  ctx.fillStyle = "rgba(15, 17, 23, 0.86)";
+  ctx.strokeStyle = "rgba(69, 196, 176, 0.9)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if (typeof ctx.roundRect === "function") {
+    ctx.roundRect(x, y, boxWidth, boxHeight, 6);
+    ctx.fill();
+    ctx.stroke();
+  } else {
+    ctx.fillRect(x, y, boxWidth, boxHeight);
+    ctx.strokeRect(x, y, boxWidth, boxHeight);
+  }
+  ctx.fillStyle = "#f3f6fb";
+  ctx.fillText(text, x + 14, y + 20);
+  ctx.restore();
 }
 
 function drawTrackAssetImage(ctx, width, height, audit, loadingTitle, loadingLines, onReady) {
@@ -1420,6 +1482,7 @@ function drawReplayTrack(event, rows) {
       return;
     }
     if (bounds) {
+      drawTrackRuleBadge(ctx, width, height, audit.ruleContext);
       if (points.length >= 4) {
         const replayPath = trackOverlayPoints(points, bounds, audit);
         drawReplayMarkers(

@@ -1296,3 +1296,39 @@ Russell probe 后胜率 = 0.423042
 - 如果后续要启用，必须生成模型修订证明，并通过 `PredictionRunRegistry` 的模型修订门禁。
 
 当前可采纳的结论不是“应该把 Leclerc 手动调高”，而是“winner probability 层存在过度集中风险，下一轮应优先做通用 winner calibration 的 replay 校准”。
+
+## 24. 2026-07-07：前端赛道图增加 2026 规则口径说明
+
+继续检查前端截图时发现，British GP 使用的是真实 F1 official circuit map，但官方底图本身仍带有 `DRS DETECTION ZONE`、`SPEED TRAP` 等历史视觉标注。这个问题不能通过删除赛道图或退回假图解决，因为赛道形状和官方地图来源仍然是正确的；真正需要修的是前端语义：页面必须说明这些旧规则标注不是 2026 预测模型的输入。
+
+本轮前端修正：
+
+```text
+trackMapAudit(event)
+-> trackRuleContext(event, source, asset)
+-> renderTrackAudit(...)
+-> drawTrackRuleBadge(...)
+```
+
+当页面读取 2026 赛季的 F1 official circuit map 时，会显示：
+
+```text
+2026规则口径
+官方底图可能保留 DRS/测速点等历史视觉标注；本项目只把它作为赛道形状底图，模拟输入来自赛道向量、直道/弯角/超车难度和来源化状态更新。
+```
+
+canvas 左下角也会显示：
+
+```text
+2026：不读取DRS标注
+```
+
+这项修正不改变任何预测概率、BeliefState、track feature vector 或模拟器。它只修正前端展示的语义边界：真实官方赛道图可以继续作为视觉底图，但 2026 预测不能把底图里的 DRS 字样当成规则输入。对应浏览器 sanity check 已确认：
+
+```text
+Playwright snapshot 中出现 2026规则口径；
+console = 0 errors / 0 warnings；
+概率表中 Verstappen 行不再挤压概率列。
+```
+
+剩余风险：这只是前端规则口径说明，不等于已经为 2026 新规则建立完整的“替代 DRS/能量部署/超车辅助机制”数据源。后续如果要让该机制影响预测，必须作为来源化赛道/赛车技术信息进入 `RawSourceRecord -> NormalizedFactorClaim -> BeliefState -> simulation`，不能从图片文字直接推断。
