@@ -94,20 +94,57 @@ covered = 456
 uncovered = 0
 ```
 
-前端应该能读取到 latest packet 和正式 sidecar。如果页面仍显示旧状态或 `unavailable`，优先刷新页面；服务端数据源已经可用。
+2026-07-07 13:45 追加状态：我又注册了一个新的 British GP 诊断 run，用来承接 BeliefState 特征映射修复。
+
+```text
+run_id = british_gp_20260705T000000_0000_20260707T054040_0000_a96fffb1fc
+packet_hash = a96fffb1fcd042b5bcc1a00a4d49c5008b5b88e6c0dd07d8775c8a58e76b928e
+generated_at = 2026-07-07T05:40:40+00:00
+status = diagnostic_only
+state_update_count = 535
+formal_edge_ready = false
+```
+
+本地服务已重新启动：
+
+```text
+http://127.0.0.1:8765/
+```
+
+API 检查结果：
+
+```text
+GET /api/v2/prediction-packets/latest?event_id=british_gp
+status = diagnostic_only
+state_update_count = 535
+top8 = russell, antonelli, hamilton, leclerc, norris, piastri, hadjar, verstappen
+```
+
+新 run 的 impact trace sidecar 目前只补了局部同迭代解释，不是全量 formal sidecar：
+
+```text
+sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_70e01a6d5581_20260707T054338_0000_fac9fb6641
+formal_readiness.status = formal_iterations_incomplete_coverage
+same_iterations = true
+covered_claim_count = 10
+uncovered_claim_count = 525
+```
+
+也就是说，前端现在应该能读取 latest packet 和局部 impact trace，不应再直接报 sidecar 缺失；但它不能被称为“完整影响追踪已生成”。
 
 ## 3. 展示效果与局限
 
 当前展示效果比之前更清楚：
 
 - 可以展示全场预计排名，而不是把冠军概率顺序误当成预计完赛顺序。
-- 可以读取正式 impact trace sidecar，不应该再只有“主包内嵌少量 trace”的不完整解释。
-- 异常审计会使用 sidecar 证据，不会因为主包 trace 少就误判解释链缺失。
+- 可以读取新 run 的局部 impact trace sidecar，不再是 sidecar 文件缺失。
+- 异常审计现在会明确暴露 sidecar 覆盖不足；这不是前端展示成功，而是一个还需要补完的状态。
 - 用户反馈不会被混入证据链。
 
 但当前预测效果仍然只能称为诊断态：
 
 - packet 状态仍是 `diagnostic_only`。
+- 新 latest 的 sidecar 只覆盖 10/535 条状态更新，完整解释链还没有补完。
 - 概率校准和真实 edge 还没有通过历史回放证明。
 - 当前排名是否足够符合 F1 常识，还不能用今天这次工作宣称已经解决。
 - 今天新增的大部分工作解决的是“可信解释和注册边界”，不是“模型性能提升”。
@@ -120,9 +157,12 @@ uncovered = 0
 python scripts/source_driven_contract_test.py
 python scripts/prediction_anomaly_audit_smoke_test.py
 python scripts/explainability_smoke_test.py
+python scripts/impact_trace_sidecar_smoke_test.py
 node --check web/app.js
 git diff --check
 ```
+
+`prediction_anomaly_audit_smoke_test.py` 已更新为覆盖两种状态：如果 latest sidecar 是全量覆盖，则要求无覆盖缺口；如果 latest sidecar 只是局部覆盖，则必须显式出现 `impact_trace_incomplete_for_material_updates` 异常。当前新 latest 属于后者，测试通过不代表全量 sidecar 已完成，只代表系统没有掩盖这个风险。
 
 `git diff --check` 只有 Windows 换行提示，没有 whitespace error。
 

@@ -21,8 +21,10 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from f1predict.domain import EvidenceClaim  # noqa: E402
+from f1predict.belief_state import BeliefStateBuilder  # noqa: E402
+from f1predict.domain import Driver, EvidenceClaim, FeatureAdjustment, RaceEvent, SeasonState, Team  # noqa: E402
 from f1predict.intelligence.evidence_quality import EvidenceQualityScorer  # noqa: E402
+from f1predict.models.pace import PaceModel  # noqa: E402
 from f1predict.run_tracking import PredictionRunRegistry  # noqa: E402
 
 
@@ -279,6 +281,121 @@ def _assert_user_feedback_cannot_update_predictions() -> None:
         raise AssertionError("User feedback must have zero model input weight")
 
 
+def _assert_team_race_execution_reaches_simulation() -> None:
+    season = SeasonState(
+        season=2026,
+        teams={
+            "team_a": Team("team_a", "Team A", 0.50, 0.96, 0.50),
+            "team_b": Team("team_b", "Team B", 0.50, 0.96, 0.50),
+        },
+        drivers={
+            "driver_a": Driver("driver_a", "Driver A", "team_a", 0.50, 0.50, 0.50, 0.50, 0.50),
+            "driver_b": Driver("driver_b", "Driver B", "team_b", 0.50, 0.50, 0.50, 0.50, 0.50),
+        },
+        events=[
+            RaceEvent(
+                event_id="contract_gp",
+                name="Contract GP",
+                round_number=1,
+                date="2026-07-01",
+                track_type="balanced",
+                laps=10,
+                completed=False,
+                weather_prior={},
+                track_map=[],
+            )
+        ],
+        markets=[],
+    )
+    event = season.events[0]
+    team_execution_feature = FeatureAdjustment(
+        feature_id="contract-team-execution-feature",
+        event_id=event.event_id,
+        source="contract structured team execution source",
+        target_type="team",
+        target_id="team_a",
+        metric="race_execution",
+        value=0.05,
+        confidence=0.80,
+        observed_at="2026-06-30T00:00:00+00:00",
+        explanation="Source-backed team grid-to-finish conversion signal.",
+    )
+    driver_speed_feature = FeatureAdjustment(
+        feature_id="contract-driver-speed-feature",
+        event_id=event.event_id,
+        source="contract structured driver speed source",
+        target_type="driver",
+        target_id="driver_a",
+        metric="straight_line_speed",
+        value=0.05,
+        confidence=0.80,
+        observed_at="2026-06-30T00:00:00+00:00",
+        explanation="Source-backed driver speed-trap signal that belongs to the driver's car state.",
+    )
+    driver_reliability_feature = FeatureAdjustment(
+        feature_id="contract-driver-reliability-feature",
+        event_id=event.event_id,
+        source="contract structured driver reliability source",
+        target_type="driver",
+        target_id="driver_a",
+        metric="reliability",
+        value=-0.03,
+        confidence=0.80,
+        observed_at="2026-06-30T00:00:00+00:00",
+        explanation="Source-backed driver non-finish risk signal.",
+    )
+    builder = BeliefStateBuilder()
+    baseline = builder.build(season, event, [], [], [], knowledge_cutoff="2026-07-01T00:00:00+00:00")
+    belief_state = builder.build(
+        season,
+        event,
+        [],
+        [team_execution_feature, driver_speed_feature, driver_reliability_feature],
+        [],
+        knowledge_cutoff="2026-07-01T00:00:00+00:00",
+    )
+    if belief_state.team_ops_value("team_a", "race_execution") <= 0.0:
+        raise AssertionError("Team-level race_execution features must update team_ops.race_execution")
+    matching_updates = [
+        row
+        for row in belief_state.update_ledger
+        if row.claim_id == team_execution_feature.feature_id and row.target_type == "team" and row.factor == "race_execution"
+    ]
+    if not matching_updates:
+        raise AssertionError("Team-level race_execution updates must be present in the state update ledger")
+    if "traffic_conversion" not in matching_updates[0].affected_model_surfaces:
+        raise AssertionError("Team-level race_execution must expose its simulation route")
+    if belief_state.car_value("team_a", "straight_line_speed") <= 0.0:
+        raise AssertionError("Driver-level straight-line speed observations must update the driver's team car state")
+    speed_updates = [
+        row
+        for row in belief_state.update_ledger
+        if row.claim_id == driver_speed_feature.feature_id and row.target_type == "team" and row.target_id == "team_a"
+    ]
+    if not speed_updates:
+        raise AssertionError("Driver-level car observations must be ledgered against the affected team state")
+    if belief_state.driver_value("driver_a", "reliability") >= baseline.driver_value("driver_a", "reliability"):
+        raise AssertionError("Driver-level reliability observations must update the driver's reliability state")
+
+    baseline_score = PaceModel(season, [], [], belief_state=baseline).driver_score(season.drivers["driver_a"], event)
+    updated_pace = PaceModel(
+        season,
+        [],
+        [team_execution_feature, driver_speed_feature, driver_reliability_feature],
+        belief_state=belief_state,
+    )
+    updated_score = updated_pace.driver_score(
+        season.drivers["driver_a"],
+        event,
+    )
+    if updated_score <= baseline_score:
+        raise AssertionError("Team-level race_execution must affect the race pace score consumed by simulation")
+    if updated_pace.reliability(season.drivers["driver_a"]) >= PaceModel(season, [], [], belief_state=baseline).reliability(
+        season.drivers["driver_a"]
+    ):
+        raise AssertionError("Driver-level reliability must affect simulator reliability")
+
+
 def main() -> None:
     violations: list[str] = []
     for path in PREDICTION_UPDATE_FILES:
@@ -296,6 +413,7 @@ def main() -> None:
         )
     _assert_registration_gate_contract()
     _assert_user_feedback_cannot_update_predictions()
+    _assert_team_race_execution_reaches_simulation()
     print("source-driven contract ok")
 
 

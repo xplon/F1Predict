@@ -80,13 +80,27 @@ def main() -> None:
     assert audit["coverage"]["seed_or_blocked_update_count"] == 0
     assert audit["coverage"]["impact_trace_source"] == "sidecar"
     assert audit["coverage"]["impact_trace_claim_count"] == audit["coverage"]["state_update_count"]
-    assert audit["coverage"]["impact_trace_covered_claim_count"] == audit["coverage"]["impact_trace_claim_count"]
-    assert audit["coverage"]["impact_trace_uncovered_claim_count"] == 0
+    covered_claim_count = audit["coverage"]["impact_trace_covered_claim_count"]
+    claim_count = audit["coverage"]["impact_trace_claim_count"]
+    uncovered_claim_count = audit["coverage"]["impact_trace_uncovered_claim_count"]
+    full_impact_trace_coverage = covered_claim_count == claim_count
+    if full_impact_trace_coverage:
+        assert uncovered_claim_count == 0
+    else:
+        assert covered_claim_count < claim_count
+        assert uncovered_claim_count == claim_count - covered_claim_count
     assert "用户" not in json.dumps(audit, ensure_ascii=False)
     assert "model_input_weight" not in json.dumps(audit, ensure_ascii=False)
 
     anomalies = audit["anomalies"]
-    assert not any(row["code"] == "impact_trace_incomplete_for_material_updates" for row in anomalies)
+    incomplete_trace_anomalies = [
+        row for row in anomalies if row["code"] == "impact_trace_incomplete_for_material_updates"
+    ]
+    if full_impact_trace_coverage:
+        assert not incomplete_trace_anomalies
+    else:
+        assert incomplete_trace_anomalies, "partial latest sidecars must be exposed as an anomaly"
+        assert incomplete_trace_anomalies[0].get("severity") in {"medium", "high"}
     assert not any(
         row["code"] == "source_backed_negative_not_reflected" and row.get("target_id") == "alpine"
         for row in anomalies

@@ -122,6 +122,7 @@ class PaceModel:
         driver_race = self.belief_state.driver_value(driver.driver_id, "race_pace")
         driver_qualifying = self.belief_state.driver_value(driver.driver_id, "qualifying_ceiling")
         driver_execution = self.belief_state.driver_value(driver.driver_id, "race_execution")
+        team_execution = self.belief_state.team_ops_value(team_id, "race_execution")
         strategy = self.belief_state.team_ops_value(team_id, "strategy_quality")
         tyre = self.belief_state.driver_value(driver.driver_id, "tyre_management")
         wet_skill = self.belief_state.driver_value(driver.driver_id, "wet_skill") * wet_probability
@@ -142,6 +143,7 @@ class PaceModel:
                 "belief_car_race_pace": car_race * 1.95,
                 "belief_driver_race_pace": driver_race * 0.85,
                 "belief_driver_race_execution": driver_execution * 0.62,
+                "belief_team_race_execution": team_execution * 0.38,
                 "belief_team_strategy": strategy * 0.24,
                 "belief_driver_tyre_management": tyre * 0.34,
                 "belief_driver_wet_skill": wet_skill * 0.55,

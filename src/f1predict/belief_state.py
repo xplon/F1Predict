@@ -68,6 +68,7 @@ DRIVER_FACTORS = {
 
 TEAM_OPS_FACTORS = {
     "strategy_quality",
+    "race_execution",
     "pit_stop_mean",
     "pit_stop_variance",
     "pit_wall_risk",
@@ -280,6 +281,7 @@ class BeliefStateBuilder:
         )
         state_before = self._fingerprint_states(car_states, driver_states, team_ops_states, event_risk_state)
         ledger: list[StateUpdateLedgerRow] = []
+        driver_team_lookup = {driver_id: driver.team_id for driver_id, driver in season.drivers.items()}
 
         for feature in feature_adjustments:
             source_id = self._source_id("feature", feature.source, feature.feature_id)
@@ -300,6 +302,7 @@ class BeliefStateBuilder:
                 ledger,
                 event,
                 state_before,
+                driver_team_lookup,
             )
 
         for claim in evidence:
@@ -322,6 +325,7 @@ class BeliefStateBuilder:
                 ledger,
                 event,
                 state_before,
+                driver_team_lookup,
             )
 
         state_after = self._fingerprint_states(car_states, driver_states, team_ops_states, event_risk_state)
@@ -416,6 +420,7 @@ class BeliefStateBuilder:
                 team_id,
                 {
                     "strategy_quality": StateFactor(strategy_seed * 0.18, 0.70, ["weak_seed_team_strategy"]),
+                    "race_execution": StateFactor(0.0, 0.84, ["unobserved_initial_state"]),
                     "pit_wall_risk": StateFactor(-strategy_seed * 0.10, 0.78, ["weak_seed_team_strategy"]),
                     "setup_quality": StateFactor(strategy_seed * 0.10, 0.78, ["weak_seed_team_strategy"]),
                     "development_rate": StateFactor(0.0, 0.85, ["unobserved_initial_state"]),
@@ -481,11 +486,13 @@ class BeliefStateBuilder:
         ledger: list[StateUpdateLedgerRow],
         event: RaceEvent,
         state_before: str,
+        driver_team_lookup: dict[str, str],
     ) -> None:
         state_scope, factor = self._feature_target(feature)
-        target_id = self._state_target_id(feature, state_scope)
+        target_id = self._state_target_id(feature, state_scope, driver_team_lookup)
         if not target_id:
             return
+        state_target_type = self._state_target_type(feature, state_scope)
         raw_delta = feature.weighted_value() * self._feature_update_multiplier(feature)
         update_strength = float(quality_profile.get("update_strength") or 0.0)
         permission = str(quality_profile.get("model_update_permission") or "weak_update")
@@ -494,7 +501,7 @@ class BeliefStateBuilder:
             source_id=source_id,
             claim_id=feature.feature_id,
             state_scope=state_scope,
-            target_type=feature.target_type,
+            target_type=state_target_type,
             target_id=target_id,
             factor=factor,
             raw_delta=raw_delta,
@@ -523,13 +530,15 @@ class BeliefStateBuilder:
         ledger: list[StateUpdateLedgerRow],
         event: RaceEvent,
         state_before: str,
+        driver_team_lookup: dict[str, str],
     ) -> None:
         if quality_profile.get("model_update_permission") == "blocked":
             return
         state_scope, factor = self._claim_target(claim)
-        target_id = self._state_target_id(claim, state_scope)
+        target_id = self._state_target_id(claim, state_scope, driver_team_lookup)
         if not target_id:
             return
+        state_target_type = self._state_target_type(claim, state_scope)
         raw_delta = claim.signed_impact()
         update_strength = float(quality_profile.get("update_strength") or 0.0)
         self._apply_update(
@@ -537,7 +546,7 @@ class BeliefStateBuilder:
             source_id=source_id,
             claim_id=claim.claim_id,
             state_scope=state_scope,
-            target_type=claim.target_type,
+            target_type=state_target_type,
             target_id=target_id,
             factor=factor,
             raw_delta=raw_delta,
@@ -649,6 +658,8 @@ class BeliefStateBuilder:
     @staticmethod
     def _feature_target(feature: FeatureAdjustment) -> tuple[str, str]:
         state_scope, factor = METRIC_FACTOR_MAP.get(feature.metric, ("car", str(feature.metric)))
+        if feature.target_type == "team" and feature.metric == "race_execution":
+            return "team_ops", "race_execution"
         if feature.target_type == "driver" and feature.metric in {"qualifying_pace", "race_pace", "race_execution", "wet_skill", "reliability", "launch_performance", "tyre_deg"}:
             if feature.metric == "qualifying_pace":
                 return "driver", "qualifying_ceiling"
@@ -656,6 +667,8 @@ class BeliefStateBuilder:
                 return "driver", "race_pace"
             if feature.metric == "tyre_deg":
                 return "driver", "tyre_management"
+            if feature.metric == "reliability":
+                return "driver", "reliability"
             if feature.metric == "launch_performance":
                 return "driver", "first_lap_gain"
             return state_scope, factor
@@ -668,6 +681,8 @@ class BeliefStateBuilder:
     @staticmethod
     def _claim_target(claim: EvidenceClaim) -> tuple[str, str]:
         state_scope, factor = METRIC_FACTOR_MAP.get(claim.metric, ("car", str(claim.metric)))
+        if claim.target_type == "team" and claim.metric == "race_execution":
+            return "team_ops", "race_execution"
         if claim.target_type == "driver" and claim.metric in {"qualifying_pace", "race_pace", "race_execution", "wet_skill", "reliability", "launch_performance", "tyre_deg"}:
             if claim.metric == "qualifying_pace":
                 return "driver", "qualifying_ceiling"
@@ -675,6 +690,8 @@ class BeliefStateBuilder:
                 return "driver", "race_pace"
             if claim.metric == "tyre_deg":
                 return "driver", "tyre_management"
+            if claim.metric == "reliability":
+                return "driver", "reliability"
             if claim.metric == "launch_performance":
                 return "driver", "first_lap_gain"
             return state_scope, factor
@@ -685,10 +702,22 @@ class BeliefStateBuilder:
         return state_scope, factor
 
     @staticmethod
-    def _state_target_id(row: Any, state_scope: str) -> str | None:
+    def _state_target_id(row: Any, state_scope: str, driver_team_lookup: dict[str, str] | None = None) -> str | None:
         if state_scope == "event":
             return row.event_id
+        if state_scope in {"car", "team_ops"} and getattr(row, "target_type", None) == "driver":
+            return (driver_team_lookup or {}).get(str(row.target_id or ""))
         return str(row.target_id or "") or None
+
+    @staticmethod
+    def _state_target_type(row: Any, state_scope: str) -> str:
+        if state_scope == "event":
+            return "event"
+        if state_scope in {"car", "team_ops"}:
+            return "team"
+        if state_scope == "driver":
+            return "driver"
+        return str(getattr(row, "target_type", "") or "")
 
     @staticmethod
     def _feature_update_multiplier(feature: FeatureAdjustment) -> float:
@@ -820,6 +849,8 @@ class BeliefStateBuilder:
     def _affected_surfaces(factor: str) -> tuple[str, ...]:
         if factor in {"qualifying_pace", "qualifying_ceiling"}:
             return ("qualifying_grid_sampler",)
+        if factor == "race_execution":
+            return ("race_pace_score", "traffic_conversion", "strategy_plan")
         if factor in {"race_pace", "overall_pace", "straight_line_speed", "ers_deployment", "aero_efficiency", "traction", "upgrade_delta"}:
             return ("race_pace_score", "qualifying_grid_sampler")
         if factor in {"tyre_deg", "tyre_management"}:
