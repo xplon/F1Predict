@@ -91,6 +91,9 @@ def _assert_public_explanation_text_is_localized(payload: dict, label: str) -> N
         "Historical analogue",
         "wet-skill prior",
         "confidence-weighted",
+        "Open-Meteo forecast snapshot",
+        "precipitation_probability",
+        "precipitation_sum",
         "vs field",
         "confidence ",
         "weak_update",
@@ -114,6 +117,11 @@ def _assert_public_explanation_text_is_localized(payload: dict, label: str) -> N
         add(row.get("mechanism"))
     for row in belief.get("extracted_units") or []:
         add(row.get("paraphrase_zh"))
+    for row in prediction.get("evidence") or []:
+        add(row.get("evidence_text_zh"))
+        add(row.get("reasoning_zh"))
+    for row in prediction.get("feature_adjustments") or []:
+        add(row.get("explanation_zh"))
     for trace in prediction.get("prediction_impact_trace") or payload.get("traces") or []:
         add(trace.get("interpretation_zh"))
         for stage in trace.get("source_to_prediction_chain") or []:

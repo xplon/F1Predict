@@ -346,6 +346,29 @@ def _localize_prediction_section(prediction: dict[str, Any]) -> None:
         )
         row["factor_label_zh"] = metric_label_zh(row.get("factor"))
         row["direction_label_zh"] = direction_label_zh(row.get("direction"))
+    for row in _list(prediction.get("evidence")):
+        claim_id = str(row.get("claim_id") or "")
+        metric = str(row.get("metric") or "")
+        source = str(row.get("source") or "")
+        row["evidence_text_zh"] = localized_mechanism_zh(
+            row.get("evidence_text"),
+            feature_id=claim_id,
+            source=source,
+            metric=metric,
+        )
+        row["reasoning_zh"] = localized_mechanism_zh(
+            row.get("reasoning") or row.get("evidence_text"),
+            feature_id=claim_id,
+            source=source,
+            metric=metric,
+        )
+    for row in _list(prediction.get("feature_adjustments")):
+        row["explanation_zh"] = localized_mechanism_zh(
+            row.get("explanation"),
+            feature_id=str(row.get("feature_id") or ""),
+            source=str(row.get("source") or ""),
+            metric=str(row.get("metric") or ""),
+        )
     for row in _list(prediction.get("prediction_impact_trace")):
         _localize_trace_row(row)
 
@@ -405,6 +428,18 @@ def _parsed_feature_explanation(
         return f"{source_label}；{event_phrase}的同场排位名次为 {_clean_value(value)}，作为排位和发车位信号，不直接当作正赛速度{confidence_phrase}。"
     if "Historical analogue race had meaningful rainfall" in text:
         return f"{source_label}；历史相似正赛出现明显降雨，因此车手湿地能力先验获得小幅、按置信度折算的正向修正。"
+    if "Open-Meteo forecast snapshot" in text:
+        date_match = re.search(r"on (\d{4}-\d{2}-\d{2})", text)
+        probability_match = re.search(r"precipitation_probability_max=([^ ]+)", text)
+        precipitation_match = re.search(r"precipitation_sum=([^ .]+(?:\.\d+)?mm)", text)
+        date = date_match.group(1) if date_match else "比赛日"
+        probability = probability_match.group(1) if probability_match else "未记录"
+        precipitation = precipitation_match.group(1) if precipitation_match else "未记录"
+        return (
+            "来源：Open-Meteo 天气预报快照；"
+            f"Silverstone 坐标在 {date} 的日最高降水概率为 {probability}，"
+            f"预报降水量为 {precipitation}，用于湿地/降雨风险判断。"
+        )
     if "qualifying team average position" in text:
         return f"{source_label}；{event_phrase}的车队平均排位名次为 {_clean_value(value)}，作为车队排位状态输入{confidence_phrase}。"
     if "team total points per race" in text:
@@ -524,4 +559,3 @@ def _clean_value(value: Any) -> str:
 
 def _list(value: Any) -> list[Any]:
     return value if isinstance(value, list) else []
-

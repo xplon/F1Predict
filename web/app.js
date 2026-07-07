@@ -2318,13 +2318,17 @@ function renderEvidence(rows) {
   document.getElementById("evidenceList").innerHTML = sortedRows.length
     ? sortedRows.map(row => {
         const seed = isSeedClaim(row);
+        const evidenceText = row.evidence_text_zh || row.evidence_text || "该声明缺少证据文本。";
+        const reasoningText = row.reasoning_zh || row.reasoning || "该声明缺少机制说明。";
+        const sourceText = sourceNameLabel(row.source || "未知来源");
+        const sourceUrlText = row.source_url ? "有来源链接" : "无 URL";
         return `
         <article class="evidence-card">
           <h3>${escapeHtml(targetDisplay(row.target_type, row.target_id))} | ${escapeHtml(factorLabel(row.metric))}</h3>
           <span class="pill">${escapeHtml(directionLabel(row.direction))} | ${seed ? "开发占位，已阻断入模" : "可追溯证据声明"}</span>
-          <p>${escapeHtml(row.evidence_text || "该声明缺少证据文本。")}</p>
-          <p>${escapeHtml(row.reasoning || "该声明缺少机制说明。")}</p>
-          <p>来源：${escapeHtml(row.source || "未知来源")} | ${escapeHtml(row.source_url || "无 URL")}</p>
+          <p>${escapeHtml(evidenceText)}</p>
+          <p>${escapeHtml(reasoningText)}</p>
+          <p>来源：${escapeHtml(sourceText)} | ${escapeHtml(sourceUrlText)}</p>
         </article>
       `;
       }).join("")
@@ -2508,7 +2512,7 @@ function renderFeatures(rows) {
         <article class="evidence-card">
           <h3>${targetDisplay(row.target_type, row.target_id)} | ${factorLabel(row.metric)}</h3>
           <span class="pill">${directionLabel(row.value >= 0 ? "positive" : "negative")} | ${magnitudeLabel(featureMagnitudeBucket(row))}</span>
-          <p>${escapeHtml(row.explanation || "该特征缺少中文机制说明，需要补充来源解释。")}</p>
+          <p>${escapeHtml(row.explanation_zh || row.explanation || "该特征缺少中文机制说明，需要补充来源解释。")}</p>
           <p>来源：${escapeHtml(row.source || "未记录来源")}</p>
         </article>
       `).join("")
@@ -3868,6 +3872,15 @@ function sourceStatusLabel(status) {
     snapshot_after_cutoff: "快照晚于知识截止，只能诊断"
   };
   return labels[String(status)] || String(status || "来源时效未知");
+}
+
+function sourceNameLabel(source) {
+  const labels = {
+    "Open-Meteo forecast API": "Open-Meteo 天气预报接口",
+    "FastF1": "FastF1 结构化数据",
+    "F1 official standings": "F1 官方积分榜"
+  };
+  return labels[String(source)] || String(source || "未知来源");
 }
 
 function triangulationLabel(status) {
