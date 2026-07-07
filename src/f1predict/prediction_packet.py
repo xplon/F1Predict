@@ -166,6 +166,7 @@ class PredictionPacket:
             lines.append(f"- Race noise base SD: `{simulator_config.get('race_noise_base_sd')}`")
             lines.append(f"- Race noise per-lap SD: `{simulator_config.get('race_noise_per_lap_sd')}`")
             lines.append(f"- Qualifying noise SD: `{simulator_config.get('qualifying_noise_sd')}`")
+            lines.append(f"- Team race-window noise SD: `{simulator_config.get('team_race_window_noise_sd')}`")
         lines.extend(["", "## Input Audit", ""])
         lines.append(f"- Event input quality: `{self.event_input_audit.get('quality')}`")
         for code in self.event_input_audit.get("risk_codes", []):

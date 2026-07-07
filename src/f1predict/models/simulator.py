@@ -32,9 +32,10 @@ class StrategyPlan:
 class SimulatorConfig:
     """Tunable parameters for the compact race-time simulator."""
 
-    config_id: str = "default_pace_separation_track_position_v2"
+    config_id: str = "default_pace_separation_track_position_team_window_v3"
     description: str = (
-        "Pace-separation simulator defaults with source-backed track-position conversion; "
+        "Pace-separation simulator defaults with source-backed track-position conversion "
+        "and correlated team race-window uncertainty; "
         "still not formal-ready without holdout validation."
     )
     qualifying_noise_sd: float = 0.38
@@ -53,6 +54,9 @@ class SimulatorConfig:
     safety_car_bunching_per_grid_position: float = 0.16
     launch_time_scale: float = 22.0
     known_qualifying_position_noise_sd: float = 0.32
+    team_race_window_noise_sd: float = 4.2
+    team_race_window_uncertainty_scale: float = 0.85
+    team_race_window_noise_cap: float = 8.5
 
     def to_dict(self) -> dict[str, Any]:
         return self.__dict__
@@ -195,6 +199,7 @@ class SingleRaceSimulator:
         grid_positions = {driver_id: index for index, driver_id in enumerate(grid_order, start=1)}
         wet_race = self.random.random() < self._wet_probability(event)
         safety_car_lap = self._sample_safety_car_lap(event, wet_race)
+        team_window_offsets = self._sample_team_race_window_offsets(driver_ids)
         sampled: list[tuple[float, str]] = []
         for driver_id in driver_ids:
             driver = self.season_state.drivers[driver_id]
@@ -208,6 +213,7 @@ class SingleRaceSimulator:
                 wet_race=wet_race,
                 safety_car_lap=safety_car_lap,
                 reliability=reliability,
+                team_window_offset=team_window_offsets.get(driver.team_id, 0.0),
             )
             sampled.append((race_time, driver_id))
         sampled.sort(key=lambda item: item[0])
@@ -231,6 +237,7 @@ class SingleRaceSimulator:
             wet_race = self.random.random() < self._wet_probability(event)
             wet_laps = self._sample_wet_laps(event, wet_race)
             safety_car_lap = self._sample_safety_car_lap(event, wet_race)
+            team_window_offsets = self._sample_team_race_window_offsets(driver_ids)
             plans = {
                 driver_id: self._strategy_plan(
                     event,
@@ -279,6 +286,7 @@ class SingleRaceSimulator:
                         0,
                         previous_positions.get(driver_id, grid_positions[driver_id]) - 1,
                     )
+                    race_window_delta = team_window_offsets.get(driver.team_id, 0.0) / max(1, event.laps)
                     pit_delta = plan.pit_loss if pit_stop else 0.0
                     safety_delta = 6.5 if safety_phase else 0.0
                     lap_noise = self.random.gauss(0.0, self.config.replay_lap_noise_sd)
@@ -290,7 +298,7 @@ class SingleRaceSimulator:
                     elif dnf:
                         lap_time = None
                     else:
-                        lap_time = base + deg + weather + traffic + pit_delta + safety_delta + lap_noise
+                        lap_time = base + deg + weather + traffic + race_window_delta + pit_delta + safety_delta + lap_noise
                         cumulative[driver_id] += lap_time
                     track_status = "safety_car" if safety_phase else "wet" if wet_phase else "green"
                     if dnf:
@@ -301,6 +309,7 @@ class SingleRaceSimulator:
                         "compound": compound,
                         "stint": stint,
                         "pit_stop": pit_stop and not dnf,
+                        "race_window_lap_delta": round(race_window_delta, 4),
                         "track_status": track_status,
                         "dnf": dnf,
                     }
@@ -340,6 +349,8 @@ class SingleRaceSimulator:
                             "compound": record["compound"],
                             "stint": record["stint"],
                             "pit_stop": record["pit_stop"],
+                            "race_window_lap_delta": record["race_window_lap_delta"],
+                            "team_race_window_offset": round(team_window_offsets.get(driver.team_id, 0.0), 3),
                             "track_status": record["track_status"],
                             "dnf": record["dnf"],
                             "planned_stops": plan.stops,
@@ -391,6 +402,7 @@ class SingleRaceSimulator:
         wet_race: bool,
         safety_car_lap: int | None,
         reliability: float,
+        team_window_offset: float,
     ) -> float:
         if self.random.random() > reliability:
             dnf_lap = self.random.randint(max(2, event.laps // 5), max(3, event.laps))
@@ -438,10 +450,37 @@ class SingleRaceSimulator:
             - launch_bonus
             + wet_penalty
             + safety_car_bunching
+            + team_window_offset
             - strategy_quality
             + operational_noise
             + race_noise
         )
+
+    def _sample_team_race_window_offsets(self, driver_ids: list[str]) -> dict[str, float]:
+        """Sample correlated race-day setup/tyre-window swings by team.
+
+        Independent per-driver noise cannot express a common car-window miss:
+        if a team struggles with tyres, balance, wind, or operating window on
+        race day, both cars are usually affected. This draw keeps the effect
+        generic and tied to BeliefState uncertainty rather than to team names.
+        Positive values are slower total race-time seconds.
+        """
+
+        representative_by_team: dict[str, Driver] = {}
+        for driver_id in driver_ids:
+            driver = self.season_state.drivers[driver_id]
+            representative_by_team.setdefault(driver.team_id, driver)
+
+        offsets: dict[str, float] = {}
+        for team_id in sorted(representative_by_team):
+            driver = representative_by_team[team_id]
+            uncertainty = self.pace_model.race_window_uncertainty(driver)
+            uncertainty_multiplier = 1.0 + self.config.team_race_window_uncertainty_scale * (uncertainty - 0.55)
+            sd = max(0.0, self.config.team_race_window_noise_sd * max(0.35, uncertainty_multiplier))
+            raw_offset = self.random.gauss(0.0, sd)
+            cap = max(0.0, self.config.team_race_window_noise_cap)
+            offsets[team_id] = max(-cap, min(cap, raw_offset))
+        return offsets
 
     def _strategy_plan(
         self,

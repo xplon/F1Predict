@@ -898,3 +898,57 @@ uncovered_claim_count = 0
 - 最近 3-5 站、同周末 FP/排位/正赛长距离信息是否足够强地进入 BeliefState；
 - 进入状态后的信息是否真的通过模拟路由改变合理的车队/车手分布；
 - 历史回放、概率校准和市场基线比较是否能证明预测质量改善。
+
+## 20. 2026-07-07：新增相关车队比赛日窗口诊断机制
+
+继续检查 British GP 的概率分布时发现，当前 top2 胜率过度集中不只来自 Mercedes 状态强，也来自模拟结构：旧模拟器的大部分随机性是车手独立噪声。这会导致强队双车在同一场比赛里“总有一辆吃到胜利”，而不能表达“同一辆车或同一队当天调校/轮胎窗口不对，双车一起受影响”的情况。
+
+本轮新增通用机制：
+
+```text
+BeliefState 状态不确定性
+-> 车队相关 race-window offset
+-> 同队两辆车共享同方向比赛日偏移
+-> 概率分布小幅打散
+```
+
+这不是按用户举例手动压低 Mercedes 或抬高 Ferrari/McLaren/Red Bull。代码没有写任何车队或车手 id 特判。该机制统一读取 BeliefState 中赛车、轮胎、调校和车手状态的不确定性，并为每个车队抽取同一种比赛日窗口偏移。
+
+诊断候选包：
+
+```text
+path = reports/prediction_packets_model_revision_probe/team_window_v3/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+packet_payload_sha256 = 30cd0735df2efc78dbd7894d61268395fb868b37a588577f6c5d8602365d8d2e
+status = diagnostic_only
+config_id = default_pace_separation_track_position_team_window_v3
+```
+
+同一输入、1200 次迭代的诊断对比：
+
+```text
+旧口径 Mercedes 双车合计胜率 = 94.92%
+新口径 Mercedes 双车合计胜率 = 92.25%
+Russell 胜率 48.83% -> 48.25%
+Antonelli 胜率 46.08% -> 44.00%
+Hamilton 胜率 2.83% -> 4.58%
+Verstappen 胜率 0.08% -> 0.58%
+Piastri 胜率 0.25% -> 0.58%
+```
+
+排序变化很小：
+
+```text
+Russell、Antonelli、Hamilton、Leclerc 仍保持前四。
+Piastri/Norris 发生 P5/P6 近似交换。
+Gasly 从第 9 到第 10，低优先级 Alpine 复核项仍然存在。
+Aston Martin 和 Cadillac 仍在底部区间。
+```
+
+这说明修正方向是“缓和过度集中”，不是“重写排名”。它让预测结果部分更接近 F1 的比赛日不确定性，但还不能当作正式提升证明。
+
+重要边界：
+
+- 该候选包没有注册为 latest。
+- 当前前端 latest 仍使用上一版 full sidecar 覆盖 535/535 的注册包。
+- 候选包还没有 full sidecar，因此 Markdown 中会正确出现 `impact_trace_incomplete_for_material_updates`。
+- 如果后续要把该模型修订设为 latest，必须先生成模型修订证明、注册 run，并补齐新 run 的 full sidecar。

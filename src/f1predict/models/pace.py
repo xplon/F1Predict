@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from statistics import mean
 
 from f1predict.belief_state import BeliefState
 from f1predict.domain import Driver, EvidenceClaim, FeatureAdjustment, RaceEvent, SeasonState
@@ -191,6 +192,21 @@ class PaceModel:
             + self._contextual_metric(driver, event, "launch_performance", mode="race", features=True)
         )
 
+    def race_window_uncertainty(self, driver: Driver) -> float:
+        """Estimate setup/tyre-window uncertainty for race-day correlated variance."""
+
+        if self.belief_state is None:
+            return 0.65
+        values = [
+            self._car_uncertainty(driver.team_id, "race_pace", 0.72),
+            self._car_uncertainty(driver.team_id, "tyre_deg", 0.82),
+            self._car_uncertainty(driver.team_id, "setup_window_width", 0.82),
+            self._team_ops_uncertainty(driver.team_id, "setup_quality", 0.78),
+            self._driver_uncertainty(driver.driver_id, "race_pace", 0.70),
+            self._driver_uncertainty(driver.driver_id, "tyre_management", 0.72),
+        ]
+        return min(1.0, max(0.0, mean(values)))
+
     def _effective_wet_probability(self, event: RaceEvent) -> float:
         if self.belief_state is not None:
             return min(1.0, max(0.0, self.belief_state.event_value("wet_probability", event.weather_prior.get("wet_probability", 0.0))))
@@ -214,6 +230,27 @@ class PaceModel:
             if value:
                 total += value * self._metric_multiplier(metric, event, mode)
         return total
+
+    def _car_uncertainty(self, team_id: str, factor: str, default: float) -> float:
+        if self.belief_state is None:
+            return default
+        state = self.belief_state.car_states.get(team_id)
+        row = state.factors.get(factor) if state is not None else None
+        return row.uncertainty if row is not None else default
+
+    def _driver_uncertainty(self, driver_id: str, factor: str, default: float) -> float:
+        if self.belief_state is None:
+            return default
+        state = self.belief_state.driver_states.get(driver_id)
+        row = state.factors.get(factor) if state is not None else None
+        return row.uncertainty if row is not None else default
+
+    def _team_ops_uncertainty(self, team_id: str, factor: str, default: float) -> float:
+        if self.belief_state is None:
+            return default
+        state = self.belief_state.team_ops_states.get(team_id)
+        row = state.factors.get(factor) if state is not None else None
+        return row.uncertainty if row is not None else default
 
     def _combined_metric(self, driver: Driver, event: RaceEvent, metric: str) -> float:
         return (

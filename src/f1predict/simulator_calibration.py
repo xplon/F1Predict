@@ -346,6 +346,12 @@ def default_simulator_candidate_configs() -> tuple[SimulatorConfig, ...]:
         baseline,
         replace(
             baseline,
+            config_id="no_correlated_team_window",
+            description="Disable correlated team race-window uncertainty for regression comparison.",
+            team_race_window_noise_sd=0.0,
+        ),
+        replace(
+            baseline,
             config_id="legacy_default_current",
             description="Previous default before the diagnostic pace-separation calibration update.",
             qualifying_noise_sd=0.44,
@@ -362,6 +368,13 @@ def default_simulator_candidate_configs() -> tuple[SimulatorConfig, ...]:
             race_noise_base_sd=6.8,
             race_noise_per_lap_sd=0.065,
             operational_noise_per_stop=1.20,
+        ),
+        replace(
+            baseline,
+            config_id="stronger_team_window",
+            description="Larger correlated team race-window swings for overconfidence review.",
+            team_race_window_noise_sd=5.6,
+            team_race_window_noise_cap=10.5,
         ),
         replace(
             baseline,

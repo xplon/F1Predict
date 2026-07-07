@@ -778,3 +778,13 @@ formal_readiness.status = formal_trace_ready
 ```
 
 这证明当前实现已经能对每条来源化状态更新给出同口径影响追踪。它不证明预测质量已经合格；预测质量仍要通过历史回放、概率校准和市场基线比较验证。下一阶段的重点应从“解释链是否断裂”转向“哪些来源和状态更新真正让排名更符合现实”。
+
+2026-07-07 追加预测质量方向实现：模拟器新增相关车队比赛日窗口机制 `team_race_window_noise_sd`。它不读取任何具体车队或车手 id，而是根据 BeliefState 中赛车、轮胎、调校和车手状态的不确定性，为每个车队抽取一个同队共享的 race-window offset。这样可以表达“某队当天调校/轮胎窗口不对导致双车同时受影响”的 F1 常见机制，避免只有车手独立噪声时强队双车胜率过度集中。
+
+该机制当前只生成了未注册诊断候选包：
+
+```text
+reports/prediction_packets_model_revision_probe/team_window_v3/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+```
+
+它把 British GP 中 Mercedes 双车合计胜率从约 94.92% 缓和到 92.25%，但没有重写整体排名，也没有证明正式 edge。由于新候选包尚未生成 535/535 full sidecar，不能替代当前 latest。若后续注册为 latest，必须先通过模型修订证明门禁并补齐完整同迭代 sidecar。
