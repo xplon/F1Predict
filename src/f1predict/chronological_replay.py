@@ -334,6 +334,7 @@ class ChronologicalReplayBundleBuilder:
             evidence_quality_scorer=self.pipeline.evidence_quality_scorer,
             weather_forecast_provider=self.pipeline.weather_forecast_provider,
             iterations=iterations,
+            simulator_config=self.pipeline.simulator_config,
         )
 
     @staticmethod

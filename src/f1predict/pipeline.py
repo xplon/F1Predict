@@ -104,7 +104,13 @@ class PredictionPipeline:
             pre_model_quality,
             knowledge_cutoff=knowledge_cutoff,
         )
-        baseline_pace_model = PaceModel(season, [], [], belief_state=baseline_belief_state)
+        baseline_pace_model = PaceModel(
+            season,
+            [],
+            [],
+            belief_state=baseline_belief_state,
+            belief_component_scales=self.simulator_config.belief_component_scales(),
+        )
         baseline_summary = SingleRaceSimulator(
             season,
             baseline_pace_model,
@@ -117,6 +123,7 @@ class PredictionPipeline:
             feature_adjustments,
             evidence_weights=evidence_input_weights,
             belief_state=belief_state,
+            belief_component_scales=self.simulator_config.belief_component_scales(),
         )
         simulator = SingleRaceSimulator(
             season,
@@ -284,6 +291,7 @@ class PredictionPipeline:
                     counterfactual_features,
                     evidence_weights=counterfactual_weights,
                     belief_state=counterfactual_belief_state,
+                    belief_component_scales=self.simulator_config.belief_component_scales(),
                 )
                 counterfactual_probabilities = SingleRaceSimulator(
                     season,
@@ -371,6 +379,7 @@ class PredictionPipeline:
                 counterfactual_features,
                 evidence_weights=counterfactual_weights,
                 belief_state=counterfactual_belief_state,
+                belief_component_scales=self.simulator_config.belief_component_scales(),
             )
             counterfactual_probabilities = SingleRaceSimulator(
                 season,
@@ -635,6 +644,7 @@ class PredictionPipeline:
                 features,
                 evidence_weights=self._evidence_input_weights(pre_model_quality),
                 belief_state=belief_state,
+                belief_component_scales=self.simulator_config.belief_component_scales(),
             )
 
         forecast_iterations = iterations or max(600, min(self.iterations, 2500))
@@ -843,6 +853,7 @@ class PredictionPipeline:
                 feature_adjustments,
                 evidence_weights=counterfactual_weights,
                 belief_state=counterfactual_belief_state,
+                belief_component_scales=self.simulator_config.belief_component_scales(),
             )
             counterfactual_probabilities = SingleRaceSimulator(
                 season,

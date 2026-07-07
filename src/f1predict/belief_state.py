@@ -130,6 +130,25 @@ class StateFactor:
     uncertainty: float = 0.65
     provenance: list[str] = field(default_factory=list)
 
+    @classmethod
+    def from_dict(cls, raw: dict[str, Any] | None) -> "StateFactor":
+        if not isinstance(raw, dict):
+            return cls()
+        try:
+            value = float(raw.get("value") or 0.0)
+        except (TypeError, ValueError):
+            value = 0.0
+        try:
+            uncertainty = float(raw.get("uncertainty") or 0.65)
+        except (TypeError, ValueError):
+            uncertainty = 0.65
+        provenance = raw.get("provenance")
+        return cls(
+            value=value,
+            uncertainty=uncertainty,
+            provenance=[str(item) for item in provenance] if isinstance(provenance, list) else [],
+        )
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "value": round(self.value, 6),
@@ -143,6 +162,19 @@ class StateFactor:
 class EntityState:
     entity_id: str
     factors: dict[str, StateFactor] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, raw: dict[str, Any] | None) -> "EntityState":
+        if not isinstance(raw, dict):
+            return cls("")
+        factors = raw.get("factors")
+        return cls(
+            entity_id=str(raw.get("entity_id") or ""),
+            factors={
+                str(key): StateFactor.from_dict(value)
+                for key, value in (factors.items() if isinstance(factors, dict) else ())
+            },
+        )
 
     def value(self, factor: str, default: float = 0.0) -> float:
         row = self.factors.get(factor)
@@ -211,6 +243,39 @@ class BeliefState:
     unsupported_static_priors: list[dict[str, Any]]
     source_fingerprint: str
     update_fingerprint: str
+
+    @classmethod
+    def from_dict(cls, raw: dict[str, Any]) -> "BeliefState":
+        """Rehydrate a BeliefState snapshot for read-only model diagnostics.
+
+        Prediction packets store BeliefState as JSON. Tools such as model error
+        review need the same values that drove the simulator, but they do not
+        need to replay every ledger row. This constructor rebuilds the state
+        surfaces consumed by PaceModel while leaving the full ledger payload in
+        its JSON form.
+        """
+
+        if not isinstance(raw, dict):
+            raise TypeError("BeliefState.from_dict requires a dictionary payload")
+        return cls(
+            state_id=str(raw.get("state_id") or ""),
+            event_id=str(raw.get("event_id") or ""),
+            knowledge_cutoff=raw.get("knowledge_cutoff"),
+            generated_at=str(raw.get("generated_at") or ""),
+            track_state=EntityState.from_dict(raw.get("track_state")),
+            car_states=_entity_state_map(raw.get("car_states")),
+            driver_states=_entity_state_map(raw.get("driver_states")),
+            team_ops_states=_entity_state_map(raw.get("team_ops_states")),
+            event_risk_state=EntityState.from_dict(raw.get("event_risk_state")),
+            raw_sources=_list_of_dicts(raw.get("raw_sources")),
+            extracted_units=_list_of_dicts(raw.get("extracted_units")),
+            normalized_claims=_list_of_dicts(raw.get("normalized_claims")),
+            quality_profiles=_list_of_dicts(raw.get("quality_profiles")),
+            update_ledger=[],
+            unsupported_static_priors=_list_of_dicts(raw.get("unsupported_static_priors")),
+            source_fingerprint=str(raw.get("source_fingerprint") or ""),
+            update_fingerprint=str(raw.get("update_fingerprint") or ""),
+        )
 
     def car_value(self, team_id: str, factor: str, default: float = 0.0) -> float:
         state = self.car_states.get(team_id)
@@ -1312,6 +1377,21 @@ def self_changed_factors(ledger: list[StateUpdateLedgerRow]) -> list[dict[str, A
 def rank_by_average_finish(rows: dict[str, Any]) -> dict[str, int]:
     ranked = sorted(rows.values(), key=lambda row: (row.average_finish, -row.expected_points))
     return {row.driver_id: index for index, row in enumerate(ranked, start=1)}
+
+
+def _entity_state_map(raw: Any) -> dict[str, EntityState]:
+    if not isinstance(raw, dict):
+        return {}
+    output: dict[str, EntityState] = {}
+    for key, value in raw.items():
+        state = EntityState.from_dict(value)
+        entity_id = state.entity_id or str(key)
+        output[entity_id] = EntityState(entity_id=entity_id, factors=state.factors)
+    return output
+
+
+def _list_of_dicts(raw: Any) -> list[dict[str, Any]]:
+    return [dict(row) for row in raw] if isinstance(raw, list) and all(isinstance(row, dict) for row in raw) else []
 
 
 def canonical_hash(payload: Any) -> str:

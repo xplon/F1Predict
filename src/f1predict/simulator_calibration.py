@@ -383,6 +383,43 @@ def default_simulator_candidate_configs() -> tuple[SimulatorConfig, ...]:
         ),
         replace(
             baseline,
+            config_id="belief_state_pace_damped",
+            description=(
+                "Diagnostic route-scale candidate that reduces car and driver BeliefState pace separation "
+                "without changing source states, to test whether current state gaps are over-amplified."
+            ),
+            belief_car_state_scale=0.78,
+            belief_driver_state_scale=0.90,
+            belief_team_state_scale=0.92,
+        ),
+        replace(
+            baseline,
+            config_id="belief_car_state_damped",
+            description=(
+                "Diagnostic candidate that specifically reduces car-state contribution after model-error review "
+                "showed large car-state gaps on replay misses."
+            ),
+            belief_car_state_scale=0.68,
+            belief_driver_state_scale=0.96,
+            belief_team_state_scale=1.0,
+        ),
+        replace(
+            baseline,
+            config_id="belief_state_damped_wider_race_variance",
+            description=(
+                "Diagnostic candidate combining BeliefState route damping with wider race variance to test "
+                "whether current deterministic state gaps produce overconfident winner tails."
+            ),
+            belief_car_state_scale=0.78,
+            belief_driver_state_scale=0.90,
+            belief_team_state_scale=0.92,
+            race_score_lap_time_scale=0.60,
+            race_noise_base_sd=6.4,
+            race_noise_per_lap_sd=0.060,
+            operational_noise_per_stop=1.15,
+        ),
+        replace(
+            baseline,
             config_id="stronger_team_window",
             description="Larger correlated team race-window swings for overconfidence review.",
             team_race_window_noise_sd=5.6,

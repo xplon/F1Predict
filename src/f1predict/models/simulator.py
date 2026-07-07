@@ -59,6 +59,10 @@ class SimulatorConfig:
     team_race_window_noise_cap: float = 8.5
     team_race_window_pressure_scale: float = 0.0
     team_race_window_pressure_cap: float = 4.0
+    belief_car_state_scale: float = 1.0
+    belief_driver_state_scale: float = 1.0
+    belief_team_state_scale: float = 1.0
+    belief_technical_state_scale: float = 1.0
     winner_probability_calibration_blend: float = 0.0
     winner_rank_prior_temperature: float = 2.4
     winner_rank_prior_weight: float = 0.62
@@ -66,6 +70,14 @@ class SimulatorConfig:
 
     def to_dict(self) -> dict[str, Any]:
         return self.__dict__
+
+    def belief_component_scales(self) -> dict[str, float]:
+        return {
+            "car": self.belief_car_state_scale,
+            "driver": self.belief_driver_state_scale,
+            "team": self.belief_team_state_scale,
+            "technical": self.belief_technical_state_scale,
+        }
 
 
 @dataclass(frozen=True)

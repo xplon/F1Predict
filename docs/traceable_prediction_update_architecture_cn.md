@@ -1007,3 +1007,81 @@ formal_readiness.status = formal_trace_ready
 ```
 
 这只证明“解释链完整”，不证明“预测质量完成”。质量完成还需要历史回放、概率校准、与市场/基线的正式比较，以及更多来源维度进入状态更新。
+
+## 19. 2026-07-07 追加：模型错误复盘必须复用预测包 BeliefState，候选参数必须可复跑
+
+可追溯架构里新增一条硬规则：任何模型错误复盘都不能重新凭空构造状态，也不能只看旧式 feature score。复盘必须读取预测包里实际保存的 `belief_state`，复原后交给同一个 `PaceModel` 计算组件拆分。
+
+新的复盘链路是：
+
+```text
+PredictionPacket.prediction.belief_state
+-> BeliefState.from_dict()
+-> PaceModel(..., belief_state, belief_component_scales)
+-> score_breakdown(driver, event)
+-> model_state_total / car_state_total / driver_state_total / team_state_total / technical_state_total
+-> diagnosis_code
+```
+
+这条链路的意义是：当用户质疑“为什么某个车手被压低”时，系统不能只回答一串不明来源的分数，而要能指出是哪个状态表面、哪类来源和哪条路由造成了差值。
+
+本轮诊断发现：
+
+```text
+9 场回放
+3 场 miss
+3 场 miss 都出现 belief_state_favored_top_pick
+British GP state gap = +0.9884
+British GP race score gap = +0.5874
+```
+
+因此下一步模型修正的对象不是某个车手或车队，而是通用的状态路由和方差配置。
+
+为此，CLI 增加了候选配置入口：
+
+```text
+python -m f1predict.cli predict --simulator-config-id belief_state_damped_wider_race_variance
+python -m f1predict.cli prediction-packet --simulator-config-id belief_state_damped_wider_race_variance
+```
+
+候选配置不会自动注册，也不会覆盖前端 latest。它必须先经过 replay/calibration，并且报告里必须保留诊断边界：
+
+```text
+diagnostic_only_not_formal_simulator_calibration
+candidate_selection_is_in_sample_no_holdout
+small_sample_less_than_20_scored_events
+market_scored_subset_incomplete
+```
+
+本轮候选配置 `belief_state_damped_wider_race_variance` 的状态：
+
+```text
+composite score: 2.2872 -> 2.2478
+log loss: 1.4838 -> 1.4463
+hit rate: 66.7% -> 55.6%
+mean actual winner probability: 35.4% -> 29.9%
+```
+
+这说明它是有价值的诊断方向，但不是正式模型升级。架构上必须继续区分三类变化：
+
+- 新来源或新结构化数据导致的状态更新，可以进入 PredictionRunRegistry 的普通注册流程；
+- 模型/路由参数导致的概率变化，必须提供模型修订证明和 replay/calibration；
+- 用户反馈只能触发异常审计和来源/路由排查，不能直接改变状态数值或预测概率。
+
+当前前端 latest 仍保持：
+
+```text
+run_id = british_gp_20260705T000000_0000_20260707T122518_0000_d225707bdb
+packet_hash = d225707bdba8...
+status = diagnostic_only
+sidecar coverage = 565 / 565
+formal_readiness.status = formal_trace_ready
+```
+
+新增候选包只保存在：
+
+```text
+reports/prediction_packets_belief_route_scale_probe/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+```
+
+它用于下一轮正式验证，不用于今晚替换前端结果。

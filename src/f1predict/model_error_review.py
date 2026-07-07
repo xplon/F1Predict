@@ -9,6 +9,7 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
+from f1predict.belief_state import BeliefState
 from f1predict.domain import DriverRaceProbability, race_probabilities_by_expected_rank, utc_now
 from f1predict.models.pace import PaceModel
 from f1predict.pipeline import PredictionPipeline
@@ -137,7 +138,7 @@ class ModelErrorReviewReport:
                 lines.append(f"- {warning}")
         lines.extend(["", "## Event Review", ""])
         lines.append(
-            "| Event | Pick | Actual | Hit | Actual rank | Top p | Actual p | Race gap | Feature gap | Diagnosis |"
+            "| Event | Pick | Actual | Hit | Actual rank | Top p | Actual p | Race gap | State gap | Diagnosis |"
         )
         lines.append("|---|---|---|---:|---:|---:|---:|---:|---:|---|")
         for row in self.events:
@@ -183,11 +184,16 @@ class ModelErrorReviewBuilder:
                 continue
             cutoff = f"{event.date}T00:00:00+00:00"
             prediction = self.pipeline.predict_event(event.event_id, cutoff)
+            belief_state = None
+            if prediction.belief_state:
+                belief_state = BeliefState.from_dict(prediction.belief_state)
             pace_model = PaceModel(
                 season,
                 prediction.evidence,
                 prediction.feature_adjustments,
                 evidence_weights=self.pipeline._evidence_input_weights(prediction.evidence_quality),
+                belief_state=belief_state,
+                belief_component_scales=self.pipeline.simulator_config.belief_component_scales(),
             )
             probability_by_driver = {row.driver_id: row for row in prediction.race_probabilities}
             top = prediction.race_probabilities[0]
@@ -314,6 +320,36 @@ class ModelErrorReviewBuilder:
                 for key, value in components.items()
                 if key.startswith("feature_")
             )
+            model_state_total = sum(
+                value
+                for components in (race, qualifying)
+                for key, value in components.items()
+                if key.startswith("belief_")
+            )
+            car_state_total = sum(
+                value
+                for components in (race, qualifying)
+                for key, value in components.items()
+                if key.startswith("belief_car_")
+            )
+            driver_state_total = sum(
+                value
+                for components in (race, qualifying)
+                for key, value in components.items()
+                if key.startswith("belief_driver_")
+            )
+            team_state_total = sum(
+                value
+                for components in (race, qualifying)
+                for key, value in components.items()
+                if key.startswith("belief_team_")
+            )
+            technical_state_total = sum(
+                value
+                for components in (race, qualifying)
+                for key, value in components.items()
+                if key.startswith("belief_technical_")
+            )
             rows.append(
                 {
                     "driver_id": driver_id,
@@ -326,7 +362,12 @@ class ModelErrorReviewBuilder:
                     "qualifying_score": round(qualifying["total"], 4),
                     "reliability": round(pace_model.reliability(driver), 4),
                     "evidence_total": round(evidence_total, 4),
-                    "feature_total": round(feature_total, 4),
+                    "feature_total": round(model_state_total if model_state_total else feature_total, 4),
+                    "model_state_total": round(model_state_total, 4),
+                    "car_state_total": round(car_state_total, 4),
+                    "driver_state_total": round(driver_state_total, 4),
+                    "team_state_total": round(team_state_total, 4),
+                    "technical_state_total": round(technical_state_total, 4),
                     "race_components": {key: round(value, 4) for key, value in race.items()},
                     "qualifying_components": {key: round(value, 4) for key, value in qualifying.items()},
                 }
@@ -348,6 +389,9 @@ class ModelErrorReviewBuilder:
         rank = int(actual_detail.get("rank", 0) or 0)
         race_gap = float(top_detail["race_score"]) - float(actual_detail["race_score"])
         qualifying_gap = float(top_detail["qualifying_score"]) - float(actual_detail["qualifying_score"])
+        state_gap = float(top_detail.get("model_state_total") or top_detail["feature_total"]) - float(
+            actual_detail.get("model_state_total") or actual_detail["feature_total"]
+        )
         feature_gap = float(top_detail["feature_total"]) - float(actual_detail["feature_total"])
         evidence_gap = float(top_detail["evidence_total"]) - float(actual_detail["evidence_total"])
         reliability_gap = float(top_detail["reliability"]) - float(actual_detail["reliability"])
@@ -360,7 +404,9 @@ class ModelErrorReviewBuilder:
             codes.append("race_pace_prior_favored_top_pick")
         if qualifying_gap > 0.08:
             codes.append("grid_prior_favored_top_pick")
-        if feature_gap > 0.04:
+        if state_gap > 0.04:
+            codes.append("belief_state_favored_top_pick")
+        elif feature_gap > 0.04:
             codes.append("structured_features_favored_top_pick")
         if evidence_gap > 0.015:
             codes.append("codex_evidence_favored_top_pick")
@@ -387,7 +433,7 @@ class ModelErrorReviewBuilder:
             "mean_actual_winner_probability": round(mean(row.actual_winner_probability for row in rows), 4) if rows else None,
             "mean_probability_gap_on_misses": round(mean(row.probability_gap_top_minus_actual for row in misses), 4) if misses else None,
             "mean_race_score_gap_on_misses": round(mean(row.race_score_gap_top_minus_actual for row in misses), 4) if misses else None,
-            "mean_feature_gap_on_misses": round(mean(row.feature_gap_top_minus_actual for row in misses), 4) if misses else None,
+            "mean_state_gap_on_misses": round(mean(row.feature_gap_top_minus_actual for row in misses), 4) if misses else None,
             "misses_with_actual_top3": sum(1 for row in misses if row.actual_winner_rank <= 3),
             "misses_without_market_snapshot": sum(1 for row in misses if row.market_snapshot_count == 0),
         }
@@ -410,7 +456,11 @@ class ModelErrorReviewBuilder:
             findings.append(
                 "Qualifying/grid priors favored the wrong top pick in some misses; add session-specific qualifying features before increasing grid influence."
             )
-        if issue_counts.get("structured_features_favored_top_pick", 0):
+        if issue_counts.get("belief_state_favored_top_pick", 0):
+            findings.append(
+                "The traceable BeliefState favored at least one wrong top pick; inspect state-update provenance, confidence gates, and route scales before treating the current state as calibrated truth."
+            )
+        elif issue_counts.get("structured_features_favored_top_pick", 0):
             findings.append(
                 "Structured features contributed to at least one wrong preference; inspect feature provenance and confidence weights before treating them as strong signals."
             )
@@ -451,6 +501,8 @@ class ModelErrorReviewBuilder:
             return "Run a matched ablation on race-pace/form/track-affinity weights and compare log loss, Brier, and actual-winner rank."
         if "grid_prior_favored_top_pick" in diagnosis_codes:
             return "Add or backfill cutoff-valid qualifying/session features before increasing grid influence."
+        if "belief_state_favored_top_pick" in diagnosis_codes:
+            return "Run matched ablations on BeliefState route scales and source-confidence gates, especially race pace and qualifying carryover."
         if "structured_features_favored_top_pick" in diagnosis_codes:
             return "Review structured feature provenance and confidence; test a lower feature-weight candidate in simulator calibration."
         if "near_miss_probability_cluster" in diagnosis_codes:

@@ -1922,3 +1922,105 @@ GET /api/post-event-review?event_id=british_gp
 - 预测仍是 `diagnostic_only`；
 - 这不是正式 edge；
 - 下一步仍应优先做历史 replay/calibration、赛车实力权重、随机事件尾部和前几站状态递推，而不是继续靠单站局部修正。
+
+## 31. 2026-07-07 追加：BeliefState 复盘显示错误热门来自状态路由放大，候选配置暂不注册
+
+本轮关机前补了一项诊断完整性修正：`model-error-review` 现在会从预测包的 `belief_state` JSON 中复原 `BeliefState`，并使用与预测相同的 `PaceModel` route scale。此前复盘缺少这一步，因此只能看到 race score / feature score 的旧式差值，无法准确解释“哪一路状态把错误热门推高”。
+
+新增诊断字段：
+
+```text
+model_state_total
+car_state_total
+driver_state_total
+team_state_total
+technical_state_total
+diagnosis_code = belief_state_favored_top_pick
+```
+
+新的回放错误复盘结果：
+
+```text
+report = reports/model_error_review/2026_asof_20260707T000000_0000.model_error_review.md
+reviewed_events = 9
+missed_events = 3
+top_pick_hit_rate = 66.67%
+actual_winners_ranked_top3 = 8
+mean_actual_winner_probability = 35.42%
+mean_state_gap_on_misses = 0.5921
+belief_state_favored_top_pick = 3
+```
+
+British GP 的核心错误仍然没有解决：
+
+```text
+top_pick = russell
+actual_winner = leclerc
+actual_winner_rank = 4
+top_pick_probability = 46.67%
+actual_winner_probability = 1.25%
+race_score_gap_top_minus_actual = +0.5874
+state_gap_top_minus_actual = +0.9884
+```
+
+这说明当前模型不是只差前端展示，而是 BeliefState 里的车队/赛车/车手状态和 race pace 路由确实把错误热门推得过高。
+
+为避免再次用一次性脚本试模型，本轮给 CLI 增加了候选配置入口：
+
+```text
+prediction-packet --simulator-config-id <candidate>
+predict --simulator-config-id <candidate>
+```
+
+默认配置没有改变，当前 registered latest 没有被替换。
+
+本轮候选校准结果：
+
+```text
+report = reports/simulator_calibration_belief_route_scale_v1/2026_asof_20260707T000000_0000.simulator_calibration.md
+baseline = default_pace_separation_track_position_team_window_v3
+candidate = belief_state_damped_wider_race_variance
+baseline composite score = 2.2872
+candidate composite score = 2.2478
+baseline hit rate = 66.7%
+candidate hit rate = 55.6%
+baseline mean_actual_winner_probability = 35.4%
+candidate mean_actual_winner_probability = 29.9%
+baseline log loss = 1.4838
+candidate log loss = 1.4463
+```
+
+候选配置改善了综合诊断分和 log loss，也把 British GP 的 Leclerc 真实冠军概率从校准表中的 1.25% 提高到约 2.92%。但它同时降低了 top-pick hit rate 和真实冠军平均概率，并且样本只有 9 场，没有留出集。因此它只能作为诊断候选，不能注册成 latest，也不能声称模型已修复。
+
+独立候选预测包：
+
+```text
+path = reports/prediction_packets_belief_route_scale_probe/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+config = belief_state_damped_wider_race_variance
+iterations = 600
+status = diagnostic_only
+registered_latest = false
+```
+
+与当前 latest 的 British GP 胜率对比：
+
+```text
+当前 latest:
+Russell = 47.75%
+Antonelli = 43.75%
+Hamilton = 5.33%
+Leclerc = 1.58%
+
+候选配置:
+Russell = 38.83%
+Antonelli = 36.50%
+Hamilton = 11.67%
+Leclerc = 5.17%
+```
+
+判断：
+
+- 候选配置方向上缓解了 Mercedes 双车过度集中和 Leclerc 尾部概率过低；
+- 但 Leclerc 仍然只有第 4，说明 Ferrari/近期状态/正赛随机性/赛道适配的结构性建模仍不足；
+- 候选配置不能上线，只能作为下一轮正式 calibration 的候选；
+- 后续需要把“赛车实力递推”和“随机事件尾部”作为核心建模任务，而不是继续做 British GP 单站局部修正。

@@ -20,12 +20,14 @@ class PaceModel:
         feature_adjustments: list[FeatureAdjustment] | None = None,
         evidence_weights: dict[str, float] | None = None,
         belief_state: BeliefState | None = None,
+        belief_component_scales: dict[str, float] | None = None,
     ) -> None:
         self.season_state = season_state
         self.evidence = evidence
         self.feature_adjustments = feature_adjustments or []
         self.evidence_weights = evidence_weights or {}
         self.belief_state = belief_state
+        self.belief_component_scales = belief_component_scales or {}
         self._impact = self._aggregate_evidence(evidence, self.evidence_weights)
         self._feature_impact = self._aggregate_features(self.feature_adjustments)
 
@@ -129,32 +131,43 @@ class PaceModel:
         tyre = self.belief_state.driver_value(driver.driver_id, "tyre_management")
         wet_skill = self.belief_state.driver_value(driver.driver_id, "wet_skill") * wet_probability
         technical = self._belief_contextual_technical(driver, event, mode)
+        car_scale = self._belief_scale("car")
+        driver_scale = self._belief_scale("driver")
+        team_scale = self._belief_scale("team")
+        technical_scale = self._belief_scale("technical")
 
         if mode == "qualifying":
             components = {
-                "belief_car_overall": car_overall * 0.85,
-                "belief_car_qualifying_pace": car_qualifying * 2.15,
-                "belief_car_race_pace_carryover": car_race * 0.55,
-                "belief_driver_qualifying_ceiling": driver_qualifying * 1.20,
-                "belief_driver_race_pace_carryover": driver_race * 0.35,
-                "belief_team_setup_quality": setup_quality * 0.18,
-                "belief_technical_track_fit": technical * 0.90,
+                "belief_car_overall": car_overall * 0.85 * car_scale,
+                "belief_car_qualifying_pace": car_qualifying * 2.15 * car_scale,
+                "belief_car_race_pace_carryover": car_race * 0.55 * car_scale,
+                "belief_driver_qualifying_ceiling": driver_qualifying * 1.20 * driver_scale,
+                "belief_driver_race_pace_carryover": driver_race * 0.35 * driver_scale,
+                "belief_team_setup_quality": setup_quality * 0.18 * team_scale,
+                "belief_technical_track_fit": technical * 0.90 * technical_scale,
             }
         else:
             components = {
-                "belief_car_overall": car_overall * 0.85,
-                "belief_car_race_pace": car_race * 1.95,
-                "belief_driver_race_pace": driver_race * 0.85,
-                "belief_driver_race_execution": driver_execution * 0.62,
-                "belief_team_race_execution": team_execution * 0.38,
-                "belief_team_strategy": strategy * 0.24,
-                "belief_team_setup_quality": setup_quality * 0.24,
-                "belief_driver_tyre_management": tyre * 0.34,
-                "belief_driver_wet_skill": wet_skill * 0.55,
-                "belief_technical_track_fit": technical,
+                "belief_car_overall": car_overall * 0.85 * car_scale,
+                "belief_car_race_pace": car_race * 1.95 * car_scale,
+                "belief_driver_race_pace": driver_race * 0.85 * driver_scale,
+                "belief_driver_race_execution": driver_execution * 0.62 * driver_scale,
+                "belief_team_race_execution": team_execution * 0.38 * team_scale,
+                "belief_team_strategy": strategy * 0.24 * team_scale,
+                "belief_team_setup_quality": setup_quality * 0.24 * team_scale,
+                "belief_driver_tyre_management": tyre * 0.34 * driver_scale,
+                "belief_driver_wet_skill": wet_skill * 0.55 * driver_scale,
+                "belief_technical_track_fit": technical * technical_scale,
             }
         total = sum(components.values())
         return {**components, "total": total}
+
+    def _belief_scale(self, component: str) -> float:
+        try:
+            value = float(self.belief_component_scales.get(component, 1.0))
+        except (TypeError, ValueError):
+            value = 1.0
+        return max(0.0, min(2.5, value))
 
     def reliability(self, driver: Driver) -> float:
         if self.belief_state is not None:

@@ -79,6 +79,19 @@ def _raw_snapshot_captured_at(path: Path | str) -> str | None:
     return None
 
 
+def _simulator_config_from_id(config_id: str | None):
+    if not config_id:
+        return None
+    candidate_configs = default_simulator_candidate_configs()
+    configs = {config.config_id: config for config in candidate_configs}
+    default_config = candidate_configs[0]
+    configs["default"] = default_config
+    if config_id in configs:
+        return configs[config_id]
+    known = ", ".join(sorted(configs))
+    raise ValueError(f"Unknown simulator config id: {config_id}. Known ids: {known}")
+
+
 def main() -> None:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -89,11 +102,13 @@ def main() -> None:
     predict.add_argument("--event", default="british_gp")
     predict.add_argument("--knowledge-cutoff", default=None)
     predict.add_argument("--iterations", type=int, default=5000)
+    predict.add_argument("--simulator-config-id", default=None)
 
     prediction_packet = sub.add_parser("prediction-packet", help="Build an auditable single-event prediction packet")
     prediction_packet.add_argument("--event", default="british_gp")
     prediction_packet.add_argument("--knowledge-cutoff", default=None)
     prediction_packet.add_argument("--iterations", type=int, default=1200)
+    prediction_packet.add_argument("--simulator-config-id", default=None)
     prediction_packet.add_argument("--isolated-impact-limit", type=int, default=0)
     prediction_packet.add_argument("--isolated-source-group-limit", type=int, default=0)
     prediction_packet.add_argument("--write", action="store_true")
@@ -675,7 +690,10 @@ def main() -> None:
 
     args = parser.parse_args()
     if args.command == "predict":
-        report = PredictionPipeline(iterations=args.iterations).predict_event(
+        report = PredictionPipeline(
+            iterations=args.iterations,
+            simulator_config=_simulator_config_from_id(args.simulator_config_id),
+        ).predict_event(
             event_id=args.event,
             knowledge_cutoff=args.knowledge_cutoff,
         )
@@ -684,6 +702,7 @@ def main() -> None:
         builder = PredictionPacketBuilder(
             PredictionPipeline(
                 iterations=args.iterations,
+                simulator_config=_simulator_config_from_id(args.simulator_config_id),
                 isolated_impact_limit=args.isolated_impact_limit,
                 isolated_source_group_limit=args.isolated_source_group_limit,
             )
