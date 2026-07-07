@@ -76,6 +76,58 @@ def _assert_public_packet_seed_separation(payload: dict) -> None:
         _assert("seed://" in blocked_text, "Blocked seed evidence should remain auditable in a separated section")
 
 
+def _assert_public_explanation_text_is_localized(payload: dict, label: str) -> None:
+    forbidden = (
+        "Cutoff-valid",
+        "Same-event",
+        "Official driver standings",
+        "Official constructor standings",
+        "team total points per race",
+        "qualifying classification",
+        "long-run proxy",
+        "tyre-degradation proxy",
+        "speed-trap average",
+        "best valid lap",
+        "Historical analogue",
+        "wet-skill prior",
+        "confidence-weighted",
+        "vs field",
+        "confidence ",
+        "weak_update",
+        "normal_update",
+        "strong_update",
+        "model_surface=",
+        "source_state=",
+        "claim ",
+    )
+    texts: list[str] = []
+
+    def add(value) -> None:
+        if isinstance(value, str):
+            texts.append(value)
+
+    prediction = payload.get("prediction") if isinstance(payload.get("prediction"), dict) else payload
+    belief = prediction.get("belief_state") if isinstance(prediction.get("belief_state"), dict) else {}
+    for row in prediction.get("state_update_ledger") or []:
+        add(row.get("mechanism"))
+    for row in belief.get("normalized_claims") or []:
+        add(row.get("mechanism"))
+    for row in belief.get("extracted_units") or []:
+        add(row.get("paraphrase_zh"))
+    for trace in prediction.get("prediction_impact_trace") or payload.get("traces") or []:
+        add(trace.get("interpretation_zh"))
+        for stage in trace.get("source_to_prediction_chain") or []:
+            add(stage.get("text_zh"))
+        for chain in trace.get("additional_source_to_prediction_chains") or []:
+            for stage in chain:
+                add(stage.get("text_zh"))
+
+    public_text = "\n".join(texts)
+    _assert(public_text.strip(), f"{label}: public explanation text should be present")
+    for token in forbidden:
+        _assert(token not in public_text, f"{label}: public explanation text should not expose '{token}'")
+
+
 def main() -> None:
     explainer = PredictionExplainer(ROOT)
 
@@ -217,6 +269,14 @@ def main() -> None:
     )
     _assert(latest_packet.status == 200, "Latest packet API should succeed")
     _assert_public_packet_seed_separation(latest_packet.payload)
+    _assert_public_explanation_text_is_localized(latest_packet.payload, "Latest packet")
+
+    latest_sidecar = api.handle_get(
+        "/api/v2/prediction-impact-traces/latest",
+        {"event_id": ["british_gp"], "limit": ["20"]},
+    )
+    _assert(latest_sidecar.status == 200, "Latest impact trace sidecar API should succeed")
+    _assert_public_explanation_text_is_localized(latest_sidecar.payload, "Latest sidecar page")
 
     print("traceable explainability smoke ok")
 

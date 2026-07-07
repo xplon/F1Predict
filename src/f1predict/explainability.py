@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from f1predict.domain import EvidenceClaim, FeatureAdjustment, RaceEvent, utc_now
+from f1predict.explanation_localization import localized_mechanism_zh
 from f1predict.impact_trace_sidecar import PredictionImpactTraceSidecarStore
 from f1predict.models.pace import PaceModel
 from f1predict.pipeline import PredictionPipeline
@@ -2507,62 +2508,12 @@ def _feature_line(
 
 
 def _feature_explanation_zh(row: dict[str, Any]) -> str:
-    explanation = str(row.get("explanation") or "")
-    feature_id = str(row.get("feature_id") or "")
-    source = str(row.get("source") or "")
-    source_label = _source_label(feature_id, source)
-    parts = [source_label]
-    if "qualifying classification" in explanation:
-        position = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
-        parts.append(f"同场排位名次为 {position}，作为排位和发车位信号，不直接当作正赛速度")
-    elif "qualifying team average position" in explanation:
-        value = _clean_feature_phrase(_extract_after(explanation, "position before British Grand Prix: ", ";"))
-        parts.append(f"同场车队平均排位名次为 {value}，作为车队排位状态输入")
-    elif "team total points per race" in explanation:
-        value = _clean_feature_phrase(_extract_after(explanation, "team total points per race ", ";"))
-        parts.append(f"截止本场前车队每站积分对比为 {value}，作为赛车/车队强度重估")
-    elif "Official constructor standings" in explanation:
-        value = _clean_feature_phrase(
-            _extract_after(explanation, "Official constructor standings before British Grand Prix: ", ";")
-        )
-        parts.append(f"官方车队积分榜信息为 {value}，作为车队状态先验")
-    elif "Official driver standings" in explanation:
-        value = _clean_feature_phrase(
-            _extract_after(explanation, "Official driver standings before British Grand Prix: ", ";")
-        )
-        parts.append(f"官方车手积分榜信息为 {value}，作为车手状态先验")
-    elif "long-run proxy" in explanation:
-        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
-        parts.append(f"练习赛长距离速度代理值为 {value}，作为同一比赛周末的正赛速度信号")
-    elif "best valid lap" in explanation:
-        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
-        parts.append(f"排位最快有效圈速对比为 {value}，作为排位速度信号")
-    elif "speed-trap average" in explanation:
-        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
-        parts.append(f"测速点均速对比为 {value}，作为直道速度信号")
-    elif "tyre-degradation proxy" in explanation:
-        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
-        parts.append(f"轮胎衰退代理值为 {value}，数值方向会影响策略和长距离速度")
-    elif "non-finished classification" in explanation:
-        value = _clean_feature_phrase(explanation.split(";")[0])
-        parts.append(f"近期未完赛记录为 {value}，作为小幅可靠性风险输入")
-    elif "relative points delta" in explanation:
-        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
-        parts.append(f"近期与更早窗口的积分趋势差为 {value}，作为近期状态信号")
-    elif "average points" in explanation:
-        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
-        parts.append(f"近期平均积分对比为 {value}，作为正赛状态输入")
-    elif "analogue rank" in explanation:
-        value = _clean_feature_phrase(_extract_after(explanation, "analogue rank ", ";"))
-        parts.append(f"历史相似场景排名为 {value}，作为低置信度参考")
-    elif "grid-to-finish conversion" in explanation or "grid conversion" in explanation:
-        value = _clean_feature_phrase(_extract_after(explanation, ": ", ";"))
-        parts.append(f"发车位到完赛名次转换表现为 {value}，作为正赛执行输入")
-    elif "recent" in explanation.lower() or "window" in explanation.lower():
-        parts.append("近期窗口表现被压缩成有界输入，用于移动当前状态先验")
-    else:
-        parts.append("原始说明未能可靠翻译，已保留为结构化数值输入而非强事实")
-    return "；".join(part for part in parts if part)
+    return localized_mechanism_zh(
+        row.get("explanation"),
+        feature_id=str(row.get("feature_id") or ""),
+        source=str(row.get("source") or ""),
+        metric=str(row.get("metric") or ""),
+    )
 
 
 def _source_label(feature_id: str, source: str) -> str:

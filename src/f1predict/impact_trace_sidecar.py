@@ -9,6 +9,20 @@ from pathlib import Path
 from typing import Any
 
 from f1predict.domain import utc_now
+from f1predict.explanation_localization import (
+    bucket_label_zh,
+    direction_label_zh,
+    localize_public_text_zh,
+    localize_sidecar_page_zh,
+    localized_mechanism_zh,
+    metric_label_zh,
+    permission_label_zh,
+    quality_status_label_zh,
+    reason_label_zh,
+    source_status_label_zh,
+    surface_label_zh,
+    target_text_zh,
+)
 from f1predict.pipeline import PredictionPipeline
 from f1predict.prediction_packet import PredictionPacketBuilder
 from f1predict.run_tracking import PredictionRunRecord, PredictionRunRegistry
@@ -252,7 +266,7 @@ def page_sidecar(
     payload["formal_readiness"] = _formal_readiness(sidecar)
     context = sidecar.get("trace_context") if isinstance(sidecar.get("trace_context"), dict) else {}
     payload["traces"] = [_public_trace_row(row, context) for row in page_rows]
-    return payload
+    return localize_sidecar_page_zh(payload)
 
 
 def merge_sidecars(sidecars: list[dict[str, Any]]) -> dict[str, Any]:
@@ -676,29 +690,35 @@ def _analysis_text(
     factor_trace: dict[str, Any],
 ) -> str:
     target = _target_text(claim.get("target_type") or evidence.get("target_type"), claim.get("target_id") or evidence.get("target_id"))
-    factor = claim.get("factor") or evidence.get("metric") or factor_trace.get("metric") or "未知因子"
-    direction = claim.get("direction") or evidence.get("direction") or factor_trace.get("direction") or "未知方向"
-    mechanism = claim.get("mechanism") or evidence.get("reasoning") or evidence.get("evidence_text") or "没有记录机制说明"
-    permission = quality.get("model_update_permission") or "权限未记录"
+    raw_factor = claim.get("factor") or evidence.get("metric") or factor_trace.get("metric") or "未知因子"
+    raw_direction = claim.get("direction") or evidence.get("direction") or factor_trace.get("direction") or "未知方向"
+    factor = metric_label_zh(raw_factor)
+    direction = direction_label_zh(raw_direction)
+    mechanism = localized_mechanism_zh(
+        claim.get("mechanism") or evidence.get("reasoning") or evidence.get("evidence_text"),
+        feature_id=claim_id,
+        metric=str(raw_factor or ""),
+    )
+    permission = permission_label_zh(quality.get("model_update_permission"))
     quality_text = _quality_text(quality)
     return (
-        f"claim {claim_id} 被解析为 {target} 的 {factor} {direction}。"
+        f"信息声明 {claim_id} 被解析为 {target} 的{factor}，方向为{direction}。"
         f"机制：{mechanism}。质量审计：{quality_text}；更新权限：{permission}。"
     )
 
 
 def _state_update_text(update_rows: list[dict[str, Any]], quality: dict[str, Any]) -> str:
     if not update_rows:
-        permission = quality.get("model_update_permission")
-        return f"未找到对应状态更新记录；质量权限为 {permission or '未记录'}。"
+        permission = permission_label_zh(quality.get("model_update_permission"))
+        return f"未找到对应状态更新记录；质量权限为 {permission}。"
     phrases = []
     for update in update_rows[:4]:
         target = _target_text(update.get("target_type"), update.get("target_id"))
         phrases.append(
-            f"{target} 的 {update.get('factor', '未知因子')} 从"
-            f"{update.get('old_value_bucket', '未知')} 到 {update.get('new_value_bucket', '未知')}"
-            f"（{update.get('direction', '未知方向')}，{update.get('magnitude_bucket', '未知幅度')}，"
-            f"{update.get('update_permission', '权限未记录')}）"
+            f"{target} 的{metric_label_zh(update.get('factor'))}从"
+            f"{bucket_label_zh(update.get('old_value_bucket'))}到{bucket_label_zh(update.get('new_value_bucket'))}"
+            f"（{direction_label_zh(update.get('direction'))}，{bucket_label_zh(update.get('magnitude_bucket'))}，"
+            f"{permission_label_zh(update.get('update_permission'))}）"
         )
     suffix = f"；另有 {len(update_rows) - 4} 条同 claim 更新" if len(update_rows) > 4 else ""
     return "；".join(phrases) + suffix + "。"
@@ -707,26 +727,37 @@ def _state_update_text(update_rows: list[dict[str, Any]], quality: dict[str, Any
 def _simulation_route_text(factor_trace: dict[str, Any], update_rows: list[dict[str, Any]]) -> str:
     surfaces = []
     if factor_trace.get("model_surface"):
-        surfaces.append(str(factor_trace["model_surface"]))
+        surfaces.append(surface_label_zh(factor_trace["model_surface"]))
     for update in update_rows:
-        surfaces.extend(str(item) for item in update.get("affected_model_surfaces", []) if item)
+        surfaces.extend(surface_label_zh(item) for item in update.get("affected_model_surfaces", []) if item)
     surfaces = list(dict.fromkeys(surfaces))
 
     route = factor_trace.get("route")
     route_text = ""
     if isinstance(route, dict):
         route_bits = []
+        key_labels = {
+            "source_state": "来源状态",
+            "model_surface": "模型表面",
+            "route_formula_id": "路由公式",
+            "track_context_multiplier": "赛道情境倍率",
+        }
         for key in ("source_state", "model_surface", "route_formula_id", "track_context_multiplier"):
             if route.get(key) is not None:
-                route_bits.append(f"{key}={route.get(key)}")
+                value = route.get(key)
+                if key == "model_surface":
+                    value = surface_label_zh(value)
+                elif key == "source_state":
+                    value = {"driver": "车手状态", "team": "车队状态", "event": "比赛状态"}.get(str(value), value)
+                route_bits.append(f"{key_labels[key]}={value}")
         route_text = "；路由配置：" + "，".join(route_bits) if route_bits else ""
     elif route:
-        route_text = f"；路由配置：{route}"
+        route_text = f"；路由配置：{localize_public_text_zh(route)}"
 
     route_status = factor_trace.get("route_status")
-    status_text = f"；路由状态：{route_status}" if route_status else ""
+    status_text = f"；路由状态：{localize_public_text_zh(route_status)}" if route_status else ""
     notes = factor_trace.get("route_notes") or []
-    note_text = "；路由说明：" + "，".join(str(item) for item in notes[:3]) if notes else ""
+    note_text = "；路由说明：" + "，".join(localize_public_text_zh(item) for item in notes[:3]) if notes else ""
 
     if surfaces:
         surface_text = "、".join(surfaces[:8])
@@ -776,19 +807,15 @@ def _delta_direction(value: Any) -> str:
 def _quality_text(quality: dict[str, Any]) -> str:
     if not quality:
         return "未找到质量审计"
-    status = quality.get("quality_status") or quality.get("timestamp_validity") or "未记录"
-    source_status = quality.get("source_status") or quality.get("timestamp_validity") or "来源时效未记录"
+    status = quality_status_label_zh(quality.get("quality_status") or quality.get("timestamp_validity"))
+    source_status = source_status_label_zh(quality.get("source_status") or quality.get("timestamp_validity"))
     reasons = quality.get("risk_flags") or quality.get("reasons") or []
-    reason_text = "，".join(str(item) for item in reasons[:3]) if reasons else "无显著风险标记"
+    reason_text = "，".join(reason_label_zh(item) for item in reasons[:3]) if reasons else "无显著风险标记"
     return f"{status}，{source_status}，{reason_text}"
 
 
 def _target_text(target_type: Any, target_id: Any) -> str:
-    if target_type and target_id:
-        return f"{target_type}:{target_id}"
-    if target_id:
-        return str(target_id)
-    return "未知对象"
+    return target_text_zh(target_type, target_id)
 
 
 def _compact_source(row: dict[str, Any]) -> dict[str, Any]:
@@ -812,7 +839,11 @@ def _compact_claim(row: dict[str, Any]) -> dict[str, Any]:
         "factor": row.get("factor"),
         "direction": row.get("direction"),
         "magnitude_observation": row.get("magnitude_observation"),
-        "mechanism": row.get("mechanism"),
+        "mechanism": localized_mechanism_zh(
+            row.get("mechanism"),
+            feature_id=str(row.get("claim_id") or ""),
+            metric=str(row.get("factor") or ""),
+        ),
         "valid_from": row.get("valid_from"),
         "extraction_status": row.get("extraction_status"),
     }
@@ -873,7 +904,11 @@ def _compact_update(row: dict[str, Any]) -> dict[str, Any]:
         "magnitude_bucket": row.get("magnitude_bucket"),
         "update_permission": row.get("update_permission"),
         "quality_reasons": row.get("quality_reasons") or [],
-        "mechanism": row.get("mechanism"),
+        "mechanism": localized_mechanism_zh(
+            row.get("mechanism"),
+            feature_id=str(row.get("claim_id") or row.get("update_id") or ""),
+            metric=str(row.get("factor") or ""),
+        ),
         "affected_model_surfaces": row.get("affected_model_surfaces") or [],
     }
 

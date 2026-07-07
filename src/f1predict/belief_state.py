@@ -15,6 +15,7 @@ from statistics import mean
 from typing import Any
 
 from f1predict.domain import EvidenceClaim, EvidenceQuality, FeatureAdjustment, RaceEvent, SeasonState, utc_now
+from f1predict.explanation_localization import localized_mechanism_zh
 from f1predict.models.technical_factors import technical_context_breakdown
 from f1predict.storage import safe_name
 
@@ -508,7 +509,13 @@ class BeliefStateBuilder:
             update_strength=update_strength,
             update_permission=permission,
             quality_reasons=tuple(quality_profile.get("reasons") or ()),
-            mechanism=feature.explanation,
+            mechanism=localized_mechanism_zh(
+                feature.explanation,
+                feature_id=feature.feature_id,
+                source=feature.source,
+                metric=feature.metric,
+                event_name=event.name,
+            ),
             applicable_context=self._context_tags(event, feature.metric),
             car_states=car_states,
             driver_states=driver_states,
@@ -910,7 +917,12 @@ class BeliefStateBuilder:
             "source_id": source_id,
             "extracted_at": utc_now().replace(microsecond=0).isoformat(),
             "original_snippet": feature.explanation,
-            "paraphrase_zh": feature.explanation,
+            "paraphrase_zh": localized_mechanism_zh(
+                feature.explanation,
+                feature_id=feature.feature_id,
+                source=feature.source,
+                metric=feature.metric,
+            ),
             "information_type": "timing_observation",
             "target_text": feature.target_id,
             "time_scope": "event_or_recent_window",
@@ -944,7 +956,12 @@ class BeliefStateBuilder:
             "factor": feature.metric,
             "direction": "positive" if feature.weighted_value() > 0 else "negative" if feature.weighted_value() < 0 else "neutral",
             "magnitude_observation": bucket_delta(feature.weighted_value()),
-            "mechanism": feature.explanation,
+            "mechanism": localized_mechanism_zh(
+                feature.explanation,
+                feature_id=feature.feature_id,
+                source=feature.source,
+                metric=feature.metric,
+            ),
             "applicable_context": (),
             "valid_from": feature.observed_at,
             "valid_until": None,

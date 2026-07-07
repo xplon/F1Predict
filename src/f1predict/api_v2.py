@@ -14,6 +14,7 @@ from typing import Any
 
 from f1predict.domain import parse_dt, utc_now
 from f1predict.explainability import PredictionExplainer
+from f1predict.explanation_localization import localize_prediction_payload_zh
 from f1predict.impact_trace_sidecar import PredictionImpactTraceSidecarStore, page_sidecar
 from f1predict.intelligence.codex import CodexEvidenceProvider
 from f1predict.pipeline import PredictionPipeline
@@ -653,7 +654,7 @@ class BackendApiV2:
         }
         _normalize_prediction_probability_rows(payload)
         self._refresh_prediction_anomaly_audit(payload, record)
-        return payload
+        return localize_prediction_payload_zh(payload)
 
     def _refresh_prediction_anomaly_audit(self, payload: dict[str, Any], record) -> None:
         prediction = payload.get("prediction")
