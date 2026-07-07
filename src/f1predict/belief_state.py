@@ -123,6 +123,19 @@ FACTOR_CAPS = {
     "wet_skill": 0.06,
 }
 
+CORRELATED_RESULT_FAMILY_SOFT_CAPS = {
+    ("car", "race_pace"): 0.20,
+    ("car", "qualifying_pace"): 0.13,
+    ("driver", "race_pace"): 0.11,
+    ("driver", "qualifying_ceiling"): 0.11,
+    ("driver", "race_execution"): 0.09,
+    ("team_ops", "race_execution"): 0.075,
+    ("car", "reliability"): 0.035,
+    ("driver", "reliability"): 0.030,
+}
+
+CORRELATED_RESULT_FAMILY_MIN_SCALE = 0.05
+
 
 @dataclass
 class StateFactor:
@@ -564,6 +577,26 @@ class BeliefStateBuilder:
         raw_delta = feature.weighted_value() * self._feature_update_multiplier(feature)
         update_strength = float(quality_profile.get("update_strength") or 0.0)
         permission = str(quality_profile.get("model_update_permission") or "weak_update")
+        quality_reasons = tuple(quality_profile.get("reasons") or ())
+        mechanism = localized_mechanism_zh(
+            feature.explanation,
+            feature_id=feature.feature_id,
+            source=feature.source,
+            metric=feature.metric,
+            event_name=event.name,
+        )
+        raw_delta, quality_reasons, mechanism = self._apply_correlated_result_family_saturation(
+            feature=feature,
+            state_scope=state_scope,
+            target_type=state_target_type,
+            target_id=target_id,
+            factor=factor,
+            raw_delta=raw_delta,
+            update_permission=permission,
+            quality_reasons=quality_reasons,
+            mechanism=mechanism,
+            ledger=ledger,
+        )
         self._apply_update(
             row_id=feature.feature_id,
             source_id=source_id,
@@ -575,14 +608,8 @@ class BeliefStateBuilder:
             raw_delta=raw_delta,
             update_strength=update_strength,
             update_permission=permission,
-            quality_reasons=tuple(quality_profile.get("reasons") or ()),
-            mechanism=localized_mechanism_zh(
-                feature.explanation,
-                feature_id=feature.feature_id,
-                source=feature.source,
-                metric=feature.metric,
-                event_name=event.name,
-            ),
+            quality_reasons=quality_reasons,
+            mechanism=mechanism,
             applicable_context=self._context_tags(event, feature.metric),
             car_states=car_states,
             driver_states=driver_states,
@@ -665,14 +692,7 @@ class BeliefStateBuilder:
         factor_row = state.factors.setdefault(factor, StateFactor())
         old_value = factor_row.value
         cap = FACTOR_CAPS.get(factor, 0.07)
-        if update_permission == "strong_update":
-            permission_scale = 1.0
-        elif update_permission == "normal_update":
-            permission_scale = 0.72
-        elif update_permission == "weak_update":
-            permission_scale = 0.42
-        else:
-            permission_scale = 0.0
+        permission_scale = self._permission_scale(update_permission)
         bounded_delta = clamp(raw_delta * permission_scale, -cap, cap)
         if abs(bounded_delta) < 0.000001:
             return
@@ -709,6 +729,73 @@ class BeliefStateBuilder:
                 raw_delta=raw_delta,
             )
         )
+
+    def _apply_correlated_result_family_saturation(
+        self,
+        *,
+        feature: FeatureAdjustment,
+        state_scope: str,
+        target_type: str,
+        target_id: str,
+        factor: str,
+        raw_delta: float,
+        update_permission: str,
+        quality_reasons: tuple[str, ...],
+        mechanism: str,
+        ledger: list[StateUpdateLedgerRow],
+    ) -> tuple[float, tuple[str, ...], str]:
+        if self._feature_correlation_family(feature) != "race_result_form":
+            return raw_delta, quality_reasons, mechanism
+        soft_cap = CORRELATED_RESULT_FAMILY_SOFT_CAPS.get((state_scope, factor))
+        if soft_cap is None:
+            return raw_delta, quality_reasons, mechanism
+
+        reasons = tuple(dict.fromkeys((*quality_reasons, "correlated_result_family")))
+        permission_scale = self._permission_scale(update_permission)
+        cap = FACTOR_CAPS.get(factor, 0.07)
+        projected_delta = clamp(raw_delta * permission_scale, -cap, cap)
+        if abs(projected_delta) < 0.000001:
+            return raw_delta, reasons, mechanism
+
+        existing_delta = sum(
+            row.delta
+            for row in ledger
+            if row.target_type == target_type
+            and row.target_id == target_id
+            and row.factor == factor
+            and "correlated_result_family" in row.quality_reasons
+        )
+        if existing_delta * projected_delta <= 0:
+            return raw_delta, reasons, mechanism
+
+        projected_abs = abs(projected_delta)
+        remaining = soft_cap - abs(existing_delta)
+        if remaining >= projected_abs:
+            return raw_delta, reasons, mechanism
+
+        if remaining <= 0.0:
+            scale = CORRELATED_RESULT_FAMILY_MIN_SCALE
+        else:
+            scale = max(CORRELATED_RESULT_FAMILY_MIN_SCALE, min(1.0, remaining / projected_abs))
+        if scale >= 0.995:
+            return raw_delta, reasons, mechanism
+        moderated_delta = raw_delta * scale
+        reasons = tuple(dict.fromkeys((*reasons, "correlated_result_family_saturation")))
+        mechanism = (
+            f"{mechanism} 同一目标和同一状态因子上的多个历史比赛结果派生信号已经做饱和降权"
+            f"（scale={scale:.2f}），避免把同一段结果历史重复当成多条独立事实。"
+        )
+        return moderated_delta, reasons, mechanism
+
+    @staticmethod
+    def _permission_scale(update_permission: str) -> float:
+        if update_permission == "strong_update":
+            return 1.0
+        if update_permission == "normal_update":
+            return 0.72
+        if update_permission == "weak_update":
+            return 0.42
+        return 0.0
 
     @staticmethod
     def _state_for_scope(
@@ -813,6 +900,20 @@ class BeliefStateBuilder:
         if "fastf1-momentum" in source:
             return 1.70
         return 1.10
+
+    @staticmethod
+    def _feature_correlation_family(feature: FeatureAdjustment) -> str | None:
+        source = f"{feature.feature_id} {feature.source}".lower()
+        if (
+            "team-strength-reestimate" in source
+            or "finish-position-reestimate" in source
+            or "official-standings" in source
+            or "fastf1-season-form" in source
+            or "fastf1-momentum" in source
+            or "fastf1-form" in source
+        ):
+            return "race_result_form"
+        return None
 
     @staticmethod
     def _feature_quality(feature: FeatureAdjustment) -> dict[str, Any]:
