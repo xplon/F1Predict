@@ -344,13 +344,25 @@ def _assert_team_race_execution_reaches_simulation() -> None:
         observed_at="2026-06-30T00:00:00+00:00",
         explanation="Source-backed driver non-finish risk signal.",
     )
+    team_tyre_feature = FeatureAdjustment(
+        feature_id="contract-team-tyre-feature",
+        event_id=event.event_id,
+        source="contract structured team tyre degradation source",
+        target_type="team",
+        target_id="team_a",
+        metric="tyre_deg",
+        value=-0.04,
+        confidence=0.80,
+        observed_at="2026-06-30T00:00:00+00:00",
+        explanation="Source-backed team long-run tyre degradation signal.",
+    )
     builder = BeliefStateBuilder()
     baseline = builder.build(season, event, [], [], [], knowledge_cutoff="2026-07-01T00:00:00+00:00")
     belief_state = builder.build(
         season,
         event,
         [],
-        [team_execution_feature, driver_speed_feature, driver_reliability_feature],
+        [team_execution_feature, driver_speed_feature, driver_reliability_feature, team_tyre_feature],
         [],
         knowledge_cutoff="2026-07-01T00:00:00+00:00",
     )
@@ -376,6 +388,20 @@ def _assert_team_race_execution_reaches_simulation() -> None:
         raise AssertionError("Driver-level car observations must be ledgered against the affected team state")
     if belief_state.driver_value("driver_a", "reliability") >= baseline.driver_value("driver_a", "reliability"):
         raise AssertionError("Driver-level reliability observations must update the driver's reliability state")
+    if belief_state.car_value("team_a", "tyre_deg") >= baseline.car_value("team_a", "tyre_deg"):
+        raise AssertionError("Team-level tyre degradation features must update car.tyre_deg")
+    tyre_updates = [
+        row
+        for row in belief_state.update_ledger
+        if row.claim_id == team_tyre_feature.feature_id
+        and row.target_type == "team"
+        and row.target_id == "team_a"
+        and row.factor == "tyre_deg"
+    ]
+    if not tyre_updates:
+        raise AssertionError("Team-level tyre degradation updates must be present in the state update ledger")
+    if "stint_degradation" not in tyre_updates[0].affected_model_surfaces:
+        raise AssertionError("Team-level tyre degradation must expose its stint degradation simulation route")
 
     baseline_score = PaceModel(season, [], [], belief_state=baseline).driver_score(season.drivers["driver_a"], event)
     updated_pace = PaceModel(
@@ -394,6 +420,13 @@ def _assert_team_race_execution_reaches_simulation() -> None:
         season.drivers["driver_a"]
     ):
         raise AssertionError("Driver-level reliability must affect simulator reliability")
+    if updated_pace.degradation_adjustment(season.drivers["driver_a"], event) >= PaceModel(
+        season,
+        [],
+        [],
+        belief_state=baseline,
+    ).degradation_adjustment(season.drivers["driver_a"], event):
+        raise AssertionError("Team-level tyre degradation must affect simulator tyre degradation adjustment")
 
 
 def main() -> None:

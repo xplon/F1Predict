@@ -417,6 +417,7 @@ class ProcessedFeatureProvider:
             "tyre_deg_proxy_seconds_per_lap",
             max_from_median=4.0,
         )
+        team_tyre_degs: defaultdict[str, list[float]] = defaultdict(list)
         if tyre_deg_rows:
             field_deg, deg_scale = self._center_scale_values(
                 [float(row["tyre_deg_proxy_seconds_per_lap"]) for row in tyre_deg_rows],
@@ -424,7 +425,9 @@ class ProcessedFeatureProvider:
             )
             for row in tyre_deg_rows:
                 driver_id = str(row["mapped_driver_id"])
+                driver = season.drivers[driver_id]
                 deg = float(row["tyre_deg_proxy_seconds_per_lap"])
+                team_tyre_degs[driver.team_id].append(deg)
                 value = round(self._clamp((field_deg - deg) / deg_scale * 0.045, -0.045, 0.045), 4)
                 if not value:
                     continue
@@ -448,6 +451,16 @@ class ProcessedFeatureProvider:
                         ),
                     )
                 )
+            adjustments.extend(
+                self._session_team_tyre_deg_adjustments(
+                    season,
+                    event,
+                    team_tyre_degs,
+                    source,
+                    observed_at,
+                    summary,
+                )
+            )
 
         speed_rows = [row for row in rows if row.get("speed_st_avg_kph") is not None]
         if len(speed_rows) >= 3:
@@ -596,6 +609,53 @@ class ProcessedFeatureProvider:
                     explanation=(
                         f"{summary.session_name} team long-run proxy before {event.name}: "
                         f"{lap_time:.3f}s vs team field {field_avg:.3f}s; used as same-weekend car race pace."
+                    ),
+                )
+            )
+        return adjustments
+
+    def _session_team_tyre_deg_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        team_tyre_degs: defaultdict[str, list[float]],
+        source: str,
+        observed_at: str,
+        summary: NormalizedSessionLapSummary,
+    ) -> list[FeatureAdjustment]:
+        team_avg = {
+            team_id: mean(values)
+            for team_id, values in team_tyre_degs.items()
+            if values and team_id in season.teams
+        }
+        if len(team_avg) < 2:
+            return []
+        field_deg, team_scale = self._center_scale_values(list(team_avg.values()), minimum_scale=0.45)
+        confidence_base = self._session_lap_confidence(summary.session_key, "tyre_deg")
+        adjustments: list[FeatureAdjustment] = []
+        for team_id, deg in sorted(team_avg.items()):
+            value = round(self._clamp((field_deg - deg) / team_scale * 0.052, -0.052, 0.052), 4)
+            if not value:
+                continue
+            coverage_weight = min(1.0, max(0.62, len(team_tyre_degs[team_id]) / 2.0))
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-session-laps:{summary.year}:{event.event_id}:{summary.session_key}:"
+                        f"{team_id}:team_tyre_deg:{observed_at}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="tyre_deg",
+                    value=value,
+                    confidence=round(confidence_base * coverage_weight, 4),
+                    observed_at=observed_at,
+                    explanation=(
+                        f"{summary.session_name} team tyre-degradation proxy before {event.name}: "
+                        f"{deg:+.4f}s/lap vs team field {field_deg:+.4f}s/lap from "
+                        f"{len(team_tyre_degs[team_id])} driver sample(s); routed to car tyre window state."
                     ),
                 )
             )

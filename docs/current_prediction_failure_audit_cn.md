@@ -1439,3 +1439,117 @@ British GP 的 Leclerc 胜率没有改善，仍约为 0.0063；
 ```
 
 因此这次改动的正确价值是“把 team-window 的来源化路由打通”，不是“预测已经修好”。下一步要让它真正影响合理性，必须补更强的来源化输入：同周末长距离、轮胎退化、调校窗口、可靠性和策略窗口，而不是继续调一个全局 scale。
+
+## 27. 2026-07-07：FastF1 practice 轮胎衰退进入车队/赛车状态
+
+继续追查上一节“方向性来源仍太弱”的原因时，发现 British GP latest packet 里虽然有 FastF1 Practice 1 的轮胎衰退特征，但它们只进入了车手层：
+
+```text
+driver.tyre_management updates = 16
+car.tyre_deg updates = 0
+team_ops.setup_quality updates = 0
+```
+
+这意味着 `PaceModel.race_window_pressure()` 已经有读取 `BeliefState.car.tyre_deg` 的能力，但当前来源没有真正喂到赛车/车队轮胎窗口状态。于是本轮修的是通用来源映射，而不是调某个车队：
+
+```text
+FastF1 practice long-run tyre-degradation proxy
+-> driver tyre_deg feature
+-> driver.tyre_management
+
+FastF1 practice long-run tyre-degradation proxy
+-> team tyre_deg feature
+-> BeliefState.car.tyre_deg
+-> stint_degradation / strategy_plan / race_window_pressure 可读状态
+```
+
+实现位置：
+
+```text
+src/f1predict/features/provider.py
+scripts/fastf1_team_tyre_deg_smoke_test.py
+scripts/source_driven_contract_test.py
+```
+
+新增规则：
+
+- 对同一场 practice session 中有 `tyre_deg_proxy_seconds_per_lap` 的车手，继续生成车手层 `metric=tyre_deg`；
+- 同时按车队聚合这些 proxy，生成 `target_type=team, metric=tyre_deg`；
+- 低于全场车队中位衰退的队得到正向 `car.tyre_deg`，高于中位衰退的队得到负向 `car.tyre_deg`；
+- confidence 会按 session 权重和该队样本覆盖度折算；
+- 解释文本说明来自 practice team tyre-degradation proxy，不写任何车队/车手特判。
+
+真实 British GP 本地数据检查：
+
+```text
+features = 551
+FastF1 session driver tyre_deg features = 16
+FastF1 session team tyre_deg features = 10
+BeliefState team tyre_deg ledger rows = 10
+```
+
+进入 `BeliefState.car.tyre_deg` 的例子：
+
+```text
+audi: +0.019884
+williams: +0.016008
+racing_bulls: +0.006085
+mclaren: +0.001058
+ferrari: -0.000601
+mercedes: -0.001731
+red_bull: -0.001822
+aston_martin: -0.009205
+```
+
+这些数值来自 Practice 1 里可用的长距离衰退 proxy，与用户判断无关。它们可能不完全符合赛后直觉，所以只能作为来源化状态输入，不能被解释成最终事实。
+
+验证：
+
+```text
+.venv\Scripts\python.exe -m compileall -q src scripts
+.venv\Scripts\python.exe scripts\fastf1_team_tyre_deg_smoke_test.py
+.venv\Scripts\python.exe scripts\source_driven_contract_test.py
+.venv\Scripts\python.exe scripts\race_window_pressure_smoke_test.py
+```
+
+随后重跑 British GP 1200 次诊断预测，结果几乎没有改变：
+
+```text
+Russell win = 0.4825, average_finish = 2.6167
+Antonelli win = 0.4400, average_finish = 2.7708
+Hamilton win = 0.0458, average_finish = 4.3633
+Leclerc win = 0.0125, average_finish = 5.7408
+```
+
+这说明本轮不是“预测已经修好”，而是“来源链条补上了一个必要缺口”。这个缺口单独太弱，不能解决 Mercedes 双车胜率集中或 Leclerc 胜率过低。
+
+又用新路由重新跑了 source-weighted team-window pressure 候选：
+
+```text
+reports/simulator_calibration_team_tyre_route_v1/2026_asof_20260707T000000_0000.simulator_calibration.md
+```
+
+120 次小样本结果：
+
+```text
+baseline team_window_v3 composite_score = 2.3688
+source_weighted_team_window_pressure_strong composite_score = 2.3961
+source_weighted_team_window_pressure composite_score = 2.4036
+```
+
+本轮推荐仍然是 baseline，不注册 pressure 候选。British GP 在这个低迭代诊断里仍然失败：
+
+```text
+top_pick = Antonelli
+actual_winner = Leclerc
+actual_winner_probability = 0.0083
+actual_winner_rank = 6
+```
+
+结论：
+
+- team-level `car.tyre_deg` 路由已经实现并可追溯；
+- 这让 `race_window_pressure` 具备真实来源输入，不再只有空的 `tyre_deg` 状态；
+- 但当前 practice tyre proxy 信号很弱、样本也不完整，不能单独修正 British GP；
+- 下一步应继续补 `team_ops.setup_quality`、调校窗口、长距离稳定性、策略窗口和同周末多 session 聚合；
+- 任何默认预测注册仍必须经过 replay/calibration 或模型修订证明，不能因为这条链路“看起来更合理”就注册。
