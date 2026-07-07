@@ -877,3 +877,93 @@ post-event review 可以展示 probe 后概率
 ```
 
 British GP 上这个 probe 把 Leclerc 胜率从 `0.0125` 诊断性提高到 `0.042145`，同时 Russell 仍是最高胜率。这证明它能缓和“前排但 raw win tail 过低”的问题，但尚未证明正式有效。随后完成的 2026 已完赛 9 场、每候选 120 次迭代小样本校准显示：`winner_rank_podium_calibrated` 的 log loss 略好于 baseline，但综合评分更差，主要因为实际冠军平均概率和 top-pick 校准 gap 变差。因此它暂时必须保持 `diagnostic_probe_not_registered`，不能改变 latest，也不能声称已经完成模型修订。
+
+## 17. 2026-07-07 追加：当前代码 latest run 已同步到 565/565 全量解释链
+
+在 `team tyre_deg` 和 `team_ops.setup_quality` 路由实现后，代码已经能生成更多来源化状态更新，但前端 latest 一度仍指向旧 run。为避免“最新代码”和“前端 latest”分裂，本轮按注册门禁重新生成并注册当前代码候选包。
+
+候选包第一次注册被阻止：
+
+```text
+status = model_only_prediction_change_blocked
+allow_registration = false
+blocker_codes = non_source_driven_prediction_change, state_mapping_revision_proof_required
+source_identity_changed = false
+belief_state_update_changed = true
+race_probability_changed = true
+```
+
+这是正确的门禁行为：同一批原始来源身份没有变化，预测变化来自模型/映射修订，必须提供证明。补充证明后注册为新的诊断 latest：
+
+```text
+model_revision_proof = reports/model_revision_proofs/2026-07-07_current_code_source_mapping_sync_cn.md
+run_id = british_gp_20260705T000000_0000_20260707T104824_0000_48a450406e
+packet_payload_sha256 = 48a450406e04513887fdda2bd7abde66463d7e6ea98a95f34e5a943ff30fa191
+belief_state_id = british_gp_ca70e1cb3b_0ec7749e17
+state_update_count = 565
+status = diagnostic_only
+registration_gate.status = model_revision_proof_allowed
+```
+
+这次注册不是因为预测结果更符合用户直觉。事实上 British GP 的核心预测问题仍然存在：
+
+```text
+Russell win = 48.5%
+Antonelli win = 44.1%
+Hamilton win = 4.6%
+Leclerc win = 1.1%
+```
+
+Leclerc 的冠军概率仍然过低，Mercedes 双车仍然过度集中。因此本次变化只能解释为“来源映射链路同步”，不能解释为“预测质量已经修复”。
+
+为新 run 重新生成 full sidecar：
+
+```text
+sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_a5f145fbb3a0_20260707T115527_0000_bb41906fe9
+source_run_id = british_gp_20260705T000000_0000_20260707T104824_0000_48a450406e
+source_iterations = 1200
+trace_iterations = 1200
+comparison_status = matched_source_run_iterations
+formal_readiness.status = formal_trace_ready
+claim_count = 565
+covered_claim_count = 565
+uncovered_claim_count = 0
+trace_count = 576
+```
+
+这意味着当前 latest run 再次满足架构验收中的解释链要求：
+
+```text
+原始来源/结构化特征
+-> 信息分析
+-> 状态更新账本
+-> 模拟路由
+-> 同种子预测影响 trace
+-> 前端中文展示
+```
+
+本轮还修复了一个 sidecar 落盘问题：旧文件名包含完整 `sidecar_id`，在 Windows 默认路径限制下可能超过 260 字符，导致计算完成后写入失败。现在 `PredictionImpactTraceSidecarStore.write()` 使用较短文件名；完整 `sidecar_id` 仍保留在 JSON 内部，不影响 latest 选择和审计追溯。
+
+前端首屏读取也收口为 material single-claim trace：
+
+```text
+/api/v2/prediction-impact-traces/latest
+?event_id=british_gp
+&limit=8
+&trace_type=isolated_same_seed_leave_one_information
+&impact_status=material_prediction_change
+```
+
+这样前端仍展示完整覆盖率和 formal readiness，但不会把体积很大的整体 all-updates trace 放进首屏解释卡片。独立 Playwright CLI 截图确认页面可渲染并显示当前 latest：
+
+```text
+output/playwright/f1predict-latest.png
+output/playwright/f1predict-latest-full.png
+```
+
+当前边界保持不变：
+
+- 解释链条在 latest run 上是完整的；
+- 预测结果仍是 `diagnostic_only`；
+- 这不是正式 edge；
+- 下一阶段要继续修预测质量，而不是再把同步工作包装成模型改进。

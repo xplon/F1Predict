@@ -1669,3 +1669,148 @@ market_scored_subset_incomplete
 - 小样本整体指标略有改善，但不能作为正式模型优越证据；
 - British GP 的 Leclerc/Ferrari 问题仍未解决；
 - 下一步应继续补多 session 长距离、真实 race-week 天气/赛道温度、策略窗口和 race execution，而不是继续放大 setup 权重。
+
+## 29. 2026-07-07：当前代码来源映射已同步到 latest run，并补齐 565/565 sidecar
+
+上一节的 `team tyre_deg` 与 `team_ops.setup_quality` 已经进入代码，但当时前端 latest 仍指向旧 run。这样会造成一个危险状态：代码已经能生成 565 条状态更新，前端却仍展示旧 run 的 535 条解释链。为避免“新代码、旧预测包、旧 sidecar”混在一起，本轮做了 latest 同步收口。
+
+首先用当前代码生成候选包，写入独立目录，避免覆盖旧包：
+
+```text
+candidate_packet = reports/prediction_packets_current_code_sync/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
+candidate_packet_sha = 48a450406e04513887fdda2bd7abde66463d7e6ea98a95f34e5a943ff30fa191
+generated_at = 2026-07-07T10:48:24+00:00
+iterations = 1200
+status = diagnostic_only
+```
+
+注册门禁首次阻止了它：
+
+```text
+status = model_only_prediction_change_blocked
+allow_registration = false
+blocker_codes = non_source_driven_prediction_change, state_mapping_revision_proof_required
+source_identity_changed = false
+belief_state_update_changed = true
+race_probability_changed = true
+```
+
+这是正确行为。因为这次没有新增原始来源身份，而是同一批 FastF1 结构化来源被新的映射规则送进更多状态字段。随后补充模型/映射修订证明：
+
+```text
+reports/model_revision_proofs/2026-07-07_current_code_source_mapping_sync_cn.md
+```
+
+证明文件明确记录：这不是根据用户观点手调结果，而是以下通用映射进入状态向量：
+
+```text
+FastF1 practice long-run tyre degradation -> team/car tyre_deg
+FastF1 practice / qualifying team lap-time proxy -> team_ops.setup_quality
+```
+
+带证明后注册成功：
+
+```text
+run_id = british_gp_20260705T000000_0000_20260707T104824_0000_48a450406e
+belief_state_id = british_gp_ca70e1cb3b_0ec7749e17
+state_update_count = 565
+feature_count = 571
+status = diagnostic_only
+registration_gate.status = model_revision_proof_allowed
+```
+
+新 run 的前部预测：
+
+```text
+1. Russell    win 48.5%, average_finish 2.609
+2. Antonelli  win 44.1%, average_finish 2.764
+3. Hamilton   win 4.6%,  average_finish 4.371
+4. Leclerc    win 1.1%,  average_finish 5.753
+5. Piastri    win 0.6%,  average_finish 6.302
+6. Norris     win 0.4%,  average_finish 6.311
+7. Verstappen win 0.6%,  average_finish 6.633
+8. Hadjar     win 0.2%,  average_finish 7.344
+```
+
+这再次说明：同步当前代码不是“预测修好了”。Leclerc 的胜率反而从上一版 `1.25%` 降到约 `1.08%`，Mercedes 双车仍然过度集中。因此这次只能被记录为“解释/状态链路同步完成”，不能被包装成预测质量改善。
+
+赛后复盘已同步到新 run：
+
+```text
+prediction_run_id = british_gp_20260705T000000_0000_20260707T104824_0000_48a450406e
+predicted_winner = russell
+actual_winner = leclerc
+winner_hit = false
+actual_winner_predicted_rank = 4
+actual_winner_win_probability = 0.010833
+podium_overlap_rate = 0.6667
+points_overlap_rate = 0.7
+mean_abs_rank_error = 4.6364
+```
+
+随后为新 run 重新生成完整同迭代 sidecar：
+
+```text
+sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_a5f145fbb3a0_20260707T115527_0000_bb41906fe9
+source_run_id = british_gp_20260705T000000_0000_20260707T104824_0000_48a450406e
+source_iterations = 1200
+trace_iterations = 1200
+comparison_status = matched_source_run_iterations
+formal_readiness.status = formal_trace_ready
+claim_count = 565
+covered_claim_count = 565
+uncovered_claim_count = 0
+trace_count = 576
+```
+
+这一步修复了一个实际工程 bug：Windows 默认路径长度限制会让旧的 sidecar 文件名超过 260 字符，导致计算完成后写入失败。现在 `PredictionImpactTraceSidecarStore.write()` 使用更短的文件名，同时 JSON 内仍保留完整 `sidecar_id`。
+
+前端也做了首屏负载收口：
+
+```text
+旧请求：/api/v2/prediction-impact-traces/latest?event_id=british_gp&limit=24
+新请求：/api/v2/prediction-impact-traces/latest?event_id=british_gp&limit=8&trace_type=isolated_same_seed_leave_one_information&impact_status=material_prediction_change
+```
+
+这样首屏只取“单条来源的显著影响 trace”，不再把体积很大的整体 all-updates trace 作为首页解释卡片。覆盖率和 formal readiness 仍从同一个 sidecar 元数据展示。
+
+验证结果：
+
+```text
+GET /api/v2/prediction-packets/latest?event_id=british_gp
+-> packet_sha = 48a450406e04513887fdda2bd7abde66463d7e6ea98a95f34e5a943ff30fa191
+-> state_update_count = 565
+
+GET /api/v2/prediction-impact-traces/latest?event_id=british_gp&limit=1
+-> source_run = british_gp_20260705T000000_0000_20260707T104824_0000_48a450406e
+-> formal_trace_ready
+-> covered = 565 / 565
+
+GET /api/post-event-review?event_id=british_gp
+-> prediction_run_id = british_gp_20260705T000000_0000_20260707T104824_0000_48a450406e
+```
+
+独立 Playwright CLI 截图验证页面可渲染：
+
+```text
+output/playwright/f1predict-latest.png
+output/playwright/f1predict-latest-full.png
+```
+
+全页截图中可以看到：
+
+```text
+1,200 diagnostic sims
+Russell / Antonelli / Hamilton / Leclerc 当前排名
+解释链覆盖 565 / 565
+formal_trace_ready
+Simulation Replay
+来源影响追踪列表
+```
+
+当前结论：
+
+- 最新代码、注册 run、post-event review、full sidecar 和前端展示已经重新对齐；
+- 可解释链条在当前 latest run 上再次达到同迭代全覆盖；
+- 预测质量问题仍未解决，尤其是 Leclerc/Ferrari 胜率过低、Mercedes 双车过度集中、Antonelli 风险不足；
+- 下一步应该继续做通用模型改进和来源补充，而不是再做同步类收尾。

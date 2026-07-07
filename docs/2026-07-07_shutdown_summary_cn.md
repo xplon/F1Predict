@@ -11,7 +11,7 @@
 - 当前页面标题：`F1Predict MVP`
 - 当前前端 latest 事件：`british_gp`
 - 当前前端 latest 预测包状态：`diagnostic_only`
-- 当前前端 latest 预测包生成时间：`2026-07-07T06:51:49+00:00`
+- 当前前端 latest 预测包生成时间：`2026-07-07T10:48:24+00:00`
 - 当前前端 latest 预测知识截止：`2026-07-05T00:00:00+00:00`
 - 当前前端 latest 模拟次数：`1200`
 
@@ -28,7 +28,7 @@ c4bf2c8 Add probability concentration calibration review
 8223a34 Add British GP post-event review diagnostics
 ```
 
-今晚收尾发现的一个重要事实：最新两项代码改动，`team tyre_deg` 和 `setup_quality` 路由，已经提交、推送并通过 smoke test 和 simulator calibration 诊断，但还没有重新生成并注册成新的前端 latest 预测包。因此当前前端展示的是已注册 latest run，不是这两项最新路由全部进入后的新排名。
+后续补充状态：最新两项代码改动，`team tyre_deg` 和 `setup_quality` 路由，已经通过模型/映射修订证明注册进新的前端 latest 预测包，并重新生成了同迭代 full sidecar。当前前端展示已经是 565 条来源化状态更新的最新 run；预测质量仍是诊断级，British GP 的 Leclerc/Ferrari 低胜率问题没有解决。
 
 ## 2. 已完成的关键工作
 
@@ -43,12 +43,12 @@ c4bf2c8 Add probability concentration calibration review
 British GP 当前 latest run 已有完整 sidecar：
 
 ```text
-source_run_id = british_gp_20260705T000000_0000_20260707T065149_0000_d76ec2c3e4
-sidecar_id = british_gp_e075659cf939_20260707T074125_0000_merged_ca50ec46ef
+source_run_id = british_gp_20260705T000000_0000_20260707T104824_0000_48a450406e
+sidecar_id = british_gp_british_gp_20260705T000000_0000_2026_a5f145fbb3a0_20260707T115527_0000_bb41906fe9
 source_iterations = 1200
 trace_iterations = 1200
-claim_count = 535
-covered_claim_count = 535
+claim_count = 565
+covered_claim_count = 565
 uncovered_claim_count = 0
 formal_readiness.status = formal_trace_ready
 ```
@@ -153,7 +153,7 @@ team tyre_deg features = 10
 car tyre updates = 10
 ```
 
-这个改动已经提交推送，并通过 smoke test。它会影响下一次按当前代码生成的预测包，但当前前端 latest 尚未重新注册到这一版。
+这个改动已经提交推送，通过 smoke test，并已进入当前前端 latest run。它提供了来源化状态输入，但没有单独修复 British GP 的核心预测错误。
 
 ### 2.8 FastF1 练习/排位调校质量已经进入车队状态
 
@@ -195,7 +195,7 @@ aston_martin -0.016489
 cadillac -0.027888
 ```
 
-这也是通用来源化路由，不是按车队名手调。它已经提交推送并通过 smoke test，但当前前端 latest 尚未重新注册到这一版。
+这也是通用来源化路由，不是按车队名手调。它已经提交推送、通过 smoke test，并已进入当前前端 latest run；但 Leclerc/Ferrari 胜率问题仍未解决。
 
 ## 3. 当前 British GP 前端预测结果
 
@@ -203,14 +203,14 @@ cadillac -0.027888
 
 | 排名 | 车手 | 胜率 | 登台率 | 期望积分 | 平均完赛 |
 |---:|---|---:|---:|---:|---:|
-| 1 | Russell | 48.25% | 90.58% | 19.942 | 2.618 |
-| 2 | Antonelli | 44.00% | 90.33% | 19.575 | 2.769 |
-| 3 | Hamilton | 4.58% | 54.92% | 13.212 | 4.367 |
-| 4 | Leclerc | 1.25% | 23.67% | 10.348 | 5.741 |
-| 5 | Piastri | 0.58% | 10.92% | 8.477 | 6.303 |
-| 6 | Norris | 0.58% | 13.25% | 8.852 | 6.317 |
-| 7 | Verstappen | 0.58% | 11.33% | 8.419 | 6.634 |
-| 8 | Hadjar | 0.17% | 5.00% | 6.912 | 7.343 |
+| 1 | Russell | 48.50% | 90.75% | 19.974 | 2.609 |
+| 2 | Antonelli | 44.08% | 90.50% | 19.593 | 2.764 |
+| 3 | Hamilton | 4.58% | 55.00% | 13.206 | 4.371 |
+| 4 | Leclerc | 1.08% | 23.75% | 10.315 | 5.753 |
+| 5 | Piastri | 0.58% | 10.75% | 8.475 | 6.302 |
+| 6 | Norris | 0.42% | 13.17% | 8.856 | 6.311 |
+| 7 | Verstappen | 0.58% | 11.08% | 8.418 | 6.633 |
+| 8 | Hadjar | 0.17% | 5.00% | 6.910 | 7.344 |
 
 我的判断：
 
@@ -231,7 +231,7 @@ cadillac -0.027888
 - 页面有 `2026规则口径`，说明官方底图可能保留历史 DRS/测速点标注，但本项目不把它作为 2026 模拟输入。
 - 分站预测区显示 `1,200 diagnostic sims | replay 312 rows`。
 - `Simulation Replay` 已可见。
-- 解释区显示 `formal_trace_ready`，来源化状态更新 `535 / 535` 覆盖。
+- 解释区显示 `formal_trace_ready`，来源化状态更新 `565 / 565` 覆盖。
 - 页面仍显示 `diagnostic_only`，没有冒充正式 edge。
 
 前端目前仍有问题：
@@ -239,7 +239,7 @@ cadillac -0.027888
 - 内容仍然太多，Prediction、Trace、Replay、Market、Readiness 混在一起，重点不够集中。
 - 赛后复盘已经有 API，但前端没有把它放到最显眼的位置。
 - 页面加载仍偏慢，用户感知上像在重新计算；下一步需要更明确的静态包缓存和前端版本缓存策略。
-- 当前前端 latest 没有体现 `team tyre_deg` 和 `setup_quality` 两个最新路由，因为还没有重新生成并注册新 prediction packet。
+- 当前前端 latest 已体现 `team tyre_deg` 和 `setup_quality` 两个最新路由；但页面内容仍然偏多，仍需要重做中文决策信息架构。
 - 前端现在是“可用诊断看板”，还不是你想要的“中文第一性原理预测决策面板”。
 
 ## 5. 今晚收尾验证
@@ -274,7 +274,7 @@ GET /api/post-event-review?event_id=british_gp
 latest status = diagnostic_only
 latest iterations = 1200
 impact trace formal_readiness.status = formal_trace_ready
-impact trace covered_claim_count = 535
+impact trace covered_claim_count = 565
 impact trace uncovered_claim_count = 0
 post_event predicted_winner = russell
 post_event actual_winner = leclerc
@@ -288,8 +288,8 @@ post_event winner_hit = false
 - 没有完成 holdout/时间切分的正式 ablation。
 - 没有把 winner probability calibration probe 注册为 latest。
 - 没有把 source-weighted race window pressure 注册为 latest。
-- 没有为最新 `team tyre_deg` 和 `setup_quality` 路由生成并注册新的前端 latest prediction packet。
-- 没有为最新代码状态重新生成完整 535+ claim 的同迭代 sidecar。
+- 最新 `team tyre_deg` 和 `setup_quality` 路由已经进入新的前端 latest prediction packet。
+- 已为最新代码状态重新生成完整 565/565 claim 的同迭代 sidecar。
 - 没有把所有影响因素都做成足够强、足够可信的来源化状态输入。
 - 没有完成最终中文前端信息架构。
 - 没有彻底解决前端缓存和加载慢问题。
@@ -297,13 +297,11 @@ post_event winner_hit = false
 
 ## 7. 暂停后最应该先做什么
 
-下一次恢复时，我建议先做一个“前端 latest 同步收口”，而不是继续扩功能：
+下一次恢复时，前端 latest 同步收口已经完成，应该转向预测质量本身：
 
-1. 用当前代码重新生成 British GP prediction packet，写入新目录，不覆盖旧包。
-2. 通过 registry 门禁判断能否注册。如果属于模型修订，必须引用模型修订证明；如果门禁不允许，就不要强行注册。
-3. 如果注册成功，重新生成完整同迭代 impact trace sidecar。
-4. 重新生成 post-event review。
-5. 刷新前端，确认页面 top ranking、trace coverage、replay、post-event review 都指向同一个 run。
-6. 再继续做前端瘦身和中文决策面板，把首屏集中到：预测排名、胜/登台/积分概率、最近几站状态、车队/赛车因素、车手因素、赛道/天气/策略风险、以及每个因素的来源到预测变化链路。
+1. 针对 British GP 暴露出的 Leclerc/Ferrari 低胜率、Mercedes 双车过度集中、Antonelli 风险不足，设计通用候选机制。
+2. 优先补多 session 长距离、真实 race-week 天气/赛道温度、策略窗口、退赛/事故尾部风险和近期趋势校准。
+3. 每个候选都必须跑 replay/calibration，不能因为单站看起来顺眼就注册。
+4. 前端继续瘦身为中文决策面板，把 market/readiness 等内容下沉。
 
-今晚可以暂停。当前项目最真实的状态是：诊断系统的骨架、证据边界、解释链、赛后复盘和基础前端都已经能跑；预测质量仍有明显问题；最新两项来源化路由已经进代码但没有进入前端 latest。下一轮优先把“最新代码 -> 注册预测包 -> 完整解释 sidecar -> 前端展示”这条链路收齐。
+当前项目最真实的状态是：诊断系统的骨架、证据边界、解释链、赛后复盘和基础前端都已经能跑；最新代码、注册预测包、完整解释 sidecar 和前端展示已经对齐；预测质量仍有明显问题，下一轮应该集中修模型和来源，而不是再做同步类收尾。

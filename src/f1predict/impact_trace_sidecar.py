@@ -144,7 +144,7 @@ class PredictionImpactTraceSidecarStore:
         root = Path(output_root) if output_root is not None else self.sidecar_root
         directory = root / safe_name(str(sidecar["event_id"])) / _run_dir_name(str(sidecar["source_run"]["run_id"]))
         directory.mkdir(parents=True, exist_ok=True)
-        path = directory / f"{safe_name(str(sidecar['sidecar_id']))}.prediction_impact_trace.json"
+        path = directory / _sidecar_file_name(sidecar)
         path.write_text(json.dumps(sidecar, ensure_ascii=False, indent=2), encoding="utf-8")
         return path
 
@@ -947,3 +947,14 @@ def _run_dir_name(run_id: str) -> str:
     digest = hashlib.sha256(run_id.encode("utf-8")).hexdigest()[:12]
     prefix = safe_name(run_id)[:36].strip("_")
     return safe_name(f"{prefix}_{digest}")
+
+
+def _sidecar_file_name(sidecar: dict[str, Any]) -> str:
+    """Keep artifact names short enough for default Windows path limits."""
+    generated_at = _stem_time(str(sidecar.get("generated_at") or "latest"))[:24]
+    trace_fingerprint = str(sidecar.get("trace_fingerprint") or "")
+    trace_digest = trace_fingerprint[:10] or hashlib.sha256(
+        str(sidecar.get("sidecar_id") or "").encode("utf-8")
+    ).hexdigest()[:10]
+    event_id = safe_name(str(sidecar.get("event_id") or "event"))[:24].strip("_") or "event"
+    return f"{event_id}_{generated_at}_{trace_digest}.prediction_impact_trace.json"

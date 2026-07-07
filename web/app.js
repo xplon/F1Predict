@@ -331,8 +331,14 @@ async function loadPrediction() {
 }
 
 function loadPredictionAuxiliaryPanels(encodedEventId, requestSeq, packetLoadedFromCache = false) {
+  const traceQuery = [
+    `event_id=${encodedEventId}`,
+    "limit=8",
+    "trace_type=isolated_same_seed_leave_one_information",
+    "impact_status=material_prediction_change"
+  ].join("&");
   const requests = [
-    ["impactTraceSidecar", `/api/v2/prediction-impact-traces/latest?event_id=${encodedEventId}&limit=24`]
+    ["impactTraceSidecar", `/api/v2/prediction-impact-traces/latest?${traceQuery}`]
   ];
   if (diagnosticsVisible()) {
     requests.push(
