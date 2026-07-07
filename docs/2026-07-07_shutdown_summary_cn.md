@@ -367,3 +367,63 @@ matched_source_run_iterations
 - 页面仍保留 `F1Predict MVP` 和英文副标题，不是最终中文产品页面；
 - 当前页面更像审计面板，不是简洁的交易决策面板；
 - 候选配置没有被前端展示为最新预测，这是正确的。
+
+## 11. 2026-07-07 23:14 暂停前最终核验
+
+按“今晚先收尾，不再开新坑”的原则，最后一次只做状态核验和文档落盘，没有再注册新的预测 run，也没有把后续 probe 变成前端 latest。
+
+工作区状态：
+
+```text
+branch = master
+upstream = origin/master
+latest commit before this note = 860dfb0 Add source-backed red flag tail diagnostics
+uncommitted code changes before writing this note = none
+```
+
+浏览器实际核验：
+
+```text
+URL = http://127.0.0.1:8765/
+title = F1Predict MVP
+console error/warn = 0
+selected event = British Grand Prix
+status = diagnostic_only
+simulation count = 1,200
+replay rows = 312
+impact trace coverage = 565 / 565
+front top 5 = Russell / Antonelli / Hamilton / Leclerc / Piastri
+```
+
+当前前端读取的 registered latest 仍然是：
+
+```text
+run_id = british_gp_20260705T000000_0000_20260707T122518_0000_d225707bdb
+packet_path = reports\prediction_packets_practice_conflict_gate_probe\british_gp\british_gp_20260705T000000_0000.prediction_packet.json
+packet_sha = d225707bdba831e520aff765d5c9535b882d8dbd10edff0386e84a424ec309c1
+belief_state_id = british_gp_ca70e1cb3b_5c1d96c830
+belief_state_update_fingerprint = 5c1d96c83030b9633f0c0a4bd1fb8bf3a46453eab2b3052847bdc87665956d92
+```
+
+因此今晚的最终状态很明确：
+
+- 当前页面展示的是已注册的诊断 latest，不是后续未注册 probe；
+- 后续生成的 route-scale、correlated-result-saturation、red-flag-tail 等候选包没有覆盖前端 latest；
+- 这符合“不能因为用户一句话直接调数值”的约束；
+- 预测质量仍然不达标，尤其是 Mercedes 双车概率过度集中、Leclerc/Ferrari 尾部概率仍偏低；
+- 可解释性链条和注册门禁已经比之前完整很多，但它们只能解释和约束模型，不能替代真正的预测校准。
+
+本地服务状态：
+
+```text
+listening port = 127.0.0.1:8765
+owning process = D:\Program\anaconda3\python.exe -m f1predict.server --host 127.0.0.1 --port 8765
+```
+
+我没有手动结束这个服务，因为你当前浏览器还在看这个页面；如果直接关机，它会自然结束。除了这个前端服务和 Codex/浏览器相关辅助进程，没有发现我正在跑的长时间预测实验。
+
+下一次恢复时，建议从这里继续，而不是再做单站手工修补：
+
+1. 先实现“近期 full-field finish / race-week session / source confidence”进入 BeliefState 的统一递推。
+2. 再做同口径历史 replay/calibration，确认每个新来源通路是否真的改善预测。
+3. 只有通过 registry 证明的新 run 才允许展示为前端 latest。
