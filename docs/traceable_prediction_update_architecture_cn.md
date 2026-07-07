@@ -781,10 +781,39 @@ formal_readiness.status = formal_trace_ready
 
 2026-07-07 追加预测质量方向实现：模拟器新增相关车队比赛日窗口机制 `team_race_window_noise_sd`。它不读取任何具体车队或车手 id，而是根据 BeliefState 中赛车、轮胎、调校和车手状态的不确定性，为每个车队抽取一个同队共享的 race-window offset。这样可以表达“某队当天调校/轮胎窗口不对导致双车同时受影响”的 F1 常见机制，避免只有车手独立噪声时强队双车胜率过度集中。
 
-该机制当前只生成了未注册诊断候选包：
+该机制先生成未注册诊断候选包：
 
 ```text
 reports/prediction_packets_model_revision_probe/team_window_v3/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
 ```
 
-它把 British GP 中 Mercedes 双车合计胜率从约 94.92% 缓和到 92.25%，但没有重写整体排名，也没有证明正式 edge。由于新候选包尚未生成 535/535 full sidecar，不能替代当前 latest。若后续注册为 latest，必须先通过模型修订证明门禁并补齐完整同迭代 sidecar。
+它把 British GP 中 Mercedes 双车合计胜率从约 94.92% 缓和到 92.25%，但没有重写整体排名，也没有证明正式 edge。随后它在提供模型修订证明后注册为 latest 诊断 run，并补齐完整同迭代 sidecar：
+
+```text
+run_id = british_gp_20260705T000000_0000_20260707T065149_0000_d76ec2c3e4
+packet_payload_sha256 = d76ec2c3e444fc48e648dc0208bf31a52b1c5158612b7cf81a386d1989e50478
+config_id = default_pace_separation_track_position_team_window_v3
+sidecar_id = british_gp_e075659cf939_20260707T074125_0000_merged_ca50ec46ef
+source_iterations = 1200
+trace_iterations = 1200
+covered_claim_count = 535
+uncovered_claim_count = 0
+formal_readiness.status = formal_trace_ready
+```
+
+这次收尾验证了当前架构的一个关键闭环：
+
+```text
+模型修订证明
+-> 注册门禁允许 diagnostic_only run
+-> 分块生成 535 条单条来源影响追踪
+-> 合并为 formal_trace_ready sidecar
+-> API/前端读取 sidecar 后显示完整解释链
+```
+
+需要特别区分两个层级：
+
+1. 静态 prediction packet 是预测生成时的快照，里面的内嵌 trace 仍可能只覆盖少量样本；
+2. latest API 和前端会在读取时叠加同一 run 的最新 sidecar，因此以 sidecar 的 `formal_readiness` 和覆盖率作为当前解释链状态。
+
+截至本次收尾，前端可见状态已经是 `535/535`、`matched_source_run_iterations`、`正式解释已就绪`。这只说明解释链完整，不说明预测模型已经完成校准或具备正式盈利 edge。

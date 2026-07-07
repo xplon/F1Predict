@@ -81,18 +81,36 @@ BeliefState 中已有状态不确定性
 
 它修正的是模拟结构：从“车手独立噪声”补充为“车队相关比赛日窗口噪声”。
 
+## 注册和解释链状态
+
+收尾时该修订已经按模型修订证明路径注册为 latest 诊断 run：
+
+```text
+run_id = british_gp_20260705T000000_0000_20260707T065149_0000_d76ec2c3e4
+packet_payload_sha256 = d76ec2c3e444fc48e648dc0208bf31a52b1c5158612b7cf81a386d1989e50478
+config_id = default_pace_separation_track_position_team_window_v3
+status = diagnostic_only
+```
+
+并且已经为该 run 生成、合并完整同迭代 sidecar：
+
+```text
+sidecar_id = british_gp_e075659cf939_20260707T074125_0000_merged_ca50ec46ef
+source_iterations = 1200
+trace_iterations = 1200
+claim_count = 535
+covered_claim_count = 535
+uncovered_claim_count = 0
+formal_readiness.status = formal_trace_ready
+```
+
+API 和前端读取 latest 时会叠加这个 sidecar，所以当前解释链状态应以 sidecar 为准，而不是以 prediction packet 内嵌的少量 trace 为准。
+
 ## 当前边界
 
 这仍然只是模型修订诊断，不是正式 edge 证明：
 
-- 候选包没有注册为 latest。
-- 候选包尚未生成 535/535 full sidecar。
+- 本次注册依赖的是模型修订证明，不是新增外部来源，也不是用户反馈直接入模。
 - 历史回放和概率校准仍是 `diagnostic_only`。
-- 这次只能说明 top2 过度集中问题被通用机制小幅缓和，不能说明模型已能盈利。
-
-下一步如果要把该候选升级为 latest，必须：
-
-1. 生成或更新历史回放/校准诊断；
-2. 通过 `PredictionRunRegistry` 的模型修订证明门禁；
-3. 为新 run 生成完整同迭代 sidecar；
-4. 确认前端/API 不会把未覆盖 sidecar 的候选包当作完整解释。
+- 这次只能说明 top2 过度集中问题被通用机制小幅缓和，并且解释链已补齐，不能说明模型已能盈利。
+- 下一步仍需要用历史回放、校准曲线、市场基线和赛前/赛后冻结回放来证明预测质量。

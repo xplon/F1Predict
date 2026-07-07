@@ -948,7 +948,97 @@ Aston Martin 和 Cadillac 仍在底部区间。
 
 重要边界：
 
-- 该候选包没有注册为 latest。
-- 当前前端 latest 仍使用上一版 full sidecar 覆盖 535/535 的注册包。
-- 候选包还没有 full sidecar，因此 Markdown 中会正确出现 `impact_trace_incomplete_for_material_updates`。
-- 如果后续要把该模型修订设为 latest，必须先生成模型修订证明、注册 run，并补齐新 run 的 full sidecar。
+- 该机制先作为未注册候选包生成，用于确认它只是通用模拟结构修订，不是按用户举例手调。
+- 随后在提供模型修订证明后，该机制已注册为新的 latest 诊断 run；这不等于来源驱动变化，也不等于正式 edge。
+- 该 run 的静态 prediction packet 是在 full sidecar 生成前写出的，因此 JSON/Markdown 快照里仍可能保留“主包内嵌 trace 不完整”的诊断；API 和前端读取 latest 时会叠加最新 sidecar 状态。
+- 预测质量仍必须通过历史回放、概率校准和市场基线比较验证；当前只能说解释链完整、模型修订有证明，不能说已经具备稳定盈利能力。
+
+## 21. 2026-07-07：相关车队窗口 v3 已注册，并补齐完整 sidecar
+
+在模型修订证明文件明确说明“这是通用 race-window 噪声修订，不是按用户反馈手调数值”之后，相关车队比赛日窗口机制已注册为 British GP 的最新诊断 run：
+
+```text
+run_id = british_gp_20260705T000000_0000_20260707T065149_0000_d76ec2c3e4
+packet_payload_sha256 = d76ec2c3e444fc48e648dc0208bf31a52b1c5158612b7cf81a386d1989e50478
+config_id = default_pace_separation_track_position_team_window_v3
+status = diagnostic_only
+blocker_codes = probability_calibration_diagnostic_only
+```
+
+本次注册不是“用户说某队该更强/更弱，所以修改结果”。允许注册的依据是：
+
+```text
+同一批来源和 BeliefState
+-> 通用模拟机制修订
+-> 模型修订证明
+-> PredictionRunRegistry 记录为 diagnostic_only
+-> 再为新 run 补齐 full sidecar
+```
+
+最新前端预测排名按平均完赛名次展示为：
+
+```text
+01 Russell
+02 Antonelli
+03 Hamilton
+04 Leclerc
+05 Piastri
+06 Norris
+07 Verstappen
+08 Hadjar
+09 Lindblad
+10 Gasly
+...
+19 Alonso
+20 Stroll
+21 Bottas
+22 Perez
+```
+
+新 run 的完整同迭代影响追踪 sidecar 已分块生成并合并：
+
+```text
+sidecar_id = british_gp_e075659cf939_20260707T074125_0000_merged_ca50ec46ef
+source_iterations = 1200
+trace_iterations = 1200
+claim_count = 535
+covered_claim_count = 535
+uncovered_claim_count = 0
+formal_readiness.status = formal_trace_ready
+```
+
+API 复核结果：
+
+```text
+GET /api/v2/prediction-packets/latest?event_id=british_gp
+packet_payload_sha256 = d76ec2c3e444fc48e648dc0208bf31a52b1c5158612b7cf81a386d1989e50478
+prediction_anomaly_audit.anomaly_count = 1
+impact_trace_source = sidecar
+impact_trace_covered_claim_count = 535
+
+GET /api/v2/prediction-impact-traces/latest?event_id=british_gp&limit=1
+sidecar_id = british_gp_e075659cf939_20260707T074125_0000_merged_ca50ec46ef
+formal_readiness.status = formal_trace_ready
+covered_claim_count = 535
+uncovered_claim_count = 0
+```
+
+前端复核结果：
+
+```text
+预测依据总览：来源化状态更新 535 / 535
+完整追踪缓存：535/535
+追踪口径：matched_source_run_iterations
+正式解释：已就绪
+预测影响追踪：当前页 24 / 546 条
+```
+
+剩余异常目前只有一个低优先级复核项：`driver_specific_lift_over_weak_team_support / Gasly-Alpine`。这不是硬冲突，而是提示后续要继续补长距离、轮胎衰退、策略、队友对比等来源，确认 Gasly 的车手层信号是否足以覆盖 Alpine 车队层偏弱信号。
+
+因此当前状态应被表述为：
+
+```text
+解释链：已完整同迭代覆盖，可审计
+预测包：仍是 diagnostic_only
+预测质量：方向比早期版本合理，但尚未通过历史回放/校准/市场基线证明
+```
