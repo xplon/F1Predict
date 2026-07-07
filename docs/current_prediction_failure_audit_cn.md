@@ -1258,3 +1258,41 @@ paper_trade_hit = false
 ```
 
 这进一步支持上面的判断：当前模型不是全局排序完全崩坏，而是概率分布过度集中、部分强队/车手风险尾部不足、Ferrari/Leclerc 的胜出可能被压得过低。下一步如果要改变默认预测，必须通过通用模型修订证明或新的来源化状态更新，不能因为这场结果直接把 Leclerc 手动抬高。
+
+2026-07-07 继续追加一个未注册的通用胜率校准 probe：
+
+```text
+config_id = winner_rank_podium_calibrated_probe
+status = diagnostic_probe_not_registered
+```
+
+这个 probe 的规则只读取模拟已经给出的全场分布：
+
+```text
+raw sampled win probability
++ expected-rank prior
++ podium-support prior
+```
+
+它不读取车手名、车队名，也不改变平均完赛名次、期望积分、领奖台概率或积分区概率。它的目的只是检查“winner 概率是否过度集中在前一两名，导致预测第 3/第 4 且领奖台概率不低的车手胜率过低”。
+
+在 British GP 最新赛前包上，probe 结果为：
+
+```text
+Leclerc 原始胜率 = 0.0125
+Leclerc probe 后胜率 = 0.042145
+变化 = +0.029645
+probe 后预测第一 = Russell
+Russell probe 后胜率 = 0.423042
+```
+
+这说明一个通用校准层可以缓和 Leclerc 被压得过低的问题，但它仍然不能直接成为默认 latest，原因是：
+
+- 这只是单站 post-event diagnostic probe；
+- 它没有经过足够大样本、带 holdout 的正式 simulator calibration；
+- 随后针对 baseline 与 `winner_rank_podium_calibrated` 做了 2026 已完赛 9 场、每候选 120 次迭代的小样本诊断校准，综合评分仍推荐 baseline；
+- 该候选虽然让平均实际冠军 log loss 从 `1.5396` 降到 `1.4457`，但也让实际冠军平均概率从 `35.6%` 降到 `30.6%`，Brier 从 `0.6776` 升到 `0.6916`，top-pick 校准 gap 从 `0.0750` 升到 `0.1943`；
+- 因此它只能说明“winner 概率尾部过低”是值得继续研究的问题，不能说明这个平滑参数已经应该注册成默认模型；
+- 如果后续要启用，必须生成模型修订证明，并通过 `PredictionRunRegistry` 的模型修订门禁。
+
+当前可采纳的结论不是“应该把 Leclerc 手动调高”，而是“winner probability 层存在过度集中风险，下一轮应优先做通用 winner calibration 的 replay 校准”。

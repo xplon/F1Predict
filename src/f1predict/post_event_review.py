@@ -10,7 +10,8 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
-from f1predict.domain import parse_dt, utc_now
+from f1predict.domain import DriverRaceProbability, parse_dt, utc_now
+from f1predict.models.simulator import SimulatorConfig, SingleRaceSimulator
 from f1predict.pipeline import PredictionPipeline
 from f1predict.results import FastF1ResultRepository, NormalizedRaceResult
 from f1predict.run_tracking import PredictionRunRecord, PredictionRunRegistry
@@ -73,6 +74,7 @@ class PostEventReviewReport:
     podium_overlap_rate: float | None
     points_overlap_rate: float | None
     mean_abs_rank_error: float | None
+    winner_calibration_probe: dict[str, Any]
     top10_actual_position_summary: list[dict[str, Any]]
     driver_reviews: tuple[PostEventDriverReview, ...]
     warnings: tuple[str, ...]
@@ -102,6 +104,7 @@ class PostEventReviewReport:
             "podium_overlap_rate": self.podium_overlap_rate,
             "points_overlap_rate": self.points_overlap_rate,
             "mean_abs_rank_error": self.mean_abs_rank_error,
+            "winner_calibration_probe": self.winner_calibration_probe,
             "top10_actual_position_summary": self.top10_actual_position_summary,
             "driver_reviews": [row.to_dict() for row in self.driver_reviews],
             "warnings": list(self.warnings),
@@ -138,6 +141,19 @@ class PostEventReviewReport:
             f"- 积分区重合率：`{self.points_overlap_rate}`",
             f"- 平均绝对排名误差：`{self.mean_abs_rank_error}`",
         ]
+        if self.winner_calibration_probe:
+            lines.extend(
+                [
+                    "",
+                    "## 未注册胜率校准 Probe",
+                    "",
+                    f"- Probe 状态：`{self.winner_calibration_probe.get('status')}`",
+                    f"- 通用配置：`{self.winner_calibration_probe.get('config_id')}`",
+                    f"- 原始实际冠军胜率：`{self.winner_calibration_probe.get('actual_winner_raw_probability')}`",
+                    f"- Probe 后实际冠军胜率：`{self.winner_calibration_probe.get('actual_winner_calibrated_probability')}`",
+                    f"- Probe 后预测第一：`{self.winner_calibration_probe.get('calibrated_top_pick')}`",
+                ]
+            )
         if self.warnings:
             lines.extend(["", "## 警告", ""])
             lines.extend(f"- `{warning}`" for warning in self.warnings)
@@ -189,6 +205,7 @@ class PostEventReviewBuilder:
         predicted_winner_result = actual_by_driver.get(str(predicted_winner)) if predicted_winner else None
 
         driver_reviews = self._driver_reviews(predicted_rows, actual_by_driver)
+        winner_calibration_probe = self._winner_calibration_probe(predicted_rows, str(actual_winner) if actual_winner else None)
         matched_errors = [row.rank_error for row in driver_reviews if row.rank_error is not None]
         podium_overlap = self._overlap(predicted_rows, actual_rows, 3)
         points_overlap = self._overlap(predicted_rows, actual_rows, 10)
@@ -235,6 +252,7 @@ class PostEventReviewBuilder:
             podium_overlap_rate=podium_overlap,
             points_overlap_rate=points_overlap,
             mean_abs_rank_error=round(mean(abs(value) for value in matched_errors), 4) if matched_errors else None,
+            winner_calibration_probe=winner_calibration_probe,
             top10_actual_position_summary=[
                 {
                     "driver_id": row["driver_id"],
@@ -291,6 +309,57 @@ class PostEventReviewBuilder:
         ):
             row["expected_rank"] = int(row.get("expected_rank") or index)
         return sorted(normalized, key=lambda item: int(item.get("expected_rank") or 999))
+
+    @staticmethod
+    def _winner_calibration_probe(
+        predicted_rows: list[dict[str, Any]],
+        actual_winner: str | None,
+    ) -> dict[str, Any]:
+        if not predicted_rows or not actual_winner:
+            return {}
+        rows = [
+            DriverRaceProbability(
+                driver_id=str(row.get("driver_id")),
+                win=_as_float(row.get("win")),
+                podium=_as_float(row.get("podium")),
+                points=_as_float(row.get("points")),
+                expected_points=_as_float(row.get("expected_points")),
+                average_finish=_as_float(row.get("average_finish"), 99.0),
+            )
+            for row in predicted_rows
+        ]
+        config = SimulatorConfig(
+            config_id="winner_rank_podium_calibrated_probe",
+            winner_probability_calibration_blend=0.38,
+            winner_rank_prior_temperature=2.4,
+            winner_rank_prior_weight=0.62,
+            winner_podium_prior_weight=0.38,
+        )
+        simulator = SingleRaceSimulator.__new__(SingleRaceSimulator)
+        simulator.config = config
+        calibrated = simulator._calibrated_winner_probabilities(rows)
+        raw_by_driver = {row.driver_id: row for row in rows}
+        calibrated_by_driver = {row.driver_id: row for row in calibrated}
+        top = max(calibrated, key=lambda row: row.win)
+        raw_actual = raw_by_driver.get(actual_winner)
+        calibrated_actual = calibrated_by_driver.get(actual_winner)
+        if raw_actual is None or calibrated_actual is None:
+            return {}
+        return {
+            "status": "diagnostic_probe_not_registered",
+            "config_id": config.config_id,
+            "blend": config.winner_probability_calibration_blend,
+            "actual_winner": actual_winner,
+            "actual_winner_raw_probability": round(raw_actual.win, 6),
+            "actual_winner_calibrated_probability": round(calibrated_actual.win, 6),
+            "actual_winner_probability_delta": round(calibrated_actual.win - raw_actual.win, 6),
+            "calibrated_top_pick": top.driver_id,
+            "calibrated_top_pick_probability": round(top.win, 6),
+            "note_zh": (
+                "这是赛后诊断 probe：只用通用 rank/podium 支持平滑 winner 概率，"
+                "不改变注册预测，不写回 BeliefState，也不能单独证明正式 edge。"
+            ),
+        }
 
     def _driver_alias_map(self) -> dict[str, str]:
         season = self.pipeline.data_source.load()

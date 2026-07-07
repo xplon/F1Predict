@@ -3368,6 +3368,11 @@ function renderPostEventReview() {
     `)
     .join("");
   const rows = report.top10_actual_position_summary || [];
+  const probe = report.winner_calibration_probe || {};
+  const probeStatusLabel = probe.status === "diagnostic_probe_not_registered" ? "未注册诊断" : (probe.status || "诊断");
+  const probeText = probe.actual_winner_calibrated_probability == null
+    ? ""
+    : `胜率校准诊断：${driverNames[probe.actual_winner] || probe.actual_winner} ${pct(probe.actual_winner_raw_probability || 0)} -> ${pct(probe.actual_winner_calibrated_probability || 0)}（${escapeHtml(probeStatusLabel)}）`;
   listElement.innerHTML = [
     `<article class="model-error-card ${report.winner_hit ? "" : "diagnostic-miss"}">
       <div>
@@ -3378,6 +3383,7 @@ function renderPostEventReview() {
       <div>
         <p>Run ${escapeHtml(shortHash(report.prediction_run_id || ""))}</p>
         <p>Result ${escapeHtml(report.result_source || "unknown")} | after cutoff: ${report.result_captured_after_prediction_cutoff ? "yes" : "no"}</p>
+        ${probeText ? `<p>${probeText}</p>` : ""}
         <p>${escapeHtml((report.warnings || []).join(", "))}</p>
       </div>
     </article>`,

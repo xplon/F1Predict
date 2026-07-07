@@ -371,6 +371,18 @@ def default_simulator_candidate_configs() -> tuple[SimulatorConfig, ...]:
         ),
         replace(
             baseline,
+            config_id="winner_rank_podium_calibrated",
+            description=(
+                "Blend raw sampled win counts with rank/podium support to reduce overconfident winner tails "
+                "without changing expected-rank ordering."
+            ),
+            winner_probability_calibration_blend=0.38,
+            winner_rank_prior_temperature=2.4,
+            winner_rank_prior_weight=0.62,
+            winner_podium_prior_weight=0.38,
+        ),
+        replace(
+            baseline,
             config_id="stronger_team_window",
             description="Larger correlated team race-window swings for overconfidence review.",
             team_race_window_noise_sd=5.6,

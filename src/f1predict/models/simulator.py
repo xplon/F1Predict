@@ -57,6 +57,10 @@ class SimulatorConfig:
     team_race_window_noise_sd: float = 4.2
     team_race_window_uncertainty_scale: float = 0.85
     team_race_window_noise_cap: float = 8.5
+    winner_probability_calibration_blend: float = 0.0
+    winner_rank_prior_temperature: float = 2.4
+    winner_rank_prior_weight: float = 0.62
+    winner_podium_prior_weight: float = 0.38
 
     def to_dict(self) -> dict[str, Any]:
         return self.__dict__
@@ -166,6 +170,7 @@ class SingleRaceSimulator:
                 )
             )
 
+        probabilities = self._calibrated_winner_probabilities(probabilities)
         probabilities.sort(key=lambda item: item.win, reverse=True)
         denominator = float(self.iterations)
         team_double_podium_probabilities = {
@@ -188,6 +193,70 @@ class SingleRaceSimulator:
             driver_h2h_probabilities=driver_h2h_probabilities,
             iterations=self.iterations,
         )
+
+    def _calibrated_winner_probabilities(
+        self,
+        probabilities: list[DriverRaceProbability],
+    ) -> list[DriverRaceProbability]:
+        """Optionally blend raw win counts with rank/podium support.
+
+        This is a generic diagnostic calibration layer, not a source-derived
+        state update. It is disabled by default and should only be promoted
+        through replay/calibration proof.
+        """
+
+        blend = min(1.0, max(0.0, self.config.winner_probability_calibration_blend))
+        if blend <= 0.0 or not probabilities:
+            return probabilities
+
+        ranked = sorted(
+            probabilities,
+            key=lambda row: (
+                row.average_finish,
+                -row.expected_points,
+                -row.podium,
+                -row.win,
+                row.driver_id,
+            ),
+        )
+        temperature = max(0.25, self.config.winner_rank_prior_temperature)
+        rank_scores = {
+            row.driver_id: pow(2.718281828459045, -(index - 1) / temperature)
+            for index, row in enumerate(ranked, start=1)
+        }
+        rank_total = sum(rank_scores.values()) or 1.0
+        podium_total = sum(max(0.0, row.podium) for row in probabilities) or 1.0
+        rank_weight = max(0.0, self.config.winner_rank_prior_weight)
+        podium_weight = max(0.0, self.config.winner_podium_prior_weight)
+        support_total = rank_weight + podium_weight or 1.0
+
+        calibrated = []
+        for row in probabilities:
+            rank_prior = rank_scores[row.driver_id] / rank_total
+            podium_prior = max(0.0, row.podium) / podium_total
+            support_prior = (rank_prior * rank_weight + podium_prior * podium_weight) / support_total
+            calibrated.append(
+                DriverRaceProbability(
+                    driver_id=row.driver_id,
+                    win=(1.0 - blend) * row.win + blend * support_prior,
+                    podium=row.podium,
+                    points=row.points,
+                    expected_points=row.expected_points,
+                    average_finish=row.average_finish,
+                )
+            )
+        total_win = sum(max(0.0, row.win) for row in calibrated) or 1.0
+        return [
+            DriverRaceProbability(
+                driver_id=row.driver_id,
+                win=max(0.0, row.win) / total_win,
+                podium=row.podium,
+                points=row.points,
+                expected_points=row.expected_points,
+                average_finish=row.average_finish,
+            )
+            for row in calibrated
+        ]
 
     def sample_order(self, event: RaceEvent, driver_ids: list[str] | None = None) -> list[str]:
         """Sample one race finishing order using the same strategy-aware model."""

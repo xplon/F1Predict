@@ -27,6 +27,10 @@ def main() -> None:
     assert report.predicted_winner_actual_position == 2
     assert report.podium_overlap_rate == 0.6667
     assert report.points_overlap_rate == 0.7
+    probe = report.winner_calibration_probe
+    assert probe["status"] == "diagnostic_probe_not_registered"
+    assert probe["actual_winner"] == "leclerc"
+    assert probe["actual_winner_calibrated_probability"] > probe["actual_winner_raw_probability"]
     assert "result_snapshot_after_prediction_cutoff_for_evaluation_only" in report.warnings
     by_driver = {row.driver_id: row for row in report.driver_reviews}
     assert by_driver["lindblad"].result_driver_id == "arvid_lindblad"

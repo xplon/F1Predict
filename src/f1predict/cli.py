@@ -55,7 +55,7 @@ from f1predict.replay_analysis import ReplayAnalysisBuilder
 from f1predict.reviewed_market import ReviewedMarketSnapshotArchiver, reviewed_market_template
 from f1predict.run_tracking import InformationIntakeStore, MatchedPredictionDiff, PredictionRunRegistry
 from f1predict.seed_roster import SeedRosterSyncPlanner
-from f1predict.simulator_calibration import SimulatorCalibrationBuilder
+from f1predict.simulator_calibration import SimulatorCalibrationBuilder, default_simulator_candidate_configs
 from f1predict.source_replacements import SourceReplacementApplier, SourceReplacementCandidateBuilder
 from f1predict.track_assets import TrackAssetAuditor
 
@@ -297,6 +297,7 @@ def main() -> None:
     simulator_calibration.add_argument("--year", type=int, required=True)
     simulator_calibration.add_argument("--as-of", required=True)
     simulator_calibration.add_argument("--iterations", type=int, default=800)
+    simulator_calibration.add_argument("--candidate", action="append", default=[])
     simulator_calibration.add_argument("--write", action="store_true")
     simulator_calibration.add_argument("--output-dir", default="reports/simulator_calibration")
 
@@ -925,7 +926,18 @@ def main() -> None:
             print(json.dumps(auditor.build(args.year, season.events).to_dict(), ensure_ascii=False, indent=2))
     elif args.command == "simulator-calibration":
         pipeline = PredictionPipeline(iterations=args.iterations)
-        builder = SimulatorCalibrationBuilder(pipeline=pipeline)
+        candidate_configs = None
+        if args.candidate:
+            wanted = set(args.candidate)
+            defaults = default_simulator_candidate_configs()
+            baseline = defaults[0]
+            selected = [baseline]
+            selected.extend(config for config in defaults[1:] if config.config_id in wanted)
+            missing = sorted(wanted - {config.config_id for config in selected})
+            if missing:
+                raise ValueError(f"Unknown simulator calibration candidate(s): {', '.join(missing)}")
+            candidate_configs = tuple(selected)
+        builder = SimulatorCalibrationBuilder(pipeline=pipeline, candidate_configs=candidate_configs)
         if args.write:
             paths = builder.write(args.year, args.as_of, iterations=args.iterations, output_dir=args.output_dir)
             print(json.dumps({name: str(path) for name, path in paths.items()}, ensure_ascii=False, indent=2))

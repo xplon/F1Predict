@@ -1,209 +1,274 @@
 # 2026-07-07 关机前收尾总结
 
-这份文档用于今晚暂停前交代当前项目状态。核心结论先放前面：今天真正推进最多的是“来源可信边界”和“可追溯解释链”，不是已经证明预测模型有稳定盈利 edge。当前 British GP 最新预测包仍是 `diagnostic_only`，原因是概率校准和历史回放还没有完成正式验证。
+这份文档用于今晚暂停前交代当前项目状态。核心结论先放前面：今天收尾完成的是“赛后复盘闭环、未注册胜率校准 probe、前端/API 可见状态复核、文档边界修正”，不是证明模型已经有稳定盈利 edge。当前 British GP 最新预测包仍是 `diagnostic_only`。
 
 ## 1. 当前仓库状态
 
 - 仓库：`E:\1.study\code\AI_Projects\F1Predict`
 - 分支：`master`
 - 远端：`https://github.com/xplon/F1Predict.git`
-- 本地状态：`master` 已与 `origin/master` 对齐，收尾前没有未提交改动
-- 最新提交：
-  - `0d8b3e3 Add full impact trace sidecar coverage`
-  - `80da291 Fix belief state feature mapping traces`
-  - `bbc11d5 Normalize prediction run fingerprints and trace sidecar`
-  - `f4cde99 Block user feedback as prediction evidence`
-  - `4daa524 Label direct and indirect impact traces`
+- 当前本地服务：`http://127.0.0.1:8765/`
+- 当前 latest 预测 run：`british_gp_20260705T000000_0000_20260707T065149_0000_d76ec2c3e4`
+- 当前 latest prediction packet：`d76ec2c3e444fc48e648dc0208bf31a52b1c5158612b7cf81a386d1989e50478`
+- 当前状态：`diagnostic_only`，不是正式 edge。
 
-## 2. 今天完成了什么
+## 2. 到目前为止真正完成的工作
 
-### 2.1 阻断“用户反馈直接变成预测证据”
+### 2.1 把用户反馈和预测证据彻底分开
 
-你反复强调：你的话只能指出系统问题，不能被我偷偷当成预测来源去改数值。今天已把这个边界写进系统：
-
-- `user://`
-- `user-feedback://`
-- `codex-feedback://`
-- `prompt://`
-
-这些来源会被识别为用户反馈类来源，只能触发审计、补数据、改架构，不能作为模型输入，也不能更新 `BeliefState`。对应契约测试已经通过。
-
-这件事的意义是：以后不能因为你说“某队很强/某队很弱”，系统就直接把这个判断写成强约束。系统必须回到外部来源、结构化数据和可追溯信息链里找证据。
-
-### 2.2 修正 PredictionRunRegistry 的注册门禁
-
-之前有一个语义风险：`expected_rank` 是展示字段，不是概率本身。如果只是展示字段重排，系统不应该宣称“预测改变”。今天已修正：
-
-- 正赛预测变化只比较核心预测字段：`win`、`podium`、`points`、`expected_points`、`average_finish`
-- `expected_rank` 和数组顺序不再被当成真实预测变化
-- 市场边际、概率摘要和 run fingerprint 做了稳定化处理
-
-这不是提升预测准确率的改动，而是防止系统把展示变化包装成模型进步。
-
-### 2.3 修正 BeliefState 到模型特征的映射
-
-今天修了几个会影响预测解释可信度的映射问题：
-
-- `team race_execution` 正确进入 `team_ops.race_execution`
-- 车手 `reliability` 正确进入车手状态
-- 车手目标里的赛车特征，例如 `straight_line_speed`，会落到该车手所属车队的赛车状态
-- ledger 中的 `target_type` 现在反映真实落点，而不是只保留原始声明目标
-- `PaceModel` 会读取 `team_ops.race_execution`
-
-这项修复是实质性的，因为它决定“信息进入状态后到底有没有被模型使用”。修复后重新注册了新的 British GP 诊断预测包。
-
-### 2.4 补齐完整 PredictionImpactTrace sidecar
-
-最新 British GP run 的解释链已经补齐到全量覆盖：
+你明确要求：你的例子只能暴露系统问题，不能被系统偷偷当成标签或强约束。现在代码里已经有边界：
 
 ```text
-run_id = british_gp_20260705T000000_0000_20260707T054040_0000_a96fffb1fc
-packet_hash = a96fffb1fcd042b5bcc1a00a4d49c5008b5b88e6c0dd07d8775c8a58e76b928e
-status = diagnostic_only
-iterations = 1200
-knowledge_cutoff = 2026-07-05T00:00:00+00:00
+user://
+user-feedback://
+codex-feedback://
+prompt://
 ```
 
-对应 sidecar：
+这类来源会被识别为用户反馈，`model_input_weight = 0`，在 `BeliefState` 中被阻断，不能更新车队、车手、赛车或比赛风险状态。
+
+因此，现在允许发生预测变化的路径只有两类：
 
 ```text
-sidecar_id = british_gp_f6fd000ef3aa_20260707T060939_0000_merged_f783f87561
-formal_readiness.status = formal_trace_ready
+真实来源/结构化数据 -> 质量审计 -> 状态更新 -> 模拟器 -> 预测变化
+```
+
+或：
+
+```text
+通用模型修订 -> replay/calibration/模型修订证明 -> registry 门禁 -> diagnostic latest
+```
+
+这解决的是项目底线问题：不能因为你一句话把 Leclerc、Aston Martin、Racing Bulls 或任何实体手动调到看起来顺眼。
+
+### 2.2 建立可追溯解释链
+
+当前 British GP latest run 已有完整 sidecar：
+
+```text
+sidecar_id = british_gp_e075659cf939_20260707T074125_0000_merged_ca50ec46ef
 source_iterations = 1200
 trace_iterations = 1200
 covered_claim_count = 535
 uncovered_claim_count = 0
+formal_readiness.status = formal_trace_ready
 ```
 
-这说明 535 条来源化状态更新都有同迭代数、同 seed 口径下的边际影响追踪。现在可以追到：
+这表示 535 条来源化状态更新都可以追到：
 
 ```text
-原始来源 -> 信息分析 -> 状态更新 -> 模型特征 -> 模拟结果 -> 预测分布变化
+原始来源 -> 信息分析 -> 状态更新 -> 模拟路由 -> 预测变化
 ```
 
-注意：这证明解释链补齐了，不证明预测已经准。
+它证明“解释链补齐了”，不证明“预测已经准”。
 
-## 3. 当前预测结果
+### 2.3 注册门禁和模型修订证明
 
-最新 British GP 预测包状态：
+`PredictionRunRegistry` 现在会阻止无来源、无状态变化的预测概率变化直接成为 latest。模型修订可以注册，但必须带证明，并且仍然标记为 `diagnostic_only`。
+
+已注册的通用模拟修订是 `team_race_window_noise`：它让同队两辆车共享一部分比赛日窗口波动，用来表达“同一队当天调校/轮胎窗口不对时双车一起受影响”。这不是按车队名或车手名手调。
+
+### 2.4 新增 British GP 赛后复盘
+
+已经摄取 British GP FastF1 正赛结果，并生成赛后复盘：
 
 ```text
+reports/post_event_review/british_gp/british_gp_20260705T000000_0000.post_event_review.json
+reports/post_event_review/british_gp/british_gp_20260705T000000_0000.post_event_review.md
+```
+
+关键结果：
+
+```text
+预测第一 = Russell
+实际冠军 = Leclerc
+冠军命中 = False
+实际冠军赛前预计排名 = 4
+Leclerc 赛前胜率 = 0.0125
+预测第一 Russell 实际完赛 = P2
+领奖台重合率 = 0.6667
+积分区重合率 = 0.7
+平均绝对排名误差 = 4.6364
+```
+
+这说明当前模型不是完全乱排：实际领奖台三人里 Russell/Hamilton 在预测前三，Leclerc 在预测第四。但它明显低估了 Leclerc 的冠军尾部概率，也高估了 Antonelli 的单场稳定性。
+
+### 2.5 重跑 2026 已完赛 replay/calibration
+
+British GP 加入评估后，9 场诊断指标是：
+
+```text
+scored_events = 9
+top_pick_hits = 6
+top_pick_hit_rate = 0.6667
+median_actual_winner_rank = 1
+mean_abs_rank_error = 4.3232
+mean_podium_overlap_rate = 0.6667
+mean_points_overlap_rate = 0.7222
+mean_top_pick_probability = 0.4708
+mean_actual_winner_probability = 0.3562
+weighted_top_pick_calibration_gap = 0.1959
+mean_actual_log_loss = 1.4793
+```
+
+这些数字只能叫诊断结果。样本小，市场数据不完整，没有 holdout，不能据此说有稳定 edge。
+
+### 2.6 新增未注册 winner probability calibration probe
+
+今晚新增了一个通用胜率平滑 probe：
+
+```text
+config_id = winner_rank_podium_calibrated_probe
+status = diagnostic_probe_not_registered
+```
+
+它只读取模拟输出里的：
+
+```text
+raw win probability
+expected rank support
+podium probability support
+```
+
+它不读取车手名、车队名，不改变平均完赛、期望积分、领奖台概率或积分区概率。
+
+在 British GP 赛后复盘里：
+
+```text
+Leclerc 原始胜率 = 0.0125
+Leclerc probe 后胜率 = 0.042145
+probe 后预测第一 = Russell
+Russell probe 后胜率 = 0.423042
+```
+
+这个 probe 能缓和“P4 且有领奖台可能的车手胜率被压得过低”的问题，但不能注册成默认模型。
+
+随后我做了目标候选小样本校准：
+
+```text
+output = reports/simulator_calibration_winner_probe/2026_asof_20260707T000000_0000.simulator_calibration.md
+candidate = winner_rank_podium_calibrated
+iterations_per_candidate = 120
+events = 9
 status = diagnostic_only
-formal_edge_ready = false
-blocker_codes = probability_calibration_diagnostic_only
-warning_codes = codex_claims_require_review, blocked_development_seed_evidence_separated
 ```
 
-当前 top 8：
+结果没有支持注册该候选：
 
-| 排名 | 车手 | 平均完赛 | 期望积分 | 冠军概率 | 登台概率 |
-|---:|---|---:|---:|---:|---:|
-| 1 | Russell | 2.501 | 20.218 | 0.4883 | 0.9267 |
-| 2 | Antonelli | 2.678 | 19.840 | 0.4608 | 0.9100 |
-| 3 | Hamilton | 4.389 | 12.987 | 0.0283 | 0.5458 |
-| 4 | Leclerc | 5.473 | 10.753 | 0.0133 | 0.2692 |
-| 5 | Norris | 6.123 | 8.931 | 0.0042 | 0.1250 |
-| 6 | Piastri | 6.553 | 8.255 | 0.0025 | 0.0958 |
-| 7 | Hadjar | 7.246 | 6.808 | 0.0017 | 0.0358 |
-| 8 | Verstappen | 6.624 | 8.224 | 0.0008 | 0.0917 |
+| 配置 | 综合分 | 命中率 | 实际冠军均值概率 | Brier | Log loss | Top-pick 校准 gap |
+|---|---:|---:|---:|---:|---:|---:|
+| baseline | 2.1852 | 55.6% | 35.6% | 0.6776 | 1.5396 | 0.0750 |
+| winner_rank_podium_calibrated | 2.2968 | 55.6% | 30.6% | 0.6916 | 1.4457 | 0.1943 |
 
-我对这个结果的判断：
+解释：候选让 log loss 略好，但实际冠军平均概率、Brier 和 top-pick 校准都变差，所以综合评分更差。当前正确结论是“winner 概率层值得继续研究”，不是“应该启用这个参数”。
 
-- 比早期版本更像一个“车队/车手状态进入模型后的结果”，不是随机展示。
-- Mercedes 头部优势非常强，Ferrari 在其后，McLaren/Red Bull 处在第二集团附近，这比之前完全不体现车强弱的版本合理。
-- 但前两名合计冠军概率接近 95%，这明显偏集中，说明模拟噪声、排位不确定性、策略事件、退赛/安全车等随机性还需要校准。
-- 因此当前结果只能作为诊断预测，不应该作为正式有 edge 的预测。
+## 3. 当前前端状态
 
-## 4. 当前前端/API 状态
-
-本地服务可访问：
+本地前端已重启并验证：
 
 ```text
-http://127.0.0.1:8765/
+GET / -> 200
+页面标题 = F1Predict MVP
+British Grand Prix 可渲染
+浏览器 console = 0 errors, 0 warnings
 ```
 
-收尾检查结果：
+API 当前状态：
 
 ```text
-GET /
-StatusCode = 200
-Title = F1Predict MVP
-ContentLength = 11769
+GET /api/post-event-review?event_id=british_gp
+winner_calibration_probe.status = diagnostic_probe_not_registered
+winner_calibration_probe.actual_winner_raw_probability = 0.0125
+winner_calibration_probe.actual_winner_calibrated_probability = 0.042145
 ```
-
-关键 API：
 
 ```text
 GET /api/v2/prediction-packets/latest?event_id=british_gp
-cache_context.run_id = british_gp_20260705T000000_0000_20260707T054040_0000_a96fffb1fc
-cache_context.prediction_anomaly_audit_source = api_runtime_recomputed
-cache_context.prediction_anomaly_audit_sidecar_id = british_gp_f6fd000ef3aa_20260707T060939_0000_merged_f783f87561
+prediction_anomaly_audit.status = no_major_anomaly_detected
+prediction_anomaly_audit.anomaly_count = 0
+impact_trace_claim_count = 535
+impact_trace_covered_claim_count = 535
+impact_trace_uncovered_claim_count = 0
 ```
 
 ```text
 GET /api/v2/prediction-impact-traces/latest?event_id=british_gp&limit=1
 formal_readiness.status = formal_trace_ready
-covered_claim_count = 535
-uncovered_claim_count = 0
+trace_count = 546
+returned_trace_count = 1
 ```
 
-异常审计当前只剩 1 个低优先级异常：
+Playwright 轻量渲染检查已通过，截图在本地忽略目录：
 
 ```text
-code = driver_specific_lift_over_weak_team_support
-target = gasly
-severity = low
-含义 = Gasly 被预测到第 9，但 Alpine 车队整体支持信号偏弱，需要继续复核长距离、轮胎衰退、策略和队友对比。
+output/playwright/shutdown_frontend_20260707.png
 ```
 
-前端展示效果的真实状态：
+我看到的展示效果：
 
-- 前端页面本身可通过 HTTP 返回。
-- 最新预测包和完整 sidecar 可以从 API 读取。
-- API 中文内容本身是 UTF-8 正常文本；PowerShell 某些 JSON 输出会显示问号，但 Python 读取确认不是接口数据损坏。
-- 今晚没有完成 in-app browser 截图级视觉审计，因为浏览器控制接口没有发现可控制标签页。这个不能谎称已经完成。
+- 首页能显示 British GP、赛道图、预测排名、中文列名和最新概率。
+- Post-event Review 的 API 已经有 probe 数据，前端代码也会展示这一行。
+- 不是白屏，控制台没有错误。
+- 仍有前端残留问题：赛道图上仍有 `DRS DETECTION ZONE`、`SPEED TRAP` 等英文标注；如果按 2026 无 DRS 的规则口径，这些标注需要下一轮清洗或重新解释。
+- 1280px 宽度下，`Verstappen` 这一行和概率列间距偏紧，需要 UI polish。
 
-## 5. 已执行验证
+所以今晚不能说“前端完全完成”。只能说：可用、能展示最新数据、没有 JS/运行时错误，但仍需要视觉和语义清理。
 
-今晚收尾重新跑过并通过：
+## 4. 当前预测效果判断
+
+我现在对模型效果的判断是：
+
+- 全场结构比早期明显更合理：Mercedes/Ferrari/McLaren/Red Bull 在前部，Aston Martin/Cadillac 在底部区间。
+- British GP 赛后看，前排结构部分合理：实际冠军 Leclerc 在预测 P4，Russell/Hamilton 与实际领奖台匹配。
+- 最大问题仍然是概率分布：Leclerc 胜率 1.25% 过低，Antonelli 风险尾部不足，头部胜率过度集中。
+- 当前解释链已经能说明“预测为什么这么来”，但不能证明“这么预测是对的”。
+- 当前所有回放和校准仍是 diagnostic，不具备正式盈利 edge 证明。
+
+## 5. 今晚执行过的验证
+
+通过的命令：
 
 ```text
-.venv\Scripts\python.exe scripts\source_driven_contract_test.py
-.venv\Scripts\python.exe scripts\impact_trace_sidecar_smoke_test.py
-.venv\Scripts\python.exe scripts\explainability_smoke_test.py
-.venv\Scripts\python.exe scripts\prediction_anomaly_audit_smoke_test.py
+.venv\Scripts\python.exe -m compileall -q src scripts
 node --check web\app.js
+.venv\Scripts\python.exe scripts\winner_probability_calibration_smoke_test.py
+.venv\Scripts\python.exe scripts\post_event_review_smoke_test.py
+.venv\Scripts\python.exe scripts\source_driven_contract_test.py
+.venv\Scripts\python.exe scripts\prediction_anomaly_audit_smoke_test.py
+.venv\Scripts\python.exe scripts\explainability_smoke_test.py
 git diff --check
 ```
 
-这些验证证明：
+浏览器/HTTP 验证：
 
-- 用户反馈不能直接进入模型证据链。
-- latest sidecar 是 535/535 全覆盖。
-- 可解释性 smoke 能读通。
-- 异常审计能使用 full sidecar。
-- 前端 JavaScript 没有语法错误。
-- 当前工作区没有 whitespace diff 问题。
+```text
+GET /
+GET /api/post-event-review?event_id=british_gp
+GET /api/v2/prediction-packets/latest?event_id=british_gp
+GET /api/v2/prediction-impact-traces/latest?event_id=british_gp&limit=1
+Playwright snapshot + screenshot
+```
 
-## 6. 还没有完成什么
+## 6. 还没有完成的事
 
-以下内容仍未完成，不能在今晚说已经解决：
+这些不能在今晚冒充完成：
 
-- 没有完成正式历史回放。
-- 没有证明模型有稳定 edge 或盈利能力。
-- 没有完成概率校准，所以 packet 仍是 `diagnostic_only`。
-- 没有证明当前 top 2 过高冠军概率是合理的。
-- 没有完成全前端视觉审计。
-- 预测质量仍需要继续根据真实来源和回放结果改，而不是根据用户一句话改。
+- 没有证明稳定 edge 或盈利能力。
+- 没有完成正式概率校准。
+- `winner_rank_podium_calibrated` 小样本综合评分不支持注册。
+- 没有把 winner calibration probe 写入 latest prediction。
+- 没有完成所有前端视觉/语义 polish。
+- 没有解决 2026 规则口径下赛道图 DRS 标注的展示问题。
+- 没有完成更大样本、holdout、市场基线完整对比。
 
-## 7. 明天继续时最该做什么
+## 7. 暂停后的下一步建议
 
-下一步不建议继续堆 UI，也不建议针对单个车手手动修数值。优先顺序应该是：
+下一步不要针对单个车手或车队手动修数值。优先顺序应该是：
 
-1. 做 British GP 之前多站历史回放，确认模型在已知 cutoff 下能否复现合理分布。
-2. 校准模拟器随机性，重点检查前两名胜率过度集中的问题。
-3. 检查最近 3-5 站的 FP、排位、正赛、长距离、退赛、升级信息是否都进入了状态更新。
-4. 对“进入状态但几乎不影响预测”的因素，修权重映射和模拟路由。
-5. 再生成新的 prediction packet 和 full sidecar，并比较每次改动到底改变了哪些预测。
+1. 扩大 replay/calibration 样本，并加入 holdout 或时间切分。
+2. 针对“冠军概率过度集中”做多候选校准，但只有综合指标和门禁通过才注册。
+3. 补齐同周末 FP、排位、长距离、策略、轮胎衰退、退赛和安全车来源。
+4. 检查哪些来源已经进入 `BeliefState` 但对预测几乎没有影响，修通用路由，不修实体特判。
+5. 清理前端赛道图语义标注和表格响应式布局。
 
-今晚可以暂停。当前项目状态是：解释链条、证据边界、注册门禁和 full sidecar 已经补齐；预测模型本身仍处于需要校准和历史回放验证的诊断阶段。
+今晚可以暂停。当前项目状态是：证据边界、解释链、赛后复盘、前端/API 读数已经可用；预测质量仍处在诊断和校准阶段。

@@ -1,7 +1,7 @@
 {
   "event_id": "british_gp",
   "event_name": "British Grand Prix",
-  "generated_at": "2026-07-07T08:52:49+00:00",
+  "generated_at": "2026-07-07T09:34:17+00:00",
   "status": "diagnostic_only",
   "prediction_run_id": "british_gp_20260705T000000_0000_20260707T065149_0000_d76ec2c3e4",
   "prediction_packet_path": "reports\\prediction_packets\\british_gp\\british_gp_20260705T000000_0000.prediction_packet.json",
@@ -21,6 +21,18 @@
   "podium_overlap_rate": 0.6667,
   "points_overlap_rate": 0.7,
   "mean_abs_rank_error": 4.6364,
+  "winner_calibration_probe": {
+    "status": "diagnostic_probe_not_registered",
+    "config_id": "winner_rank_podium_calibrated_probe",
+    "blend": 0.38,
+    "actual_winner": "leclerc",
+    "actual_winner_raw_probability": 0.0125,
+    "actual_winner_calibrated_probability": 0.042145,
+    "actual_winner_probability_delta": 0.029645,
+    "calibrated_top_pick": "russell",
+    "calibrated_top_pick_probability": 0.423042,
+    "note_zh": "这是赛后诊断 probe：只用通用 rank/podium 支持平滑 winner 概率，不改变注册预测，不写回 BeliefState，也不能单独证明正式 edge。"
+  },
   "top10_actual_position_summary": [
     {
       "driver_id": "russell",

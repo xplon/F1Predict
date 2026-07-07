@@ -857,3 +857,15 @@ reports/post_event_review/british_gp/british_gp_20260705T000000_0000.post_event_
 ```
 
 这说明解释链条已经能够交代预测依据，但预测质量闭环继续暴露出模型校准问题：Leclerc 胜率过低，Antonelli 风险尾部不足，强队双车概率仍有过度集中的倾向。下一轮模型修订应把这些作为历史 replay/calibration 的候选误差类型，而不是把 British GP 结果当作手调标签。
+
+2026-07-07 进一步新增一个未注册的 winner probability calibration probe。它只用模拟输出里的 `raw win probability`、`expected_rank` 和 `podium probability` 做通用平滑，默认预测仍关闭。这个 probe 的边界是：
+
+```text
+post-event review 可以展示 probe 后概率
+-> 不能改变 registered latest
+-> 不能写回 BeliefState
+-> 不能声称来源信息导致预测改变
+-> 只有通过 replay/calibration 模型修订证明后才能注册
+```
+
+British GP 上这个 probe 把 Leclerc 胜率从 `0.0125` 诊断性提高到 `0.042145`，同时 Russell 仍是最高胜率。这证明它能缓和“前排但 raw win tail 过低”的问题，但尚未证明正式有效。随后完成的 2026 已完赛 9 场、每候选 120 次迭代小样本校准显示：`winner_rank_podium_calibrated` 的 log loss 略好于 baseline，但综合评分更差，主要因为实际冠军平均概率和 top-pick 校准 gap 变差。因此它暂时必须保持 `diagnostic_probe_not_registered`，不能改变 latest，也不能声称已经完成模型修订。
