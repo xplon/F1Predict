@@ -2203,11 +2203,14 @@ top four = Russell / Antonelli / Hamilton / Leclerc
 
 为避免把单个车手近期事故、策略波动或退赛重复写成“车手速度”，实现只保留车队/赛车层的近期全场完赛输入，不生成车手层 `driver.race_pace`。
 
+2026-07-07 15:52 追加边界修正：该通路已改成默认关闭的诊断候选。默认 `PredictionPipeline()` 仍生成 `571` 条 feature，其中近期全场完赛候选为 `0` 条；只有显式传入 `--enable-recent-full-field-finish-form` 时才会生成下面这个候选包。这样可以防止未校准来源映射静默污染默认预测。
+
 British GP 本地诊断包：
 
 ```text
 reports/prediction_packets_recent_full_field_finish_probe/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
 status = diagnostic_only
+packet_payload_sha256 = c25112ae3e3c77c1b203996806d94b298caad0f7e672e2f0f61ca7e1331f6ede
 新增近期全场完赛车队特征 = 11
 新增 BeliefState ledger 行 = 11
 ```
@@ -2262,3 +2265,22 @@ source_identity_changed = false
 - 它确实影响最终概率，而不是只写文档；
 - 但候选结果还不能称为更合理；
 - 下一步必须做同口径历史 replay/calibration，解决近期结果派生来源之间的重复计数和权重问题，再决定是否注册。
+
+随后补了一个 120 次低迭代 replay 诊断：
+
+```text
+reports/recent_full_field_finish_replay_diagnostic/2026_asof_20260707T000000_0000.recent_full_field_finish_replay_diagnostic.md
+```
+
+结果：
+
+```text
+top_pick_hit_rate: baseline 0.6667 -> candidate 0.6667
+mean_actual_winner_probability: 0.3472 -> 0.3528
+mean_winner_brier_score: 0.6489 -> 0.6459
+mean_actual_log_loss: 1.4010 -> 1.4859
+weighted_top_pick_calibration_gap: 0.2148 -> 0.2889
+British GP Leclerc probability: 0.0167 -> 0.0083
+```
+
+这个结果支持保持默认关闭：候选在少数整体指标上有轻微信号，但 log loss、top-pick 校准 gap 和 British GP 实际冠军概率都变差。它可以继续作为“近期状态窗口怎样进入 BeliefState”的候选通路，但不能作为当前默认预测修复。

@@ -17,14 +17,22 @@ sys.path.insert(0, str(ROOT / "src"))
 from f1predict.belief_state import BeliefStateBuilder  # noqa: E402
 from f1predict.domain import parse_dt  # noqa: E402
 from f1predict.explanation_localization import localized_mechanism_zh  # noqa: E402
+from f1predict.features.provider import ProcessedFeatureProvider  # noqa: E402
 from f1predict.pipeline import PredictionPipeline  # noqa: E402
 
 
 def main() -> None:
-    pipeline = PredictionPipeline(iterations=30)
+    pipeline = PredictionPipeline(
+        iterations=30,
+        feature_provider=ProcessedFeatureProvider(enable_recent_full_field_finish_form=True),
+    )
     cutoff = pipeline._normalize_cutoff(parse_dt("2026-07-05T00:00:00+00:00"))
     season = pipeline.data_source.load()
     event = next(item for item in season.events if item.event_id == "british_gp")
+    default_features = PredictionPipeline(iterations=1).feature_provider.load_event_features(season, event, cutoff)
+    if any(feature.feature_id.startswith("fastf1-form-full-field-finish:") for feature in default_features):
+        raise AssertionError("Recent full-field finish candidate must stay disabled on the default feature provider")
+
     features = pipeline.feature_provider.load_event_features(season, event, cutoff)
 
     recent_finish = [

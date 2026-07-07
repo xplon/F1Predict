@@ -1246,11 +1246,20 @@ cutoff-valid FastF1 full-field race classifications
 
 这条规则只读取最近窗口内每支车队的平均完赛名次和全场均值，不读取任何用户判断，也不按车队或车手 id 特判。为避免把单个车手近期事故、策略波动或 DNF 重复写成“车手速度”，本轮只保留车队/赛车层更新，不生成车手层 `recent full-field finish -> driver.race_pace`。
 
+2026-07-07 15:52 追加边界修正：该通路现在默认关闭，只能通过显式诊断开关启用。默认 `PredictionPipeline()` / 默认 `prediction-packet` 仍保持 `571` 条 feature，其中 `fastf1-form-full-field-finish` 为 `0` 条；显式候选才生成 `582` 条 feature 和 `11` 条近期全场完赛状态更新。
+
+显式候选命令：
+
+```text
+.venv\Scripts\python.exe -m f1predict.cli prediction-packet --event british_gp --knowledge-cutoff 2026-07-05T00:00:00+00:00 --iterations 1200 --enable-recent-full-field-finish-form --write --output-dir reports\prediction_packets_recent_full_field_finish_probe
+```
+
 British GP 诊断包里新增了 11 条状态输入：
 
 ```text
 candidate packet = reports/prediction_packets_recent_full_field_finish_probe/british_gp/british_gp_20260705T000000_0000.prediction_packet.json
 status = diagnostic_only
+packet_payload_sha256 = c25112ae3e3c77c1b203996806d94b298caad0f7e672e2f0f61ca7e1331f6ede
 feature_count = 571 -> 582
 recent_full_field_feature_count = 11
 recent_full_field_ledger_count = 11
@@ -1316,3 +1325,28 @@ python scripts/fastf1_recent_full_field_finish_smoke_test.py
 ```
 
 它验证三件事：近期全场完赛特征只进入车队/赛车状态；中文解释必须说明“全场正赛排名”和“第 11 到第 22 名”；BeliefState ledger 必须能追踪到这些更新，并且影响 `race_pace_score`。
+
+随后补充了可复跑 replay 诊断脚本：
+
+```text
+.venv\Scripts\python.exe scripts\recent_full_field_finish_replay_diagnostic.py --year 2026 --as-of 2026-07-07T00:00:00+00:00 --iterations 120 --output-dir reports\recent_full_field_finish_replay_diagnostic
+```
+
+产物：
+
+```text
+reports/recent_full_field_finish_replay_diagnostic/2026_asof_20260707T000000_0000.recent_full_field_finish_replay_diagnostic.md
+```
+
+120 次低迭代诊断结果：
+
+```text
+top_pick_hit_rate: baseline 0.6667 -> candidate 0.6667
+mean_actual_winner_probability: 0.3472 -> 0.3528
+mean_winner_brier_score: 0.6489 -> 0.6459
+mean_actual_log_loss: 1.4010 -> 1.4859
+weighted_top_pick_calibration_gap: 0.2148 -> 0.2889
+British GP Leclerc probability: 0.0167 -> 0.0083
+```
+
+这进一步确认：该候选不是可以直接上线的修复。它在少数整体指标上有轻微信号，但 log loss、top-pick 校准 gap 和 British GP 的实际冠军概率变差；样本只有 9 场、迭代数低、没有留出集。因此它只能保持 diagnostic candidate，不能注册 latest。

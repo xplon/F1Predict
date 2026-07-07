@@ -14,6 +14,7 @@ from f1predict.domain import parse_dt
 from f1predict.explainability import PredictionExplainer
 from f1predict.features.calendar import CalendarBuilder
 from f1predict.features.openf1_summary import OpenF1SummaryBuilder
+from f1predict.features.provider import ProcessedFeatureProvider
 from f1predict.impact_trace_sidecar import PredictionImpactTraceSidecarStore, page_sidecar
 from f1predict.improvement_plan import ImprovementPlanBuilder
 from f1predict.ingestion import LiveIngestor
@@ -96,6 +97,12 @@ def _simulator_config_from_id(config_id: str | None):
     raise ValueError(f"Unknown simulator config id: {config_id}. Known ids: {known}")
 
 
+def _feature_provider_from_args(args: argparse.Namespace) -> ProcessedFeatureProvider | None:
+    if not getattr(args, "enable_recent_full_field_finish_form", False):
+        return None
+    return ProcessedFeatureProvider(enable_recent_full_field_finish_form=True)
+
+
 def main() -> None:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -107,12 +114,14 @@ def main() -> None:
     predict.add_argument("--knowledge-cutoff", default=None)
     predict.add_argument("--iterations", type=int, default=5000)
     predict.add_argument("--simulator-config-id", default=None)
+    predict.add_argument("--enable-recent-full-field-finish-form", action="store_true")
 
     prediction_packet = sub.add_parser("prediction-packet", help="Build an auditable single-event prediction packet")
     prediction_packet.add_argument("--event", default="british_gp")
     prediction_packet.add_argument("--knowledge-cutoff", default=None)
     prediction_packet.add_argument("--iterations", type=int, default=1200)
     prediction_packet.add_argument("--simulator-config-id", default=None)
+    prediction_packet.add_argument("--enable-recent-full-field-finish-form", action="store_true")
     prediction_packet.add_argument("--isolated-impact-limit", type=int, default=0)
     prediction_packet.add_argument("--isolated-source-group-limit", type=int, default=0)
     prediction_packet.add_argument("--write", action="store_true")
@@ -317,6 +326,7 @@ def main() -> None:
     simulator_calibration.add_argument("--as-of", required=True)
     simulator_calibration.add_argument("--iterations", type=int, default=800)
     simulator_calibration.add_argument("--candidate", action="append", default=[])
+    simulator_calibration.add_argument("--enable-recent-full-field-finish-form", action="store_true")
     simulator_calibration.add_argument("--write", action="store_true")
     simulator_calibration.add_argument("--output-dir", default="reports/simulator_calibration")
 
@@ -708,6 +718,7 @@ def main() -> None:
         report = PredictionPipeline(
             iterations=args.iterations,
             simulator_config=_simulator_config_from_id(args.simulator_config_id),
+            feature_provider=_feature_provider_from_args(args),
         ).predict_event(
             event_id=args.event,
             knowledge_cutoff=args.knowledge_cutoff,
@@ -718,6 +729,7 @@ def main() -> None:
             PredictionPipeline(
                 iterations=args.iterations,
                 simulator_config=_simulator_config_from_id(args.simulator_config_id),
+                feature_provider=_feature_provider_from_args(args),
                 isolated_impact_limit=args.isolated_impact_limit,
                 isolated_source_group_limit=args.isolated_source_group_limit,
             )
@@ -959,7 +971,10 @@ def main() -> None:
         else:
             print(json.dumps(auditor.build(args.year, season.events).to_dict(), ensure_ascii=False, indent=2))
     elif args.command == "simulator-calibration":
-        pipeline = PredictionPipeline(iterations=args.iterations)
+        pipeline = PredictionPipeline(
+            iterations=args.iterations,
+            feature_provider=_feature_provider_from_args(args),
+        )
         candidate_configs = None
         if args.candidate:
             wanted = set(args.candidate)

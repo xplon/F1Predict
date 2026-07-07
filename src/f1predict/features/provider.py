@@ -38,6 +38,7 @@ class ProcessedFeatureProvider:
         result_repository: FastF1ResultRepository | None = None,
         session_lap_repository: FastF1SessionLapRepository | None = None,
         official_standings_repository: OfficialStandingsRepository | None = None,
+        enable_recent_full_field_finish_form: bool = False,
     ) -> None:
         self.processed_root = Path(processed_root)
         self.raw_root = Path(raw_root)
@@ -47,6 +48,7 @@ class ProcessedFeatureProvider:
             raw_root=raw_root,
             processed_root=processed_root,
         )
+        self.enable_recent_full_field_finish_form = enable_recent_full_field_finish_form
 
     def load_event_features(
         self,
@@ -1363,33 +1365,17 @@ class ProcessedFeatureProvider:
                 )
             )
 
-        for team_id, avg_finish in sorted(team_avg_finish.items()):
-            if team_id not in season.teams:
-                continue
-            finish_delta = field_team_finish - avg_finish
-            finish_value = round(self._clamp(finish_delta / 8.0 * 0.065, -0.065, 0.065), 4)
-            if not finish_value:
-                continue
-            adjustments.append(
-                FeatureAdjustment(
-                    feature_id=(
-                        f"fastf1-form-full-field-finish:{season.season}:{event.event_id}:"
-                        f"{team_id}:race_pace:{len(result_rows)}"
-                    ),
-                    event_id=event.event_id,
-                    source=source,
-                    target_type="team",
-                    target_id=team_id,
-                    metric="race_pace",
-                    value=finish_value,
-                    confidence=max(0.16, confidence - 0.02),
-                    observed_at=observed_at,
-                    explanation=(
-                        f"Cutoff-valid FastF1 full-field race classifications before {event.name}: "
-                        f"team recent-window average finish {avg_finish:.2f} vs field {field_team_finish:.2f} "
-                        f"across previous {len(result_rows)} race result(s); used as a bounded recent team/car "
-                        "race-pace prior so points-only scoring does not hide P11-P22 outcomes."
-                    ),
+        if self.enable_recent_full_field_finish_form:
+            adjustments.extend(
+                self._fastf1_recent_full_field_finish_adjustments(
+                    season,
+                    event,
+                    result_rows,
+                    source,
+                    observed_at,
+                    confidence,
+                    team_avg_finish,
+                    field_team_finish,
                 )
             )
 
@@ -1434,6 +1420,49 @@ class ProcessedFeatureProvider:
                 target_cutoff,
             )
         )
+        return adjustments
+
+    def _fastf1_recent_full_field_finish_adjustments(
+        self,
+        season: SeasonState,
+        event: RaceEvent,
+        result_rows: list[tuple[str, NormalizedRaceResult, str]],
+        source: str,
+        observed_at: str,
+        confidence: float,
+        team_avg_finish: dict[str, float],
+        field_team_finish: float,
+    ) -> list[FeatureAdjustment]:
+        adjustments: list[FeatureAdjustment] = []
+        for team_id, avg_finish in sorted(team_avg_finish.items()):
+            if team_id not in season.teams:
+                continue
+            finish_delta = field_team_finish - avg_finish
+            finish_value = round(self._clamp(finish_delta / 8.0 * 0.065, -0.065, 0.065), 4)
+            if not finish_value:
+                continue
+            adjustments.append(
+                FeatureAdjustment(
+                    feature_id=(
+                        f"fastf1-form-full-field-finish:{season.season}:{event.event_id}:"
+                        f"{team_id}:race_pace:{len(result_rows)}"
+                    ),
+                    event_id=event.event_id,
+                    source=source,
+                    target_type="team",
+                    target_id=team_id,
+                    metric="race_pace",
+                    value=finish_value,
+                    confidence=max(0.16, confidence - 0.02),
+                    observed_at=observed_at,
+                    explanation=(
+                        f"Cutoff-valid FastF1 full-field race classifications before {event.name}: "
+                        f"team recent-window average finish {avg_finish:.2f} vs field {field_team_finish:.2f} "
+                        f"across previous {len(result_rows)} race result(s); used as a bounded recent team/car "
+                        "race-pace prior so points-only scoring does not hide P11-P22 outcomes."
+                    ),
+                )
+            )
         return adjustments
 
     def _fastf1_season_trend_adjustments(
