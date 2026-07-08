@@ -560,7 +560,7 @@ anomaly = driver_specific_lift_over_weak_team_support / gasly / low
 1. sidecar 是解释缓存，不是新的预测结果。它不会注册新的 latest prediction run，也不会手动改变排名。
 2. 如果 sidecar 的 `trace_generation.comparison_status` 是 `diagnostic_iteration_mismatch`，说明隔离重跑迭代数与源 run 不一致，只能用于链路诊断，不能作为正式“这条信息精确改变了多少概率”的证明。
 3. 用户的例子仍然只能触发排查：代码层继续要求预测更新不能按车手/车队名写死，必须来自来源化数据、结构化特征和通用模拟机制。
-4. 当前模型质量仍是 `diagnostic_only`：sidecar 解决的是“能否追溯每条信息的边际影响”，不是“预测已经稳定有 edge”。
+4. 当前模型质量仍是 `diagnostic_only`：sidecar 解决的是“能否追溯每条信息的边际影响”，不是“预测已经完成稳定优势证明”。
 5. 当前默认 latest 已确认是 `british_gp_20260705T000000_0000_20260706T142235_0000_ab901d489d`；由未验证启发式权重试验生成的 `c4515f938f` 不进入默认前端。
 6. API/latest 会用当前审计器和对应 sidecar 重新计算前端可见的 `prediction_anomaly_audit`；这不是重新预测，也不会写 artifact。
 
@@ -599,7 +599,7 @@ formal_readiness.formal_ready = false
 
 这次重写没有改变任何预测排名，也没有注册新的 prediction run。它修正的是解释缓存：sidecar 内现在包含 `trace_context`，分页行可以把 FastF1 同场排位、FastF1 近几站车队强度重估、F1 官方积分榜等结构化来源，连接到 `raw_sources -> normalized_claim -> quality_profile -> state_update_ledger -> same-seed impact trace`。也就是说，前端解释不再只能显示“某个 FastF1 claim_id 产生了变化”，而是能说明它来自哪类结构化来源、被映射成哪个状态因子、状态如何变化，以及同种子重跑后是否真的改变了预测分布。
 
-重要边界仍然不变：这个 b4fa sidecar 是 5 次迭代的诊断缓存，不能作为正式 1200 次同口径概率变化证明。它解决的是“链条能否追溯”的前端解释问题，不解决“预测是否已经有稳定 edge”的问题。
+重要边界仍然不变：这个 b4fa sidecar 是 5 次迭代的诊断缓存，不能作为正式 1200 次同口径概率变化证明。它解决的是“链条能否追溯”的前端解释问题，不解决“预测是否已经具备稳定优势证明”的问题。
 
 2026-07-06 12:36 UTC 又为最新注册 run 生成了 1200 次同迭代正式解释 sidecar：
 

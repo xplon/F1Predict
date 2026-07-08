@@ -75,7 +75,7 @@ log loss / Brier score 优于基准
 - 不让 LLM 直接输出交易概率。
 - 不只预测单站冠军。
 - 不用赛后信息回填赛前特征。
-- 不把没有真实 matched backtest 的结果称为稳定 edge。
+- 不把没有同口径历史回放验证的结果称为已经具备可决策优势。
 
 ## 2. 外部调研要点
 
@@ -630,7 +630,7 @@ fee/spread/slippage/funding/model-error buffer already deducted
 decision packet carries reproducible payload hash
 ```
 
-如果任一条件不满足，输出只能是 `diagnostic_gap`、`research_signal` 或 `no_trade_research`，不能包装成“稳定盈利策略”。这条门禁比模型选择更重要，因为 F1 样本量小，事后解释很容易看起来合理。
+如果任一条件不满足，输出只能是诊断差异、研究信号或暂不行动，不能包装成“稳定盈利策略”。这条门禁比模型选择更重要，因为 F1 样本量小，事后解释很容易看起来合理。
 
 ## 9. MVP 实施路线
 
@@ -649,7 +649,7 @@ season simulator
 prediction report markdown/json
 ```
 
-当前状态：Phase 0 已基本完成，并且已经扩展出 replay/readiness/calibration/freeze 诊断链路。接下来不是继续堆 UI，而是补齐 formal edge 所需的 point-in-time market/source 数据。
+当前状态：第一阶段已基本完成，并且已经扩展出回放、就绪度、校准和冻结清单诊断链路。接下来不是继续堆界面，而是补齐未来做市场优势证明所需的同一时间点市场和来源数据。
 
 ### Phase 1：V0 赛季模型
 
@@ -838,7 +838,7 @@ no trade / maker / taker 建议
 回测与 CLV 追踪
 ```
 
-这条路线比“直接训练一个 winner 分类器”慢一点，但更可能形成可解释、可复盘、可迭代的稳定 edge。
+这条路线比“直接训练一个冠军分类器”慢一点，但更可能形成可解释、可复盘、可迭代的预测研究系统；是否具备可决策优势需要在后续用更严格数据单独证明。
 
 最短的下一步不是调参，而是建立 formal replay 输入闭环：
 

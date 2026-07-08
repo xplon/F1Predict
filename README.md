@@ -236,7 +236,7 @@ mixing together other same-target evidence. See
   requirement-by-requirement status: diagnostic MVP operation, remaining MVP
   delivery blockers, formal-edge blockers, evidence paths, and next actions.
   `mvp_delivery_ready` is the diagnostic MVP delivery gate, not a claim of a
-  stable trading edge: same-time market gaps, source archive proof, and
+  market-advantage proof: same-time market gaps, source archive proof, and
   probability calibration can remain as `formal_edge_blockers` while the
   data-to-Codex-to-simulation-to-replay-to-frontend chain is deliverable.
 - Readiness intake export writes per-workstream JSONL/CSV task queues for
@@ -461,7 +461,7 @@ The completion audit is the top-level handoff artifact. It checks the original
 MVP objective against the current code, reports, frontend evidence, replay
 diagnostics, and Codex factor-routing proof. The current expected status is
 `mvp_complete_formal_edge_not_ready`, which means the diagnostic MVP is complete
-without claiming a stable betting edge.
+while the stricter market-advantage proof remains a later validation task.
 
 The local API and frontend resolve omitted `as_of` values to the latest generated
 replay artifact for each report family. Pass `?as_of=<iso>` to any replay

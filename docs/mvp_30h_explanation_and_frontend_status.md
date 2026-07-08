@@ -20,7 +20,7 @@
 - Codex/LLM 层不再是随便写自然语言结论，而是被规范成 source candidate、research packet、preflight、evidence claim、evidence quality、factor contract、factor trace。
 - 新闻/事实可以进入模拟条件。例如 energy recovery、straight-line speed、launch performance、tyre degradation、wet weather 等因素会被路由到模拟器或 pace model，并留下可审计 trace。
 - British Grand Prix 当前已经能返回 F1 官方赛道图资产和 312 行 simulation replay，不再是 replay unavailable。
-- 有 MVP gate 和 completion audit 明确说明：诊断级 MVP 完成，但 formal edge/stable edge 没有完成，也没有被宣称完成。
+- 有 MVP gate 和 completion audit 明确说明：诊断级 MVP 完成，但市场优势证明没有完成，也没有被宣称完成。
 
 当前没有完成的是：
 
@@ -75,7 +75,7 @@
 - 要能和市场概率比较；
 - 要有前端展示赛道图、代表性模拟圈、AI 判断、市场差异；
 - 要按时间顺序从第一站测到当前 cutoff；
-- MVP 不要求稳定 edge，但不能假装有 edge。
+- MVP 不要求稳定优势证明，但不能假装已经具备优势证明。
 
 这个阶段的关键决定是：我没有把它做成一个单文件脚本，而是做成一个诊断研究系统。这是 30 小时变长的第一个原因。
 
@@ -278,7 +278,7 @@ British GP 当前 312 行 replay 就来自这里。后来你看到 `Simulation R
 
 所以现在 British GP 的问题不是模型没有 replay，而是过去某些时刻前端状态、端口状态、加载顺序或旧服务确实造成了你看到 unavailable。
 
-### 第 25-27 小时：做 MVP gate，避免把诊断 MVP 说成 stable edge
+### 第 25-27 小时：做 MVP gate，避免把诊断 MVP 说成已经具备稳定优势证明
 
 我增加了 `mvp_gate`，把需求拆成：
 
@@ -297,7 +297,7 @@ British GP 当前 312 行 replay 就来自这里。后来你看到 `Simulation R
 - `formal_edge_ready=false`
 - `formal_edge_blockers=5`
 
-这一步的价值是诚实边界：MVP 可以交付，但不能说有稳定 edge。
+这一步的价值是诚实边界：MVP 可以交付，但不能说已经具备稳定优势证明。
 
 ### 第 27-29 小时：做 completion audit 和最终文档化
 
@@ -352,7 +352,7 @@ British GP 当前 312 行 replay 就来自这里。后来你看到 `Simulation R
    - frontend；
    - chronological backtest；
    - problem diagnosis；
-   - 不冒充 stable edge。
+   - 不冒充稳定优势证明。
 
    这已经接近一个小型研究平台的 MVP。
 
@@ -586,7 +586,7 @@ D:\Program\anaconda3\python.exe -m f1predict.server --host 127.0.0.1 --port 8811
 - 我把项目从“想法”推进到了“全链路诊断 MVP”；
 - 我没有把假的赛道图和假的 replay 留在系统里；
 - 我把 LLM 层做成可审计合同，而不是自然语言黑箱；
-- 我没有宣称 stable edge；
+- 我没有宣称稳定优势证明；
 - 我把模型差、市场缺、source 风险、calibration 弱这些问题都暴露出来；
 - 我补了 smoke test，避免 British GP/replay 这类问题回归。
 

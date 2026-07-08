@@ -218,7 +218,7 @@ red flag/restart -> 排名分布
 必须有一句清楚结论：
 
 ```text
-当前模型：诊断级，不具备 stable edge 证明。
+当前模型：诊断级；可决策优势证明不是当前 MVP 的验收条件，页面只需要诚实标注“尚未完成优势证明”。
 ```
 
 ## 9. 第六屏：数据健康
@@ -302,7 +302,7 @@ reports/frontend_cache/{event_id}/{run_id}/model_eval.json
 状态条：
 
 ```text
-诊断级预测，不代表稳定交易 edge
+诊断级预测；尚未完成可决策优势证明
 ```
 
 核心卡片：
@@ -354,6 +354,6 @@ reports/frontend_cache/{event_id}/{run_id}/model_eval.json
 6. 当前预测相比上次变了多少；
 7. 当前数据缺什么；
 8. 模型过去准不准；
-9. 这是不是 stable edge。
+9. 是否已经完成可决策优势证明；如果没有，是否清楚标注为“尚未证明”。
 
 如果这些看不到，前端就还是没有抓住重点。
